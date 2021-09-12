@@ -48,7 +48,8 @@ func (jo JSONObject) Value() (driver.Value, error) {
 type User struct {
 	gorm.Model
 
-	Apps StringList
+	MasterKey string
+	Apps      StringList
 
 	// associations
 	Wallets []Wallet

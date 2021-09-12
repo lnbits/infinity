@@ -2,10 +2,17 @@ package main
 
 import (
 	"embed"
+	"io/fs"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/fiatjaf/relampago"
+	"github.com/fiatjaf/relampago/void"
+	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -26,10 +33,13 @@ type Settings struct {
 }
 
 var s Settings
+var ln relampago.Wallet
 var db *gorm.DB
-var log = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: PluginLogger{}})
+var log = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: os.Stdout})
+var router = mux.NewRouter()
+var commit string // will be set at compile time
 
-//go:embed static
+//go:embed client/dist/spa
 var static embed.FS
 
 func main() {
@@ -65,7 +75,7 @@ func main() {
 	}
 
 	// migration
-	db.AutoMigrate(&User{}, &Wallet{}, &Payment{}, &BalanceCheck, &AppDataItem)
+	db.AutoMigrate(&User{}, &Wallet{}, &Payment{}, &BalanceCheck{}, &AppDataItem{})
 
 	// start lightning backend
 	switch s.LightningBackend {
@@ -84,9 +94,46 @@ func main() {
 			Msg("couldn't start lightning backend.")
 		return
 	} else {
-		log.Info().Int("balance", info.Balance).Str("kind", s.LightningBackend).
+		log.Info().Int64("msat", info.Balance).Str("kind", s.LightningBackend).
 			Msg("initialized lightning backend")
 	}
 
 	// serve http routes
+	router.Path("/api/settings").HandlerFunc(apiSettings)
+	router.Path("/api/user").HandlerFunc(apiUser)
+	router.Path("/api/wallet").HandlerFunc(apiWallet)
+
+	// serve static client
+	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
+		log.Fatal().Err(err).Msg("failed to load static files subdir")
+		return
+	} else {
+		spaFS := SpaFS{staticFS}
+		httpFS := http.FS(spaFS)
+		router.PathPrefix("/").Handler(http.FileServer(httpFS))
+	}
+
+	// start http server
+	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")
+	srv := &http.Server{
+		Handler:      cors.Default().Handler(router),
+		Addr:         s.Host + ":" + s.Port,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error().Err(err).Msg("error serving http")
+	}
+}
+
+type SpaFS struct {
+	base fs.FS
+}
+
+func (s SpaFS) Open(name string) (fs.File, error) {
+	if file, err := s.base.Open(name); err == nil {
+		return file, nil
+	} else {
+		return s.base.Open("index.html")
+	}
 }
