@@ -1,4 +1,4 @@
-import {Quasar} from 'quasar'
+import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
 import {
@@ -30,40 +30,47 @@ export default createStore({
   },
   actions: {
     async init({dispatch, commit}) {
-      dispatch('getUser')
-      dispatch('getWallet')
+      dispatch('fetchUser')
 
       const settings = await loadSettings()
 
       // set dark mode
-      Quasar.dark.set(Quasar.localStorage.getItem('lnbits.darkMode'))
+      Dark.set(LocalStorage.getItem('lnbits.darkMode'))
 
       // failsafe if admin changes themes halfway
       if (
-        Quasar.localStorage.getItem('lnbits.theme') &&
-        !settings.allowedThemes.includes(
-          Quasar.localStorage.getItem('lnbits.theme')
-        )
+        LocalStorage.getItem('lnbits.theme') &&
+        !settings.allowedThemes.includes(LocalStorage.getItem('lnbits.theme'))
       ) {
         console.log('allowedThemes changed by admin', settings.allowedThemes)
         changeColorTheme(settings.allowedThemes[0])
       }
 
       // set theme
-      if (Quasar.localStorage.getItem('lnbits.theme')) {
+      if (LocalStorage.getItem('lnbits.theme')) {
         document.body.setAttribute(
           'data-theme',
-          Quasar.localStorage.getItem('lnbits.theme')
+          LocalStorage.getItem('lnbits.theme')
         )
       }
 
       // commit settings
       commit('setSettings', settings)
+
+      // listeners
+      dispatch('listenForPayments')
     },
-    async getUser({commit}) {
-      const user = await loadUser()
-      commit('setUser', user)
-      const wallet = await loadWallet(user.wallets[0])
+    async fetchUser({dispatch, commit}) {
+      try {
+        const user = await loadUser()
+        commit('setUser', user)
+        dispatch('fetchWallet', user.wallets[0])
+      } catch (_) {
+        /**/
+      }
+    },
+    async fetchWallet({commit}, walletID) {
+      const wallet = await loadWallet(walletID)
       commit('setWallet', wallet)
     },
     async createWallet({state, commit}, {name}) {
@@ -73,6 +80,11 @@ export default createStore({
       } else {
         location.href = `/?key=${userMasterKey}`
       }
+    },
+    async listenForPayments({dispatch}) {
+      // TODO: listen for payments sent and received, and failures
+      // call callbacks
+      // refresh wallet
     }
   }
 })

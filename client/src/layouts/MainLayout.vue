@@ -3,6 +3,7 @@
     <q-header bordered class="bg-marginal-bg">
       <q-toolbar>
         <q-btn
+          v-if="$store.state.user"
           dense
           flat
           round
@@ -17,7 +18,6 @@
             <span v-else> <strong>LN</strong>bits </span>
           </q-btn>
         </q-toolbar-title>
-        {% block beta %}
         <q-badge color="yellow" text-color="black" class="q-mr-md">
           <span
             ><span v-show="$q.screen.gt.sm"
@@ -26,7 +26,6 @@
             >BETA</span
           >
         </q-badge>
-        {% endblock %}
         <q-btn-dropdown
           v-if="
             $store.state.settings.allowedThemes &&
@@ -122,7 +121,7 @@
       :elevated="$q.screen.lt.md"
     >
       <WalletList />
-      <ExtensionList class="q-pb-xl" />
+      <AppList class="q-pb-xl" />
     </q-drawer>
 
     <q-page-container>

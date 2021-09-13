@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
@@ -26,6 +28,7 @@ type Settings struct {
 
 	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
 	SiteTagline       string   `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
+	SiteDescription   string   `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
 	ThemeOptions      []string `envconfig:"LNBITS_THEME_OPTIONS" default:"classic, flamingo, mint, salvador, monochrome, autumn"`
 	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
@@ -101,7 +104,14 @@ func main() {
 	// serve http routes
 	router.Path("/api/settings").HandlerFunc(apiSettings)
 	router.Path("/api/user").HandlerFunc(apiUser)
-	router.Path("/api/wallet").HandlerFunc(apiWallet)
+	router.Path("/api/create-wallet").HandlerFunc(apiCreateWallet)
+	router.Path("/api/wallet/{id}").HandlerFunc(apiWallet)
+	router.Path("/api/wallet/{id}/create-invoice").HandlerFunc(apiCreateInvoice)
+	router.Path("/api/wallet/{id}/pay-invoice").HandlerFunc(apiPayInvoice)
+	router.Path("/api/wallet/{id}/lnurlscan").HandlerFunc(apiLnurlScan)
+	router.Path("/api/wallet/{id}/lnurlauth").HandlerFunc(apiLnurlAuth)
+	router.Path("/api/wallet/{id}/pay-lnurl").HandlerFunc(apiPayLnurl)
+	router.Use(userMiddleware)
 
 	// serve static client
 	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
@@ -136,4 +146,15 @@ func (s SpaFS) Open(name string) (fs.File, error) {
 	} else {
 		return s.base.Open("index.html")
 	}
+}
+
+type JSONError struct {
+	Ok    bool   `json:"ok"`
+	Error string `json:"error"`
+}
+
+func jsonError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	b, _ := json.Marshal(JSONError{false, fmt.Sprintf(msg, args...)})
+	http.Error(w, string(b), code)
 }
