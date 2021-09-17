@@ -114,6 +114,7 @@
     </q-header>
 
     <q-drawer
+      v-if="$store.state.user"
       v-model="visibleDrawer"
       side="left"
       :width="$q.screen.lt.md ? 260 : 230"

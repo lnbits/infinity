@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -14,7 +15,14 @@ func userMiddleware(next http.Handler) http.Handler {
 		}
 
 		var user User
-		err := db.Where("master_key", r.Header.Get("X-MasterKey")).First(&user).Error
+		var err error
+		masterKey := r.Header.Get("X-MasterKey")
+		if masterKey == "" {
+			err = fmt.Errorf("X-MasterKey header not provided")
+		} else {
+			err = db.Where("master_key", masterKey).First(&user).Error
+		}
+
 		if err != nil {
 			if r.URL.Path == "/api/user" || strings.HasPrefix(r.URL.Path, "/api/wallet/") {
 				jsonError(w, 500, "error fetching user: %s", err.Error())

@@ -5,26 +5,12 @@ import (
 	"net/http"
 )
 
-func apiSettings(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(struct {
-		SiteTitle       string   `json:"siteTitle"`
-		SiteTagLine     string   `json:"siteTagline"`
-		SiteDescription string   `json:"siteDescription"`
-		AllowedThemes   []string `json:"allowedThemes"`
-		SiteVersion     string   `json:"siteVersion"`
-		Currencies      []string `json:"currencies"`
-	}{
-		s.SiteTitle,
-		s.SiteTagline,
-		s.SiteDescription,
-		s.ThemeOptions,
-		commit,
-		CURRENCIES,
-	})
-}
-
 func apiUser(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(*User)
+
+	// load wallets
+	db.Where(&Wallet{UserID: user.ID}).Find(&user.Wallets)
+
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -37,7 +23,7 @@ func apiCreateWallet(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// create user
 		user.Apps = make(StringList, 0)
-		masterKey := randomHex(32) // will only be returned if we're creating the user
+		masterKey = randomHex(32) // will only be returned if we're creating the user
 		user.MasterKey = masterKey
 		db.Create(user)
 	}

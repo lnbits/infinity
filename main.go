@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fiatjaf/relampago"
+	"github.com/fiatjaf/relampago/sparko"
 	"github.com/fiatjaf/relampago/void"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
@@ -33,6 +34,8 @@ type Settings struct {
 	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
 	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
+	SparkoURL        string `envconfig:"SPARKO_URL"`
+	SparkoToken      string `envconfig:"SPARKO_TOKEN"`
 }
 
 var s Settings
@@ -87,10 +90,15 @@ func main() {
 	case "eclair":
 	case "clightning":
 	case "sparko":
+		ln = sparko.Start(sparko.Params{
+			Host:               s.SparkoURL,
+			Key:                s.SparkoToken,
+			InvoiceLabelPrefix: "lbs",
+		})
 	case "lnbits":
 	default:
 		// use void wallet that does nothing
-		ln = void.New()
+		ln = void.Start()
 	}
 	if info, err := ln.GetInfo(); err != nil {
 		log.Fatal().Err(err).Str("lightning", s.LightningBackend).
@@ -102,7 +110,7 @@ func main() {
 	}
 
 	// serve http routes
-	router.Path("/api/settings").HandlerFunc(apiSettings)
+	router.Path("/v/settings").HandlerFunc(viewSettings)
 	router.Path("/api/user").HandlerFunc(apiUser)
 	router.Path("/api/create-wallet").HandlerFunc(apiCreateWallet)
 	router.Path("/api/wallet/{id}").HandlerFunc(apiWallet)

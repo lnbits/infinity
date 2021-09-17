@@ -2,13 +2,14 @@ import {exportFile, Notify} from 'quasar'
 
 const request = async (url, opts = {}) => {
   opts.headers = opts.headers || {}
-  opts.headers['X-MasterKey'] = new URLSearchParams(location.search).get('key')
+  const key = new URLSearchParams(location.search).get('key')
+  if (key) opts.headers['X-MasterKey'] = key
   const r = await fetch(url, opts)
   if (!r.ok) throw new Error(await r.text())
   return await r.json()
 }
 
-export const loadSettings = async () => await request('/api/settings')
+export const loadSettings = async () => await request('/v/settings')
 
 export const loadUser = async () => await request('/api/user')
 

@@ -19,11 +19,11 @@ type Model struct {
 type User struct {
 	Model
 
-	MasterKey string     `gorm:"not null;uniqueIndex" json:"-"`
+	MasterKey string     `gorm:"not null;uniqueIndex" json:"-";check:master_key <> ''`
 	Apps      StringList `gorm:"not null" json:"apps"`
 
 	// associations
-	Wallets []Wallet `json:"wallets"`
+	Wallets []Wallet `json:"wallets,omitempty"`
 }
 
 type Wallet struct {
@@ -35,8 +35,8 @@ type Wallet struct {
 
 	// associations
 	UserID        uint           `gorm:"index;not null" json:"userID"`
-	Payments      []Payment      `json:"payments"`
-	BalanceChecks []BalanceCheck `json:"balanceChecks"`
+	Payments      []Payment      `json:"payments,omitempty"`
+	BalanceChecks []BalanceCheck `json:"balanceChecks,omitempty"`
 }
 
 type Payment struct {
@@ -81,7 +81,7 @@ type StringList []string
 
 func (sl StringList) Scan(src interface{}) error {
 	if jstr, ok := src.(string); ok {
-		return json.Unmarshal([]byte(jstr), sl)
+		return json.Unmarshal([]byte(jstr), &sl)
 	} else {
 		return errors.New("value is not a string")
 	}
@@ -99,7 +99,7 @@ type JSONObject map[string]interface{}
 
 func (jo JSONObject) Scan(src interface{}) error {
 	if jstr, ok := src.(string); ok {
-		return json.Unmarshal([]byte(jstr), jo)
+		return json.Unmarshal([]byte(jstr), &jo)
 	} else {
 		return errors.New("value is not a string")
 	}

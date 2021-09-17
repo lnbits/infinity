@@ -87,7 +87,6 @@
               :filter="paymentsTable.filter"
               :filter-method="paymentsTable.filterMethod"
             >
-              {% raw %}
               <template #header="props">
                 <q-tr :props="props">
                   <q-th auto-width></q-th>
@@ -228,7 +227,6 @@
                   </q-card>
                 </q-dialog>
               </template>
-              {% endraw %}
             </q-table>
           </q-card-section>
         </q-card>
@@ -239,7 +237,7 @@
             <h6 class="text-subtitle1 q-mt-none q-mb-sm">
               {{ $store.state.settings.siteTitle }} wallet:
               <strong
-                ><em>{{ wallet.name }}</em></strong
+                ><em>{{ $store.state.wallet.name }}</em></strong
               >
             </h6>
           </q-card-section>
@@ -373,7 +371,6 @@
     </div>
 
     <q-dialog v-model="receive.show" @hide="closeReceiveDialog">
-      {% raw %}
       <q-card
         v-if="!receive.paymentReq"
         class="q-pa-lg q-pt-xl lnbits__dialog-card"
@@ -455,13 +452,11 @@
           <q-btn v-close-popup flat color="grey" class="q-ml-auto">Close</q-btn>
         </div>
       </q-card>
-      {% endraw %}
     </q-dialog>
 
     <q-dialog v-model="parse.show" @hide="closeParseDialog">
       <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
         <div v-if="parse.invoice">
-          {% raw %}
           <h6 class="q-my-none">{{ parse.invoice.sat }} sat</h6>
           <q-separator class="q-my-sm"></q-separator>
           <p class="text-wrap">
@@ -469,7 +464,6 @@
             <strong>Expire date:</strong> {{ parse.invoice.expireDate }}<br />
             <strong>Hash:</strong> {{ parse.invoice.hash }}
           </p>
-          {% endraw %}
           <div v-if="canPay" class="row q-mt-lg">
             <q-btn unelevated color="primary" @click="payInvoice">Pay</q-btn>
             <q-btn v-close-popup flat color="grey" class="q-ml-auto"
@@ -486,7 +480,6 @@
           </div>
         </div>
         <div v-else-if="parse.lnurlauth">
-          {% raw %}
           <q-form class="q-gutter-md" @submit="authLnurl">
             <p class="q-my-none text-h6">
               Authenticate with <b>{{ parse.lnurlauth.domain }}</b
@@ -512,7 +505,6 @@
               >
             </div>
           </q-form>
-          {% endraw %}
         </div>
         <div v-else-if="parse.lnurlpay">
           <q-form class="q-gutter-md" @submit="payLnurl">
@@ -651,7 +643,6 @@
       </q-card>
     </q-dialog>
 
-    {% if service_fee > 0 %}
     <div ref="disclaimer"></div>
     <q-dialog v-model="disclaimerDialog.show">
       <q-card class="q-pa-lg">
@@ -666,10 +657,9 @@
         <p>
           This service is in BETA, and we hold no responsibility for people
           losing access to funds. To encourage you to run your own LNbits
-          installation, any balance on {% raw %}{{
-            disclaimerDialog.location.host
-          }}{% endraw %} will incur a charge of
-          <strong>{{ service_fee }}% service fee</strong> per week.
+          installation, any balance on {{ disclaimerDialog.location.host }} will
+          incur a charge of <strong>{{ service_fee }}% service fee</strong> per
+          week.
         </p>
         <div class="row q-mt-lg">
           <q-btn
@@ -703,107 +693,6 @@ import {
   scanLnurl,
   payLnurl
 } from '../helpers'
-
-function generateChart(canvas, payments) {
-  var txs = []
-  var n = 0
-  var data = {
-    labels: [],
-    income: [],
-    outcome: [],
-    cumulative: []
-  }
-
-  payments
-    .filter(p => !p.pending)
-    .sort((a, b) => a.time - b.time)
-    .forEach(tx => {
-      txs.push({
-        hour: this.$q.utils.date.formatDate(tx.date, 'YYYY-MM-DDTHH:00'),
-        sat: tx.sat
-      })
-    })
-
-  groupBy(txs, 'hour').forEach((value, day) => {
-    var income = value.reduce(
-      (memo, tx) => (tx.sat >= 0 ? memo + tx.sat : memo),
-      0
-    )
-    var outcome = value.reduce(
-      (memo, tx) => (tx.sat < 0 ? memo + Math.abs(tx.sat) : memo),
-      0
-    )
-    n = n + income - outcome
-    data.labels.push(day)
-    data.income.push(income)
-    data.outcome.push(outcome)
-    data.cumulative.push(n)
-  })
-
-  new Chart(canvas.getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: data.labels,
-      datasets: [
-        {
-          data: data.cumulative,
-          type: 'line',
-          label: 'balance',
-          backgroundColor: '#673ab7', // deep-purple
-          borderColor: '#673ab7',
-          borderWidth: 4,
-          pointRadius: 3,
-          fill: false
-        },
-        {
-          data: data.income,
-          type: 'bar',
-          label: 'in',
-          barPercentage: 0.75,
-          backgroundColor: window.Color('rgb(76,175,80)').alpha(0.5).rgbString() // green
-        },
-        {
-          data: data.outcome,
-          type: 'bar',
-          label: 'out',
-          barPercentage: 0.75,
-          backgroundColor: window.Color('rgb(233,30,99)').alpha(0.5).rgbString() // pink
-        }
-      ]
-    },
-    options: {
-      title: {
-        text: 'Chart.js Combo Time Scale'
-      },
-      tooltips: {
-        mode: 'index',
-        intersect: false
-      },
-      scales: {
-        xAxes: [
-          {
-            type: 'time',
-            display: true,
-            offset: true,
-            time: {
-              minUnit: 'hour',
-              stepSize: 3
-            }
-          }
-        ]
-      },
-      // performance tweaks
-      animation: {
-        duration: 0
-      },
-      elements: {
-        line: {
-          tension: 0
-        }
-      }
-    }
-  })
-}
 
 export default {
   name: 'Wallet',
@@ -1280,5 +1169,106 @@ export default {
       exportCSV(this.paymentsTable.columns, this.payments)
     }
   }
+}
+
+function generateChart(canvas, payments) {
+  var txs = []
+  var n = 0
+  var data = {
+    labels: [],
+    income: [],
+    outcome: [],
+    cumulative: []
+  }
+
+  payments
+    .filter(p => !p.pending)
+    .sort((a, b) => a.time - b.time)
+    .forEach(tx => {
+      txs.push({
+        hour: this.$q.utils.date.formatDate(tx.date, 'YYYY-MM-DDTHH:00'),
+        sat: tx.sat
+      })
+    })
+
+  groupBy(txs, 'hour').forEach((value, day) => {
+    var income = value.reduce(
+      (memo, tx) => (tx.sat >= 0 ? memo + tx.sat : memo),
+      0
+    )
+    var outcome = value.reduce(
+      (memo, tx) => (tx.sat < 0 ? memo + Math.abs(tx.sat) : memo),
+      0
+    )
+    n = n + income - outcome
+    data.labels.push(day)
+    data.income.push(income)
+    data.outcome.push(outcome)
+    data.cumulative.push(n)
+  })
+
+  new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [
+        {
+          data: data.cumulative,
+          type: 'line',
+          label: 'balance',
+          backgroundColor: '#673ab7', // deep-purple
+          borderColor: '#673ab7',
+          borderWidth: 4,
+          pointRadius: 3,
+          fill: false
+        },
+        {
+          data: data.income,
+          type: 'bar',
+          label: 'in',
+          barPercentage: 0.75,
+          backgroundColor: window.Color('rgb(76,175,80)').alpha(0.5).rgbString() // green
+        },
+        {
+          data: data.outcome,
+          type: 'bar',
+          label: 'out',
+          barPercentage: 0.75,
+          backgroundColor: window.Color('rgb(233,30,99)').alpha(0.5).rgbString() // pink
+        }
+      ]
+    },
+    options: {
+      title: {
+        text: 'Chart.js Combo Time Scale'
+      },
+      tooltips: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        xAxes: [
+          {
+            type: 'time',
+            display: true,
+            offset: true,
+            time: {
+              minUnit: 'hour',
+              stepSize: 3
+            }
+          }
+        ]
+      },
+      // performance tweaks
+      animation: {
+        duration: 0
+      },
+      elements: {
+        line: {
+          tension: 0
+        }
+      }
+    }
+  })
 }
 </script>
