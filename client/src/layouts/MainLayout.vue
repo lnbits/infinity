@@ -172,6 +172,7 @@ export default {
 
   beforeCreate() {
     this.$store.dispatch('init')
+    if (!this.$store.state.user) this.$store.dispatch('fetchUser')
   },
 
   methods: {

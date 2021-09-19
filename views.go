@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func viewSettings(w http.ResponseWriter, r *http.Request) {
@@ -21,4 +23,14 @@ func viewSettings(w http.ResponseWriter, r *http.Request) {
 		commit,
 		CURRENCIES,
 	})
+}
+
+func viewLnurlScan(w http.ResponseWriter, r *http.Request) {
+	code := mux.Vars(r)["code"]
+
+	log.Print(code)
+}
+
+func viewSSE(w http.ResponseWriter, r *http.Request) {
+
 }

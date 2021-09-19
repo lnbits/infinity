@@ -111,15 +111,45 @@ func main() {
 
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)
+	router.Path("/v/lnurlscan/{code}").HandlerFunc(viewLnurlScan)
+	router.Path("/v/sse").HandlerFunc(viewSSE)
 	router.Path("/api/user").HandlerFunc(apiUser)
 	router.Path("/api/create-wallet").HandlerFunc(apiCreateWallet)
-	router.Path("/api/wallet/{id}").HandlerFunc(apiWallet)
-	router.Path("/api/wallet/{id}/create-invoice").HandlerFunc(apiCreateInvoice)
-	router.Path("/api/wallet/{id}/pay-invoice").HandlerFunc(apiPayInvoice)
-	router.Path("/api/wallet/{id}/lnurlscan").HandlerFunc(apiLnurlScan)
-	router.Path("/api/wallet/{id}/lnurlauth").HandlerFunc(apiLnurlAuth)
-	router.Path("/api/wallet/{id}/pay-lnurl").HandlerFunc(apiPayLnurl)
+	router.Path("/api/wallet").HandlerFunc(apiWallet)
+	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(apiRenameWallet)
+	router.Path("/api/wallet/create-invoice").HandlerFunc(apiCreateInvoice)
+	router.Path("/api/wallet/pay-invoice").HandlerFunc(apiPayInvoice)
+	router.Path("/api/wallet/lnurlauth").HandlerFunc(apiLnurlAuth)
+	router.Path("/api/wallet/pay-lnurl").HandlerFunc(apiPayLnurl)
+	router.Path("/api/wallet/payment/{id}").HandlerFunc(apiGetPayment)
+
+	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
+	router.Path("/api/v1/wallet").HandlerFunc(apiWallet)
+	router.Path("/api/v1/wallet/{new-name}").HandlerFunc(apiRenameWallet)
+	router.Path("/api/v1/payments").MatcherFunc(
+		func(r *http.Request, rm *mux.RouteMatch) bool {
+			var outer struct {
+				Out bool `json:"out"`
+			}
+			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
+			return !outer.Out
+		},
+	).HandlerFunc(apiCreateInvoice)
+	router.Path("/api/v1/payments").MatcherFunc(
+		func(r *http.Request, rm *mux.RouteMatch) bool {
+			var outer struct {
+				Out bool `json:"out"`
+			}
+			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
+			return outer.Out
+		},
+	).HandlerFunc(apiPayInvoice)
+	router.Path("/api/v1/payments/lnurl").HandlerFunc(apiPayLnurl)
+	router.Path("/api/v1/payments/{id}").HandlerFunc(apiGetPayment)
+	router.Path("/api/v1/payments/sse").HandlerFunc(viewSSE)
+
 	router.Use(userMiddleware)
+	router.Use(walletMiddleware)
 
 	// serve static client
 	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
@@ -157,8 +187,8 @@ func (s SpaFS) Open(name string) (fs.File, error) {
 }
 
 type JSONError struct {
-	Ok    bool   `json:"ok"`
-	Error string `json:"error"`
+	Ok      bool   `json:"ok"`
+	Message string `json:"message"`
 }
 
 func jsonError(w http.ResponseWriter, code int, msg string, args ...interface{}) {

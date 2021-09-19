@@ -52,11 +52,16 @@ export default createStore({
       // listeners
       dispatch('listenForPayments')
     },
-    async fetchUser({dispatch, commit}) {
+    async fetchUser({state, dispatch, commit}) {
       if (!new URLSearchParams(location.search).get('key')) return
 
       const user = await loadUser()
       commit('setUser', user)
+
+      if (!state.wallet) {
+        commit('setWallet', user.wallets[0])
+        dispatch('fetchWallet', user.wallets[0].id)
+      }
     },
     async fetchWallet({commit}, walletID) {
       const wallet = await loadWallet(walletID)

@@ -5,21 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
-
-	"gorm.io/gorm"
 )
 
-type Model struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-}
-
 type User struct {
-	Model
+	ID        string    `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 
-	MasterKey string     `gorm:"not null;uniqueIndex" json:"-";check:master_key <> ''`
+	MasterKey string     `gorm:"not null;uniqueIndex" json:"-"`
 	Apps      StringList `gorm:"not null" json:"apps"`
 
 	// associations
@@ -27,14 +20,18 @@ type User struct {
 }
 
 type Wallet struct {
-	Model
+	ID        string    `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 
 	Name       string `gorm:"not null" json:"name"`
 	InvoiceKey string `gorm:"not null" json:"invoicekey"`
 	AdminKey   string `gorm:"not null" json:"adminkey"`
 
+	Balance int64 `gorm:"-" json:"balance"`
+
 	// associations
-	UserID        uint           `gorm:"index;not null" json:"userID"`
+	UserID        string         `gorm:"index;not null" json:"userID"`
 	Payments      []Payment      `json:"payments,omitempty"`
 	BalanceChecks []BalanceCheck `json:"balanceChecks,omitempty"`
 }
@@ -57,11 +54,11 @@ type Payment struct {
 	WebhookStatus int        `json:"webhookStatus"`
 
 	// associations
-	WalletID uint `gorm:"index;not null" json:"walletID"`
+	WalletID string `gorm:"index;not null" json:"walletID"`
 }
 
 type BalanceCheck struct {
-	WalletID uint   `gorm:"primaryKey" json:"walletID"`
+	WalletID string `gorm:"primaryKey" json:"walletID"`
 	Service  string `gorm:"primaryKey" json:"service"`
 	URL      string `json:"-"`
 }
@@ -71,7 +68,7 @@ type AppDataItem struct {
 	UpdatedAt time.Time `json:"-"`
 
 	App    string `gorm:"primaryKey;index:app_user_items_idx" json:"app"`
-	UserID uint   `gorm:"primaryKey;index:app_user_items_idx" json:"userID"`
+	UserID string `gorm:"primaryKey;index:app_user_items_idx" json:"userID"`
 	Key    string `gorm:"primaryKey" json:"key"`
 
 	Value JSONObject `gorm:"not null" json:"value"`

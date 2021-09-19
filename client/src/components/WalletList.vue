@@ -33,7 +33,7 @@
       </q-item-section>
       <q-item-section>
         <q-item-label lines="1">{{ wallet.name }}</q-item-label>
-        <q-item-label caption>{{ wallet.live_fsat }} sat</q-item-label>
+        <q-item-label caption>{{ wallet.balance }} sat</q-item-label>
       </q-item-section>
       <q-item-section
         v-show="activeWallet && activeWallet.id === wallet.id"
@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import {createWallet} from '../helpers'
+import {createWallet, notifyApiError} from '../helpers'
 
 export default {
   data() {
@@ -88,11 +88,17 @@ export default {
   },
   methods: {
     methods: {
-      createWallet() {
-        createWallet(this.walletName, this.$store.state.user.id)
-      },
-      updateWalletBalance(payload) {
-        this.activeBalance = payload
+      async createWallet() {
+        try {
+          const {wallet} = await createWallet(this.walletName)
+          this.$store.commit('setWallet', wallet)
+          this.$router.push({
+            path: `/wallet/${wallet.id}`,
+            query: this.$route.query
+          })
+        } catch (err) {
+          notifyApiError(err)
+        }
       }
     }
   }

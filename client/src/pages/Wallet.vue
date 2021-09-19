@@ -1,5 +1,9 @@
 <template>
-  <q-page class="q-px-md q-py-lg" :class="{'q-px-lg': $q.screen.gt.xs}">
+  <q-page
+    v-if="$store.state.wallet"
+    class="q-px-md q-py-lg"
+    :class="{'q-px-lg': $q.screen.gt.xs}"
+  >
     <div class="row q-col-gutter-md">
       <div class="col-12 col-md-7 q-gutter-y-md">
         <q-card>
@@ -50,9 +54,6 @@
                 <q-btn flat color="grey" @click="exportCSV"
                   >Export to CSV</q-btn
                 >
-                <!--<q-btn v-if="pendingPaymentsExist" dense flat round icon="update" color="grey" @click="checkPendingPayments">
-                <q-tooltip>Check pending</q-tooltip>
-              </q-btn>-->
                 <q-btn
                   dense
                   flat
@@ -355,10 +356,7 @@
                       This whole wallet will be deleted, the funds will be
                       <strong>UNRECOVERABLE</strong>.
                     </p>
-                    <q-btn
-                      unelevated
-                      color="red-10"
-                      @click="deleteWallet('{{ wallet.id }}', '{{ user.id }}')"
+                    <q-btn unelevated color="red-10" @click="deleteWallet"
                       >Delete wallet</q-btn
                     >
                   </q-card-section>
@@ -386,7 +384,7 @@
             dense
             type="text"
             label="Unit"
-            :options="$store.settings.currencies"
+            :options="['sat'].concat($store.state.settings.currencies)"
           ></q-select>
           <q-input
             v-model.number="receive.data.amount"
@@ -400,10 +398,10 @@
             :readonly="receive.lnurl && receive.lnurl.fixed"
           ></q-input>
           <q-input
-            v-model.trim="receive.data.memo"
+            v-model.trim="receive.data.description"
             filled
             dense
-            label="Memo *"
+            label="Description *"
             placeholder="LNbits invoice"
           ></q-input>
           <div v-if="receive.status == 'pending'" class="row q-mt-lg">
@@ -411,7 +409,7 @@
               unelevated
               color="primary"
               :disable="
-                receive.data.memo == null ||
+                receive.data.description == null ||
                 receive.data.amount == null ||
                 receive.data.amount <= 0
               "
@@ -420,7 +418,7 @@
               <span v-if="receive.lnurl">
                 Withdraw from {{ receive.lnurl.domain }}
               </span>
-              <span v-else> Create invoice </span>
+              <span v-else>Create invoice</span>
             </q-btn>
             <q-btn v-close-popup flat color="grey" class="q-ml-auto"
               >Cancel</q-btn
@@ -678,9 +676,9 @@
 </template>
 
 <script>
-import groupBy from 'lodash.groupby'
-import Chart from 'chart.js'
 import bolt11 from 'bolt11'
+
+import {generateChart} from '../chart'
 
 import {
   notifyApiError,
@@ -708,8 +706,9 @@ export default {
         lnurl: null,
         unit: 'sat',
         data: {
+          unit: 'sat',
           amount: null,
-          memo: ''
+          description: ''
         }
       },
       parse: {
@@ -722,7 +721,6 @@ export default {
           amount: 0,
           comment: ''
         },
-        paymentChecker: null,
         camera: {
           show: false,
           camera: 'auto'
@@ -732,10 +730,10 @@ export default {
       paymentsTable: {
         columns: [
           {
-            name: 'memo',
+            name: 'description',
             align: 'left',
-            label: 'Memo',
-            field: 'memo'
+            label: 'Description',
+            field: 'description'
           },
           {
             name: 'date',
@@ -864,6 +862,20 @@ export default {
     })
   },
 
+  async beforeCreate() {
+    if (
+      (!this.$store.state.wallet ||
+        this.$store.state.wallet.id !== this.$route.params.id) &&
+      this.$store.state.user
+    ) {
+      this.$store.commit(
+        'setWallet',
+        this.$store.state.user.wallet.find(w => w.id === this.$route.params.id)
+      )
+      await this.$store.dispatch('fetchWallet', this.$route.params.id)
+    }
+  },
+
   methods: {
     paymentTableRowKey(row) {
       return row.payment_hash + row.amount
@@ -886,9 +898,8 @@ export default {
       this.receive.paymentReq = null
       this.receive.paymentHash = null
       this.receive.data.amount = null
-      this.receive.data.memo = null
+      this.receive.data.description = null
       this.receive.unit = 'sat'
-      this.receive.paymentChecker = null
       this.receive.minMax = [0, 2100000000000000]
       this.receive.lnurl = null
     },
@@ -899,26 +910,15 @@ export default {
       this.parse.lnurlauth = null
       this.parse.data.request = ''
       this.parse.data.comment = ''
-      this.parse.data.paymentChecker = null
       this.parse.camera.show = false
-    },
-    closeReceiveDialog() {
-      setTimeout(() => {
-        clearInterval(this.receive.paymentChecker)
-      }, 10000)
-    },
-    closeParseDialog() {
-      setTimeout(() => {
-        clearInterval(this.parse.paymentChecker)
-      }, 10000)
     },
     async createInvoice() {
       this.receive.status = 'loading'
 
       try {
-        const response = await createInvoice(this.$store.state.wallet.id, {
-          msatoshi: this.receive.data.amount * 1000,
-          memo: this.receive.data.memo,
+        const response = await createInvoice({
+          amount: this.receive.data.amount,
+          description: this.receive.data.memo,
           unit: this.receive.unit,
           lnurlCallback: this.receive.lnurl && this.receive.lnurl.callback
         })
@@ -978,10 +978,7 @@ export default {
         this.parse.data.request.match(/[\w.+-~_]+@[\w.+-~_]/)
       ) {
         try {
-          const response = await scanLnurl(
-            this.$store.state.wallet.id,
-            this.parse.data.request
-          )
+          const response = await scanLnurl(this.parse.data.request)
 
           let data = response.data
 
@@ -1070,7 +1067,7 @@ export default {
       })
 
       try {
-        await payInvoice(this.$store.state.wallet.id, this.parse.data.request)
+        await payInvoice({invoice: this.parse.data.request})
       } catch (err) {
         dismissPaymentMsg()
         notifyApiError(err)
@@ -1083,7 +1080,7 @@ export default {
       })
 
       try {
-        await payLnurl(this.$store.state.wallet.id, {
+        await payLnurl({
           callback: this.parse.lnurlpay.callback,
           descriptionHash: this.parse.lnurlpay.description_hash,
           msatoshi: this.parse.data.amount * 1000,
@@ -1104,10 +1101,7 @@ export default {
       })
 
       try {
-        await authLnurl(
-          this.$store.state.wallet.id,
-          this.parse.lnurlauth.callback
-        )
+        await authLnurl(this.parse.lnurlauth.callback)
         dismissAuthMsg()
         this.$q.notify({
           message: `Authentication successful.`,
@@ -1134,7 +1128,7 @@ export default {
       if (!newName || !newName.length) return
 
       try {
-        await renameWallet(this.$store.state.wallet.id, newName)
+        await renameWallet(newName)
 
         this.newName = ''
         this.$q.notify({
@@ -1149,9 +1143,9 @@ export default {
         notifyApiError(err)
       }
     },
-    deleteWallet(walletId, user) {
+    deleteWallet() {
       this.$q.plugins.Dialog.create({
-        message: 'Are you sure you want to delete this wallet?',
+        message: `Are you sure you want to delete the wallet '${this.$store.state.wallet.name}'?`,
         ok: {
           flat: true,
           color: 'orange'
@@ -1161,7 +1155,7 @@ export default {
           color: 'grey'
         }
       }).onOk(async () => {
-        await deleteWallet(walletId)
+        await deleteWallet()
         location.href = `/?${location.search}`
       })
     },
@@ -1169,106 +1163,5 @@ export default {
       exportCSV(this.paymentsTable.columns, this.payments)
     }
   }
-}
-
-function generateChart(canvas, payments) {
-  var txs = []
-  var n = 0
-  var data = {
-    labels: [],
-    income: [],
-    outcome: [],
-    cumulative: []
-  }
-
-  payments
-    .filter(p => !p.pending)
-    .sort((a, b) => a.time - b.time)
-    .forEach(tx => {
-      txs.push({
-        hour: this.$q.utils.date.formatDate(tx.date, 'YYYY-MM-DDTHH:00'),
-        sat: tx.sat
-      })
-    })
-
-  groupBy(txs, 'hour').forEach((value, day) => {
-    var income = value.reduce(
-      (memo, tx) => (tx.sat >= 0 ? memo + tx.sat : memo),
-      0
-    )
-    var outcome = value.reduce(
-      (memo, tx) => (tx.sat < 0 ? memo + Math.abs(tx.sat) : memo),
-      0
-    )
-    n = n + income - outcome
-    data.labels.push(day)
-    data.income.push(income)
-    data.outcome.push(outcome)
-    data.cumulative.push(n)
-  })
-
-  new Chart(canvas.getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: data.labels,
-      datasets: [
-        {
-          data: data.cumulative,
-          type: 'line',
-          label: 'balance',
-          backgroundColor: '#673ab7', // deep-purple
-          borderColor: '#673ab7',
-          borderWidth: 4,
-          pointRadius: 3,
-          fill: false
-        },
-        {
-          data: data.income,
-          type: 'bar',
-          label: 'in',
-          barPercentage: 0.75,
-          backgroundColor: window.Color('rgb(76,175,80)').alpha(0.5).rgbString() // green
-        },
-        {
-          data: data.outcome,
-          type: 'bar',
-          label: 'out',
-          barPercentage: 0.75,
-          backgroundColor: window.Color('rgb(233,30,99)').alpha(0.5).rgbString() // pink
-        }
-      ]
-    },
-    options: {
-      title: {
-        text: 'Chart.js Combo Time Scale'
-      },
-      tooltips: {
-        mode: 'index',
-        intersect: false
-      },
-      scales: {
-        xAxes: [
-          {
-            type: 'time',
-            display: true,
-            offset: true,
-            time: {
-              minUnit: 'hour',
-              stepSize: 3
-            }
-          }
-        ]
-      },
-      // performance tweaks
-      animation: {
-        duration: 0
-      },
-      elements: {
-        line: {
-          tension: 0
-        }
-      }
-    }
-  })
 }
 </script>

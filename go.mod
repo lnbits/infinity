@@ -3,6 +3,8 @@ module github.com/lnbits/lnbits
 go 1.16
 
 require (
+	github.com/fiatjaf/go-lnurl v1.4.1
+	github.com/fiatjaf/ln-decodepay v1.1.0
 	github.com/fiatjaf/relampago v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0

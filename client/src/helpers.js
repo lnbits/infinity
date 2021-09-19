@@ -1,10 +1,18 @@
 import {exportFile, Notify} from 'quasar'
 
-const request = async (url, opts = {}) => {
+import store from './store'
+
+const request = async (path, opts = {}) => {
   opts.headers = opts.headers || {}
-  const key = new URLSearchParams(location.search).get('key')
-  if (key) opts.headers['X-MasterKey'] = key
-  const r = await fetch(url, opts)
+
+  if (path.startsWith('/api/wallet')) {
+    opts.headers['X-API-Key'] = store.state.wallet.invoicekey
+  } else {
+    const key = new URLSearchParams(location.search).get('key')
+    if (key) opts.headers['X-MasterKey'] = key
+  }
+
+  const r = await fetch(path, opts)
   if (!r.ok) throw new Error(await r.text())
   return await r.json()
 }
@@ -19,44 +27,40 @@ export const createWallet = async name =>
     body: JSON.stringify({name})
   })
 
-export const loadWallet = async walletID =>
-  await request(`/api/wallet/${walletID}`)
+export const loadWallet = async () => await request(`/api/wallet`)
 
-export const createInvoice = async (walletID, params) =>
-  await request(`/api/wallet/${walletID}/create-invoice`, {
+export const createInvoice = async params =>
+  await request(`/api/wallet/create-invoice`, {
     method: 'POST',
     body: JSON.stringify(params)
   })
 
-export const payInvoice = async (walletID, invoice) =>
-  await request(`/api/wallet/${walletID}/pay-invoice`, {
+export const payInvoice = async ({invoice, customAmount = 0}) =>
+  await request(`/api/wallet/pay-invoice`, {
     method: 'POST',
-    body: JSON.stringify({invoice})
+    body: JSON.stringify({invoice, customAmount})
   })
 
-export const payLnurl = async (walletID, params) =>
-  await request(`/api/wallet/${walletID}/pay-lnurl`, {
+export const payLnurl = async params =>
+  await request(`/api/wallet/pay-lnurl`, {
     method: 'POST',
     body: JSON.stringify({params})
   })
 
-export const scanLnurl = async (walletID, request) =>
-  await request(`/api/wallets/${walletID}/lnurlscan/${request}`, {})
+export const scanLnurl = async lnurl =>
+  await request(`/api/wallet/lnurlscan/${lnurl}`, {})
 
-export const authLnurl = async (walletID, callback) =>
-  await request(`/api/wallets/${walletID}/lnurlauth`, {
+export const authLnurl = async callback =>
+  await request(`/api/wallet/lnurlauth`, {
     method: 'POST',
     body: JSON.stringify({callback})
   })
 
-export const renameWallet = async (walletID, name) =>
-  await request(`/api/wallets/${walletID}/rename`, {
-    method: 'POST',
-    body: JSON.stringify({name})
-  })
+export const renameWallet = async name =>
+  await request(`/api/wallet/${name}`, {method: 'POST'})
 
-export const deleteWallet = async walletID =>
-  await request(`/api/wallets/${walletID}/delete`, {
+export const deleteWallet = async () =>
+  await request(`/api/wallet/delete`, {
     method: 'POST'
   })
 

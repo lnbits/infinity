@@ -227,11 +227,13 @@ export default {
     async createWallet() {
       try {
         const {userMasterKey, wallet} = await createWallet(this.walletName)
-        const query = {...this.$router.currentRoute.query}
+        const query = {...this.$route.query}
         if (userMasterKey) {
           query.key = userMasterKey
         }
-
+        setTimeout(async () => {
+          await this.$store.dispatch('fetchUser')
+        }, 10)
         this.$store.commit('setWallet', wallet)
         this.$router.push({path: `/wallet/${wallet.id}`, query})
       } catch (err) {
