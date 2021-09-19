@@ -681,7 +681,7 @@ import bolt11 from 'bolt11'
 import {generateChart} from '../chart'
 
 import {
-  notifyApiError,
+  notifyError,
   createInvoice,
   deleteWallet,
   renameWallet,
@@ -951,7 +951,7 @@ export default {
           }
         }
       } catch (err) {
-        notifyApiError(err)
+        notifyError(err)
         this.receive.status = 'pending'
       }
     },
@@ -974,23 +974,18 @@ export default {
       }
 
       if (
+        this.parse.data.request.match(/[\w.+-~_]+@[\w.+-~_]/) ||
         this.parse.data.request.toLowerCase().startsWith('lnurl1') ||
-        this.parse.data.request.match(/[\w.+-~_]+@[\w.+-~_]/)
+        this.parse.data.request.toLowerCase().startsWith('lnurlp') ||
+        this.parse.data.request.toLowerCase().startsWith('lnurlw') ||
+        this.parse.data.request.toLowerCase().startsWith('keyauth:') ||
+        this.parse.data.request.toLowerCase().startsWith('lnurlc') ||
+        this.parse.data.request.toLowerCase().startsWith('https://')
       ) {
         try {
           const response = await scanLnurl(this.parse.data.request)
 
           let data = response.data
-
-          if (data.status === 'ERROR') {
-            this.$q.notify({
-              timeout: 5000,
-              type: 'warning',
-              message: `${data.domain} lnurl call failed.`,
-              caption: data.reason
-            })
-            return
-          }
 
           if (data.kind === 'pay') {
             this.parse.lnurlpay = Object.freeze(data)
@@ -1016,7 +1011,7 @@ export default {
             }
           }
         } catch (err) {
-          notifyApiError(err)
+          notifyError(err, `${err?.data?.domain || 'lnurl'} call failed`)
         }
         return
       }
@@ -1050,12 +1045,7 @@ export default {
 
         this.parse.invoice = cleanInvoice
       } catch (error) {
-        this.$q.notify({
-          timeout: 3000,
-          type: 'warning',
-          message: error + '.',
-          caption: '400 BAD REQUEST'
-        })
+        notifyError(error, 'Failed to parse invoice')
         this.parse.show = false
         return
       }
@@ -1070,7 +1060,7 @@ export default {
         await payInvoice({invoice: this.parse.data.request})
       } catch (err) {
         dismissPaymentMsg()
-        notifyApiError(err)
+        notifyError(err)
       }
     },
     async payLnurl() {
@@ -1091,7 +1081,7 @@ export default {
         this.parse.show = false
       } catch (err) {
         dismissPaymentMsg()
-        notifyApiError(err)
+        notifyError(err)
       }
     },
     async authLnurl() {
@@ -1111,16 +1101,7 @@ export default {
         this.parse.show = false
       } catch (err) {
         dismissAuthMsg()
-        if (err.response.data.reason) {
-          this.$q.notify({
-            message: `Authentication failed. ${this.parse.lnurlauth.domain} says:`,
-            caption: err.response.data.reason,
-            type: 'warning',
-            timeout: 5000
-          })
-        } else {
-          notifyApiError(err)
-        }
+        notifyError(err)
       }
     },
     async updateWalletName() {
@@ -1140,7 +1121,7 @@ export default {
         this.$store.dispatch('fetchWallet', this.$store.state.wallets.id)
       } catch (err) {
         this.newName = ''
-        notifyApiError(err)
+        notifyError(err)
       }
     },
     deleteWallet() {

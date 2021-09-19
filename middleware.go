@@ -2,10 +2,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/lnbits/lnbits/api"
+	"github.com/lnbits/lnbits/models"
 )
+
+func jsonHeaderMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api/") && !strings.HasPrefix(r.URL.Path, "/v/") {
+			w.Header().Set("Content-Type", "application/json")
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func userMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +28,7 @@ func userMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		var user User
+		var user models.User
 		var err error
 		masterKey := r.Header.Get("X-MasterKey")
 		if masterKey == "" {
@@ -26,7 +40,9 @@ func userMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			// the user is required for /api/user, but not for /api/create-wallet
 			if r.URL.Path != "/api/create-wallet" {
-				jsonError(w, 500, "error fetching user: %s", err.Error())
+				b, _ := json.Marshal(api.JSONError{false,
+					fmt.Sprintf("error fetching user: %s", err.Error())})
+				http.Error(w, string(b), 401)
 				return
 			}
 		} else {
@@ -46,13 +62,13 @@ func userMiddleware(next http.Handler) http.Handler {
 func walletMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.URL.Path, "/api/v1/") && // lnbits-compatibility
-			!strings.HasPrefix(r.URL.Path, "/api/wallet/") { // better API routes
+			!strings.HasPrefix(r.URL.Path, "/api/wallet") { // better API routes
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		var permission string
-		var wallet Wallet
+		var wallet models.Wallet
 		var err error
 		walletKey := r.Header.Get("X-Api-Key")
 		if walletKey == "" {
@@ -70,7 +86,9 @@ func walletMiddleware(next http.Handler) http.Handler {
 		}
 
 		if err != nil {
-			jsonError(w, 500, "error fetching wallet: %s", err.Error())
+			b, _ := json.Marshal(api.JSONError{false,
+				fmt.Sprintf("error fetching wallet: %s", err.Error())})
+			http.Error(w, string(b), 401)
 			return
 		} else {
 			r = r.WithContext(

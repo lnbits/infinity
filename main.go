@@ -3,22 +3,19 @@ package main
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fiatjaf/relampago"
-	"github.com/fiatjaf/relampago/sparko"
-	"github.com/fiatjaf/relampago/void"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/lnbits/lnbits/api"
+	"github.com/lnbits/lnbits/lightning"
+	"github.com/lnbits/lnbits/storage"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
-	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -34,8 +31,7 @@ type Settings struct {
 	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
 	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
-	SparkoURL        string `envconfig:"SPARKO_URL"`
-	SparkoToken      string `envconfig:"SPARKO_TOKEN"`
+	// -- other env vars are defined in the 'lightning' package
 }
 
 var s Settings
@@ -60,46 +56,15 @@ func main() {
 	log = log.With().Timestamp().Logger()
 
 	// database
-	opts := &gorm.Config{
-		SkipDefaultTransaction: true,
-		PrepareStmt:            true,
-	}
-	if strings.HasPrefix(s.Database, "postgres") {
-		// postgres
-		db, err = gorm.Open(postgres.Open(s.Database), opts)
-	} else if strings.HasPrefix(s.Database, "cockroach") {
-		// cockroach
-		db, err = gorm.Open(postgres.Open(s.Database), opts)
-	} else {
-		// sqlite
-		db, err = gorm.Open(sqlite.Open(s.Database), opts)
-	}
-	if err != nil {
+	if err := storage.Connect(s.Database); err != nil {
 		log.Fatal().Err(err).Str("database", s.Database).
 			Msg("couldn't open database.")
-		return
 	}
+	db = storage.DB
 
-	// migration
-	db.AutoMigrate(&User{}, &Wallet{}, &Payment{}, &BalanceCheck{}, &AppDataItem{})
-
-	// start lightning backend
-	switch s.LightningBackend {
-	case "lndrest":
-	case "lndgrpc":
-	case "eclair":
-	case "clightning":
-	case "sparko":
-		ln = sparko.Start(sparko.Params{
-			Host:               s.SparkoURL,
-			Key:                s.SparkoToken,
-			InvoiceLabelPrefix: "lbs",
-		})
-	case "lnbits":
-	default:
-		// use void wallet that does nothing
-		ln = void.Start()
-	}
+	// lightning backend
+	lightning.Connect(s.LightningBackend)
+	ln = lightning.LN
 	if info, err := ln.GetInfo(); err != nil {
 		log.Fatal().Err(err).Str("lightning", s.LightningBackend).
 			Msg("couldn't start lightning backend.")
@@ -111,21 +76,21 @@ func main() {
 
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)
-	router.Path("/v/lnurlscan/{code}").HandlerFunc(viewLnurlScan)
-	router.Path("/v/sse").HandlerFunc(viewSSE)
-	router.Path("/api/user").HandlerFunc(apiUser)
-	router.Path("/api/create-wallet").HandlerFunc(apiCreateWallet)
-	router.Path("/api/wallet").HandlerFunc(apiWallet)
-	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(apiRenameWallet)
-	router.Path("/api/wallet/create-invoice").HandlerFunc(apiCreateInvoice)
-	router.Path("/api/wallet/pay-invoice").HandlerFunc(apiPayInvoice)
-	router.Path("/api/wallet/lnurlauth").HandlerFunc(apiLnurlAuth)
-	router.Path("/api/wallet/pay-lnurl").HandlerFunc(apiPayLnurl)
-	router.Path("/api/wallet/payment/{id}").HandlerFunc(apiGetPayment)
+	router.Path("/api/user").HandlerFunc(api.User)
+	router.Path("/api/create-wallet").HandlerFunc(api.CreateWallet)
+	router.Path("/api/wallet").HandlerFunc(api.Wallet)
+	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(api.RenameWallet)
+	router.Path("/api/wallet/create-invoice").HandlerFunc(api.CreateInvoice)
+	router.Path("/api/wallet/pay-invoice").HandlerFunc(api.PayInvoice)
+	router.Path("/api/wallet/lnurlauth").HandlerFunc(api.LnurlAuth)
+	router.Path("/api/wallet/pay-lnurl").HandlerFunc(api.PayLnurl)
+	router.Path("/api/wallet/payment/{id}").HandlerFunc(api.GetPayment)
+	router.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
+	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
 
 	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
-	router.Path("/api/v1/wallet").HandlerFunc(apiWallet)
-	router.Path("/api/v1/wallet/{new-name}").HandlerFunc(apiRenameWallet)
+	router.Path("/api/v1/wallet").HandlerFunc(api.Wallet)
+	router.Path("/api/v1/wallet/{new-name}").HandlerFunc(api.RenameWallet)
 	router.Path("/api/v1/payments").MatcherFunc(
 		func(r *http.Request, rm *mux.RouteMatch) bool {
 			var outer struct {
@@ -134,7 +99,7 @@ func main() {
 			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
 			return !outer.Out
 		},
-	).HandlerFunc(apiCreateInvoice)
+	).HandlerFunc(api.CreateInvoice)
 	router.Path("/api/v1/payments").MatcherFunc(
 		func(r *http.Request, rm *mux.RouteMatch) bool {
 			var outer struct {
@@ -143,13 +108,16 @@ func main() {
 			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
 			return outer.Out
 		},
-	).HandlerFunc(apiPayInvoice)
-	router.Path("/api/v1/payments/lnurl").HandlerFunc(apiPayLnurl)
-	router.Path("/api/v1/payments/{id}").HandlerFunc(apiGetPayment)
-	router.Path("/api/v1/payments/sse").HandlerFunc(viewSSE)
+	).HandlerFunc(api.PayInvoice)
+	router.Path("/api/v1/payments/lnurl").HandlerFunc(api.PayLnurl)
+	router.Path("/api/v1/payments/{id}").HandlerFunc(api.GetPayment)
+	router.Path("/api/v1/payments/sse").HandlerFunc(api.SSE)
 
+	// middleware
+	router.Use(jsonHeaderMiddleware)
 	router.Use(userMiddleware)
 	router.Use(walletMiddleware)
+	router.Use(cors.AllowAll().Handler)
 
 	// serve static client
 	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
@@ -164,7 +132,7 @@ func main() {
 	// start http server
 	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")
 	srv := &http.Server{
-		Handler:      cors.Default().Handler(router),
+		Handler:      router,
 		Addr:         s.Host + ":" + s.Port,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
@@ -184,15 +152,4 @@ func (s SpaFS) Open(name string) (fs.File, error) {
 	} else {
 		return s.base.Open("index.html")
 	}
-}
-
-type JSONError struct {
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
-}
-
-func jsonError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	b, _ := json.Marshal(JSONError{false, fmt.Sprintf(msg, args...)})
-	http.Error(w, string(b), code)
 }

@@ -13,11 +13,28 @@ const request = async (path, opts = {}) => {
   }
 
   const r = await fetch(path, opts)
-  if (!r.ok) throw new Error(await r.text())
+  if (!r.ok) {
+    const text = await r.text()
+    let message
+    let data = {}
+    try {
+      data = JSON.parse(text)
+      message = data.message
+    } catch (_) {
+      message = text
+    }
+    const error = new Error(message)
+    error.data = data
+    error.response = r
+    throw error
+  }
   return await r.json()
 }
 
 export const loadSettings = async () => await request('/v/settings')
+
+export const scanLnurl = async lnurl =>
+  await request(`/api/wallet/scan/${lnurl}`, {})
 
 export const loadUser = async () => await request('/api/user')
 
@@ -46,9 +63,6 @@ export const payLnurl = async params =>
     method: 'POST',
     body: JSON.stringify({params})
   })
-
-export const scanLnurl = async lnurl =>
-  await request(`/api/wallet/lnurlscan/${lnurl}`, {})
 
 export const authLnurl = async callback =>
   await request(`/api/wallet/lnurlauth`, {
@@ -131,20 +145,23 @@ export const exportCSV = (columns, data) => {
     })
   }
 }
-export const notifyApiError = error => {
-  var types = {
-    400: 'warning',
-    401: 'warning',
-    500: 'negative'
-  }
+export const notifyError = (error, title, type) => {
+  const caption =
+    title ||
+    (error.response
+      ? [error.response.status, ' ', error.response.statusText]
+          .join('')
+          .toUpperCase()
+      : null)
+  type =
+    type ||
+    ((error.response && error.response.status) >= 500 ? 'negative' : 'warning')
+
   Notify.create({
     timeout: 5000,
-    type: types[error.response.status] || 'warning',
-    message: error.response.data.message || null,
-    caption:
-      [error.response.status, ' ', error.response.statusText]
-        .join('')
-        .toUpperCase() || null,
+    type,
+    message: error.message || null,
+    caption,
     icon: null
   })
 }

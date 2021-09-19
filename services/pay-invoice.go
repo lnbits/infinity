@@ -1,57 +1,23 @@
-package main
+package services
 
 import (
 	"fmt"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
+	m "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/utils"
 )
-
-type CreateInvoiceParams struct {
-	rp.InvoiceParams
-
-	Tag     string     `json:"tag"`
-	Extra   JSONObject `json:"extra"`
-	Webhook string     `json:"webhook"`
-}
-
-func (wallet Wallet) CreateInvoice(params *CreateInvoiceParams) (Payment, error) {
-	data, err := ln.CreateInvoice(params.InvoiceParams)
-	if err != nil {
-		return Payment{}, fmt.Errorf("failed to create invoice: %w", err)
-	}
-
-	inv, err := decodepay.Decodepay(data.Invoice)
-	if err != nil {
-		return Payment{}, fmt.Errorf(
-			"failed to parse created invoice (%s): %w", data.Invoice, err)
-	}
-
-	payment := Payment{
-		CheckingID: data.CheckingID,
-		Pending:    true,
-		Preimage:   data.Preimage,
-		Hash:       inv.PaymentHash,
-		Bolt11:     data.Invoice,
-		Amount:     params.Msatoshi,
-		WalletID:   wallet.ID,
-	}
-	if result := db.Create(&payment); result.Error != nil {
-		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)
-	}
-
-	return payment, nil
-}
 
 type PayInvoiceParams struct {
 	rp.PaymentParams
 
-	Tag     string     `json:"tag"`
-	Extra   JSONObject `json:"extra"`
-	Webhook string     `json:"webhook"`
+	Tag     string       `json:"tag"`
+	Extra   m.JSONObject `json:"extra"`
+	Webhook string       `json:"webhook"`
 }
 
-func (wallet Wallet) PayInvoice(params *PayInvoiceParams) (payment Payment, err error) {
+func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, err error) {
 	// parse invoice
 	inv, err := decodepay.Decodepay(params.Invoice)
 	if err != nil {
@@ -73,8 +39,8 @@ func (wallet Wallet) PayInvoice(params *PayInvoiceParams) (payment Payment, err 
 	}
 
 	// add payment to database first
-	temp := "tmp" + randomHex(16)
-	payment = Payment{
+	temp := "tmp" + utils.RandomHex(16)
+	payment = m.Payment{
 		CheckingID: temp,
 		Pending:    true,
 		Amount:     -invoiceAmount,
@@ -100,7 +66,7 @@ func (wallet Wallet) PayInvoice(params *PayInvoiceParams) (payment Payment, err 
 
 	// check balance
 	var balance int64
-	if result := db.Model(&Payment{}).
+	if result := db.Model(&m.Payment{}).
 		Select("sum(amount)").
 		Where("amount < 0 OR (amount > 0 AND NOT pending)").
 		Where("wallet_id = ?", wallet.ID).

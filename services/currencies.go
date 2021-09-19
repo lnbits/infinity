@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"context"
@@ -178,7 +178,7 @@ var CURRENCIES = []string{
 	"ZWL",
 }
 
-func getMsatsPerFiatUnit(currencyCode string) (int64, error) {
+func GetMsatsPerFiatUnit(currencyCode string) (int64, error) {
 	lower := strings.ToLower(currencyCode)
 	upper := strings.ToUpper(currencyCode)
 

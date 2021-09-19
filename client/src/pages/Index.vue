@@ -209,7 +209,7 @@
 </template>
 
 <script>
-import {createWallet, notifyApiError} from '../helpers'
+import {createWallet, notifyError} from '../helpers'
 
 export default {
   name: 'PageIndex',
@@ -231,14 +231,13 @@ export default {
         if (userMasterKey) {
           query.key = userMasterKey
         }
-        setTimeout(async () => {
-          await this.$store.dispatch('fetchUser')
-        }, 10)
         this.$store.commit('setWallet', wallet)
-        this.$router.push({path: `/wallet/${wallet.id}`, query})
+        await this.$router.push({path: `/wallet/${wallet.id}`, query})
       } catch (err) {
-        notifyApiError(err)
+        notifyError(err)
       }
+
+      await this.$store.dispatch('fetchUser')
     },
     processing() {
       this.$q.notify({

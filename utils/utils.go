@@ -1,11 +1,11 @@
-package main
+package utils
 
 import (
 	"crypto/rand"
 	"encoding/hex"
 )
 
-func randomHex(nbytes int) string {
+func RandomHex(nbytes int) string {
 	b := make([]byte, nbytes)
 	rand.Read(b)
 	return hex.EncodeToString(b)

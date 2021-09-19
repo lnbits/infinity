@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/lnbits/lnbits/services"
 )
 
 func viewSettings(w http.ResponseWriter, r *http.Request) {
@@ -21,16 +21,6 @@ func viewSettings(w http.ResponseWriter, r *http.Request) {
 		s.SiteDescription,
 		s.ThemeOptions,
 		commit,
-		CURRENCIES,
+		services.CURRENCIES,
 	})
-}
-
-func viewLnurlScan(w http.ResponseWriter, r *http.Request) {
-	code := mux.Vars(r)["code"]
-
-	log.Print(code)
-}
-
-func viewSSE(w http.ResponseWriter, r *http.Request) {
-
 }

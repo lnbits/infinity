@@ -66,7 +66,6 @@
                 icon="send"
                 size="sm"
                 :disable="walletName === ''"
-                @click="createWallet"
               ></q-btn>
             </template>
           </q-input>
@@ -77,7 +76,7 @@
 </template>
 
 <script>
-import {createWallet, notifyApiError} from '../helpers'
+import {createWallet, notifyError} from '../helpers'
 
 export default {
   data() {
@@ -97,7 +96,7 @@ export default {
             query: this.$route.query
           })
         } catch (err) {
-          notifyApiError(err)
+          notifyError(err)
         }
       }
     }
