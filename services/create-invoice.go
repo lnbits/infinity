@@ -5,7 +5,9 @@ import (
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
+	"github.com/lnbits/lnbits/lightning"
 	m "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/storage"
 )
 
 type CreateInvoiceParams struct {
@@ -17,7 +19,7 @@ type CreateInvoiceParams struct {
 }
 
 func CreateInvoice(wallet *m.Wallet, params CreateInvoiceParams) (m.Payment, error) {
-	data, err := ln.CreateInvoice(params.InvoiceParams)
+	data, err := lightning.LN.CreateInvoice(params.InvoiceParams)
 	if err != nil {
 		return m.Payment{}, fmt.Errorf("failed to create invoice: %w", err)
 	}
@@ -37,7 +39,7 @@ func CreateInvoice(wallet *m.Wallet, params CreateInvoiceParams) (m.Payment, err
 		Amount:     params.Msatoshi,
 		WalletID:   wallet.ID,
 	}
-	if result := db.Create(&payment); result.Error != nil {
+	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)
 	}
 

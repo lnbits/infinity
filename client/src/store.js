@@ -1,14 +1,21 @@
 import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
-import {changeColorTheme, loadSettings, loadWallet, loadUser} from './helpers'
+import {
+  changeColorTheme,
+  loadSettings,
+  loadWallet,
+  loadUser,
+  appInfo
+} from './helpers'
 
 export default createStore({
   state() {
     return {
       settings: {},
       user: null,
-      wallet: null
+      wallet: null,
+      app: null
     }
   },
   mutations: {
@@ -71,6 +78,10 @@ export default createStore({
       // TODO: listen for payments sent and received, and failures
       // call callbacks
       // refresh wallet
+    },
+    async fetchApp({state, commit}, appID) {
+      const app = await appInfo(appID)
+      commit('setApp', app)
     }
   }
 })

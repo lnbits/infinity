@@ -32,13 +32,15 @@ func Connect(databaseConnectionString string) error {
 	}
 
 	// migration
-	return DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.Wallet{},
 		&models.Payment{},
 		&models.BalanceCheck{},
 		&models.AppDataItem{},
-	)
+	); err != nil {
+		return err
+	}
 
 	return nil
 }

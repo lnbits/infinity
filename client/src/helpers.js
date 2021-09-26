@@ -7,14 +7,15 @@ const request = async (path, opts = {}) => {
 
   if (path.startsWith('/api/wallet')) {
     opts.headers['X-API-Key'] = store.state.wallet.invoicekey
-  } else {
+  } else if (path.startsWith('/api/user')) {
     const key = new URLSearchParams(location.search).get('key')
     if (key) opts.headers['X-MasterKey'] = key
   }
 
   const r = await fetch(path, opts)
+  const text = await r.text()
+
   if (!r.ok) {
-    const text = await r.text()
     let message
     let data = {}
     try {
@@ -28,20 +29,28 @@ const request = async (path, opts = {}) => {
     error.response = r
     throw error
   }
-  return await r.json()
+
+  if (text && text.length) {
+    return JSON.parse(text)
+  } else {
+    return
+  }
 }
 
 export const loadSettings = async () => await request('/v/settings')
 
-export const scanLnurl = async lnurl =>
-  await request(`/api/wallet/scan/${lnurl}`, {})
-
 export const loadUser = async () => await request('/api/user')
 
 export const createWallet = async name =>
-  await request('/api/create-wallet', {
+  await request('/api/user/create-wallet', {
     method: 'POST',
     body: JSON.stringify({name})
+  })
+
+export const addApp = async url =>
+  await request('/api/user/add-app', {
+    method: 'POST',
+    body: JSON.stringify({url})
   })
 
 export const loadWallet = async () => await request(`/api/wallet`)
@@ -77,6 +86,20 @@ export const deleteWallet = async () =>
   await request(`/api/wallet/delete`, {
     method: 'POST'
   })
+
+export const scanLnurl = async lnurl =>
+  await request(`/api/wallet/scan/${lnurl}`, {})
+
+export const appInfo = async appid => await request(`/api/wallet/app/${appid}`)
+
+export const listAppItems = async id =>
+  await request(`/api/wallet/app/${id}/list`)
+
+export const setAppItem = async (id, key, value) =>
+  await request(`/api/wallet/app/${id}/set/${key}`)
+
+export const delAppitem = async (id, key) =>
+  await request(`/api/wallet/app/${id}/del/${key}`)
 
 export const decryptLnurlPayAES = (success_action, preimage) => {
   let keyb = new Uint8Array(
@@ -145,6 +168,7 @@ export const exportCSV = (columns, data) => {
     })
   }
 }
+
 export const notifyError = (error, title, type) => {
   const caption =
     title ||

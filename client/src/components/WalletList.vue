@@ -9,15 +9,15 @@
       v-for="wallet in $store.state.user.wallets"
       :key="wallet.id"
       clickable
-      :active="$store.state.wallet && $store.state.wallet.id === wallet.id"
+      :active="$store.state.wallet?.id === wallet.id"
       tag="a"
-      :href="wallet.url"
+      @click="goToWallet(wallet)"
     >
       <q-item-section side>
         <q-avatar
           size="md"
           :color="
-            activeWallet && activeWallet.id === wallet.id
+            $store.state.wallet?.id === wallet.id
               ? $q.dark.isActive
                 ? 'primary'
                 : 'primary'
@@ -86,19 +86,23 @@ export default {
     }
   },
   methods: {
-    methods: {
-      async createWallet() {
-        try {
-          const {wallet} = await createWallet(this.walletName)
-          this.$store.commit('setWallet', wallet)
-          this.$router.push({
-            path: `/wallet/${wallet.id}`,
-            query: this.$route.query
-          })
-        } catch (err) {
-          notifyError(err)
-        }
+    async createWallet() {
+      try {
+        const {wallet} = await createWallet(this.walletName)
+        this.$store.commit('setWallet', wallet)
+        this.$router.push({
+          path: `/wallet/${wallet.id}`,
+          query: this.$route.query
+        })
+      } catch (err) {
+        notifyError(err)
       }
+    },
+
+    goToWallet(wallet) {
+      this.$store.commit('setWallet', wallet)
+      this.$router.push(`/wallet/${wallet.id}`)
+      this.$store.dispatch('fetchWallet', wallet.id)
     }
   }
 }

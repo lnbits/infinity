@@ -122,7 +122,7 @@
       :elevated="$q.screen.lt.md"
     >
       <WalletList />
-      <AppList class="q-pb-xl" />
+      <AppList />
     </q-drawer>
 
     <q-page-container>
@@ -159,10 +159,45 @@
 </template>
 
 <script>
+import {watch} from 'vue'
+import {useStore} from 'vuex'
+import {useRoute} from 'vue-router'
+
 import {changeColorTheme} from '../helpers'
 
 export default {
   name: 'MainLayout',
+
+  setup() {
+    const store = useStore()
+    const route = useRoute()
+
+    watch(
+      () => [store.state.user?.id, route.params.id],
+      ([user, id], [olduser, oldid]) => {
+        if (id === oldid && user === olduser) return
+        if (!user) return
+        if (!id) return
+
+        store.commit(
+          'setWallet',
+          store.state.user.wallets.find(w => w.id === id)
+        )
+        store.dispatch('fetchWallet', id)
+      }
+    )
+
+    watch(
+      () => [store.state.user?.id, route.params.appid],
+      ([user, appid], [olduser, oldappid]) => {
+        if (appid === oldappid && user === olduser) return
+        if (!user) return
+        if (!appid) return
+
+        store.dispatch('fetchApp', appid)
+      }
+    )
+  },
 
   data() {
     return {
@@ -170,9 +205,9 @@ export default {
     }
   },
 
-  beforeCreate() {
+  async beforeCreate() {
     this.$store.dispatch('init')
-    this.$store.dispatch('fetchUser')
+    await this.$store.dispatch('fetchUser')
   },
 
   methods: {

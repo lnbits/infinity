@@ -6,7 +6,11 @@ const routes = [
       {path: '', component: () => import('pages/Index.vue')},
       {
         path: '/wallet/:id',
-        component: () => import('pages/Wallet.vue'),
+        component: () => import('pages/Wallet.vue')
+      },
+      {
+        path: '/wallet/:id/app/:appid',
+        component: () => import('pages/CustomApp.vue')
       }
     ]
   },

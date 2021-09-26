@@ -5,7 +5,9 @@ import (
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
+	"github.com/lnbits/lnbits/lightning"
 	m "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/storage"
 	"github.com/lnbits/lnbits/utils"
 )
 
@@ -51,13 +53,13 @@ func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, e
 		Webhook:    params.Webhook,
 		WalletID:   wallet.ID,
 	}
-	if result := db.Create(&payment); result.Error != nil {
+	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save temp payment: %w", result.Error)
 	}
 
 	defer func() {
 		if err != nil {
-			if result := db.Delete(&payment); result.Error != nil {
+			if result := storage.DB.Delete(&payment); result.Error != nil {
 				panic("failed to delete temp payment " + payment.CheckingID + ": " +
 					result.Error.Error())
 			}
@@ -66,7 +68,7 @@ func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, e
 
 	// check balance
 	var balance int64
-	if result := db.Model(&m.Payment{}).
+	if result := storage.DB.Model(&m.Payment{}).
 		Select("sum(amount)").
 		Where("amount < 0 OR (amount > 0 AND NOT pending)").
 		Where("wallet_id = ?", wallet.ID).
@@ -79,14 +81,14 @@ func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, e
 	}
 
 	// actually perform the payment
-	data, err := ln.MakePayment(params.PaymentParams)
+	data, err := lightning.LN.MakePayment(params.PaymentParams)
 	if err != nil {
 		return payment, fmt.Errorf("failed to pay: %w", err)
 	}
 
 	// update checking_id
 	payment.CheckingID = data.CheckingID
-	if result := db.Save(payment); result.Error != nil {
+	if result := storage.DB.Save(payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to update checking_id: %w", err)
 	}
 

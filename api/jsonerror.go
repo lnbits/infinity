@@ -11,7 +11,7 @@ type JSONError struct {
 	Message string `json:"message"`
 }
 
-func jsonError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
+func SendJSONError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
 	b, _ := json.Marshal(JSONError{false, fmt.Sprintf(msg, args...)})
 	http.Error(w, string(b), code)
 }

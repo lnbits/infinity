@@ -783,9 +783,6 @@ export default {
     canPay() {
       if (!this.parse.invoice) return false
       return this.parse.invoice.sat <= this.balance
-    },
-    pendingPaymentsExist() {
-      return this.payments.findIndex(payment => payment.pending) !== -1
     }
   },
 
@@ -860,20 +857,6 @@ export default {
     this.$events.on('payment-failed', payment => {
       // TODO
     })
-  },
-
-  async beforeCreate() {
-    if (
-      (!this.$store.state.wallet ||
-        this.$store.state.wallet.id !== this.$route.params.id) &&
-      this.$store.state.user
-    ) {
-      this.$store.commit(
-        'setWallet',
-        this.$store.state.user.wallet.find(w => w.id === this.$route.params.id)
-      )
-      await this.$store.dispatch('fetchWallet', this.$route.params.id)
-    }
   },
 
   methods: {

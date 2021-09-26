@@ -15,88 +15,24 @@ import (
 
 	models "github.com/lnbits/lnbits/models"
 	services "github.com/lnbits/lnbits/services"
-	utils "github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/lnbits/storage"
 )
-
-func User(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(*models.User)
-
-	// load wallets
-	db.Raw(`
-      SELECT *,
-        (SELECT coalesce(sum(amount), 0) FROM payments AS p
-         WHERE p.wallet_id = w.id
-           AND ( amount < 0
-            OR   ( amount > 0 AND NOT pending )
-               )
-        ) AS balance FROM wallets AS w
-      WHERE w.user_id = ?
-    `, user.ID).Scan(&user.Wallets)
-
-	json.NewEncoder(w).Encode(user)
-}
-
-func CreateWallet(w http.ResponseWriter, r *http.Request) {
-	var masterKey string
-	user := &models.User{}
-
-	if r.Context().Value("user") != nil {
-		user = r.Context().Value("user").(*models.User)
-	} else {
-		// create user
-		user.ID = utils.RandomHex(16)
-		user.Apps = make(models.StringList, 0)
-		masterKey = utils.RandomHex(32) // will only be returned if we're creating the user
-		user.MasterKey = masterKey
-		db.Create(user)
-	}
-
-	// create wallet
-	var params struct {
-		Name string `json:"name"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		jsonError(w, 400, "got invalid JSON: %s", err.Error())
-		return
-	}
-
-	wallet := models.Wallet{
-		ID:         utils.RandomHex(16),
-		Name:       params.Name,
-		UserID:     user.ID,
-		InvoiceKey: utils.RandomHex(32),
-		AdminKey:   utils.RandomHex(32),
-	}
-	result := db.Create(&wallet)
-	if result.Error != nil {
-		jsonError(w, 400, "error saving wallet: %s", result.Error.Error())
-		return
-	}
-
-	json.NewEncoder(w).Encode(struct {
-		UserMasterKey string        `json:"userMasterKey"`
-		Wallet        models.Wallet `json:"wallet"`
-	}{
-		masterKey,
-		wallet,
-	})
-}
 
 func Wallet(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
 	// load wallet balance
-	db.Model(&models.Payment{}).
+	storage.DB.Model(&models.Payment{}).
 		Select("coalesce(sum(amount), 0)").
 		Where("amount < 0 OR (amount > 0 AND NOT pending)").
 		Where("wallet_id = ?", wallet.ID).
 		First(&wallet.Balance)
 
 	// load wallet payments
-	db.Where("wallet_id = ?", wallet.ID).Find(&wallet.Payments)
+	storage.DB.Where("wallet_id = ?", wallet.ID).Find(&wallet.Payments)
 
 	// load wallet balanceChecks
-	db.Where("wallet_id = ?", wallet.ID).Find(&wallet.BalanceChecks)
+	storage.DB.Where("wallet_id = ?", wallet.ID).Find(&wallet.BalanceChecks)
 
 	json.NewEncoder(w).Encode(wallet)
 }
@@ -105,7 +41,7 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
 	wallet.Name = mux.Vars(r)["new-name"]
-	db.Save(&wallet)
+	storage.DB.Save(&wallet)
 
 	w.WriteHeader(200)
 }
@@ -127,7 +63,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		jsonError(w, 400, err.Error())
+		SendJSONError(w, 400, err.Error())
 		return
 	}
 
@@ -147,14 +83,14 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		if msats, err := services.GetMsatsPerFiatUnit(params.Unit); err == nil {
 			params.Msatoshi = int64(params.Amount * float64(msats))
 		} else {
-			jsonError(w, 400, fmt.Sprintf("failed to get rate for currency %s: %s", params.Unit, err.Error()))
+			SendJSONError(w, 400, fmt.Sprintf("failed to get rate for currency %s: %s", params.Unit, err.Error()))
 			return
 		}
 	}
 
 	payment, err := services.CreateInvoice(wallet, params.CreateInvoiceParams)
 	if err != nil {
-		jsonError(w, 450, fmt.Sprintf("failed to create invoice: %s", err.Error()))
+		SendJSONError(w, 450, fmt.Sprintf("failed to create invoice: %s", err.Error()))
 		return
 	}
 
@@ -172,7 +108,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		jsonError(w, 400, err.Error())
+		SendJSONError(w, 400, err.Error())
 		return
 	}
 
@@ -183,7 +119,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	payment, err := services.PayInvoice(wallet, params.PayInvoiceParams)
 	if err != nil {
-		jsonError(w, 450, fmt.Sprintf("failed to pay invoice: %s", err.Error()))
+		SendJSONError(w, 450, fmt.Sprintf("failed to pay invoice: %s", err.Error()))
 		return
 	}
 
@@ -197,13 +133,13 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 		Callback string `json:"callback"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		jsonError(w, 400, "got invalid JSON: %s", err.Error())
+		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
 	parsed, err := url.Parse(params.Callback)
 	if err != nil {
-		jsonError(w, 400, "got invalid callback URL '%s': %s",
+		SendJSONError(w, 400, "got invalid callback URL '%s': %s",
 			params.Callback, err.Error())
 		return
 	}
@@ -211,13 +147,13 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 	k1hex := parsed.Query().Get("k1")
 	k1, err := hex.DecodeString(k1hex)
 	if err != nil {
-		jsonError(w, 400, "Invalid k1 hex '%s': %s.", k1hex, err.Error())
+		SendJSONError(w, 400, "Invalid k1 hex '%s': %s.", k1hex, err.Error())
 		return
 	}
 
 	sk := services.AuthKey(wallet, parsed.Host)
 	if err := services.PerformKeyAuthFlow(sk, parsed, k1); err != nil {
-		jsonError(w, 500, "Failed to sign: %s.", err.Error())
+		SendJSONError(w, 500, "Failed to sign: %s.", err.Error())
 		return
 	}
 
@@ -234,14 +170,14 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		Comment            string `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		jsonError(w, 400, "got invalid JSON: %s", err.Error())
+		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
 	// call callback with params and get invoice
 	callback, err := url.Parse(params.Callback)
 	if err != nil {
-		jsonError(w, 400, "got invalid callback URL: %s", err.Error())
+		SendJSONError(w, 400, "got invalid callback URL: %s", err.Error())
 		return
 	}
 	qs := callback.Query()
@@ -253,31 +189,31 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 
 	var lnurlResponse lnurl.LNURLPayResponse2
 	if resp, err := http.Get(callback.String()); err != nil {
-		jsonError(w, 400, "failed to call %s: %s", callback.String(), err.Error())
+		SendJSONError(w, 400, "failed to call %s: %s", callback.String(), err.Error())
 		return
 	} else {
 		if err := json.NewDecoder(resp.Body).Decode(&lnurlResponse); err != nil {
-			jsonError(w, 400, "got invalid json from %s", callback.Host)
+			SendJSONError(w, 400, "got invalid json from %s", callback.Host)
 			return
 		}
 	}
 	if lnurlResponse.Status == "ERROR" {
-		jsonError(w, 420, "%s said: %s", callback.Host, lnurlResponse.Reason)
+		SendJSONError(w, 420, "%s said: %s", callback.Host, lnurlResponse.Reason)
 		return
 	}
 
 	// check invoice amount and description_hash
 	inv, err := decodepay.Decodepay(lnurlResponse.PR)
 	if err != nil {
-		jsonError(w, 420, "%s has sent an invalid invoice", callback.Host)
+		SendJSONError(w, 420, "%s has sent an invalid invoice", callback.Host)
 		return
 	}
 	if inv.DescriptionHash != params.DescriptionHashHex {
-		jsonError(w, 420, "%s has sent an invoice with wrong description_hash", callback.Host)
+		SendJSONError(w, 420, "%s has sent an invoice with wrong description_hash", callback.Host)
 		return
 	}
 	if int64(inv.MSatoshi) != params.Amount {
-		jsonError(w, 420, "%s has sent an invoice with wrong msatoshi amount", callback.Host)
+		SendJSONError(w, 420, "%s has sent an invoice with wrong msatoshi amount", callback.Host)
 		return
 	}
 
@@ -301,7 +237,7 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		Extra: extra,
 	})
 	if err != nil {
-		jsonError(w, 500, "failed to pay: %s", err.Error())
+		SendJSONError(w, 500, "failed to pay: %s", err.Error())
 		return
 	}
 
@@ -321,7 +257,7 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	payment := models.Payment{CheckingID: id, WalletID: wallet.ID}
-	db.Where(&payment).First(&payment)
+	storage.DB.Where(&payment).First(&payment)
 
 	json.NewEncoder(w).Encode(payment)
 }
@@ -340,7 +276,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 			}{lnurlError.Reason, lnurlError.URL.Host})
 			http.Error(w, string(b), 410)
 		} else {
-			jsonError(w, 480, err.Error())
+			SendJSONError(w, 480, err.Error())
 		}
 	}
 
@@ -400,7 +336,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 				PubKey().SerializeCompressed(),
 		)
 	default:
-		jsonError(w, 400, "Unsupported LNURL.")
+		SendJSONError(w, 400, "Unsupported LNURL.")
 		return
 	}
 

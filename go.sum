@@ -8,6 +8,8 @@ github.com/NebulousLabs/fastrand v0.0.0-20181203155948-6fb6489aac4e/go.mod h1:Bd
 github.com/NebulousLabs/go-upnp v0.0.0-20180202185039-29b680b06c82/go.mod h1:GbuBk21JqF+driLX3XtJYNZjGa45YDoa9IqCTzNSfEc=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/Yawning/aez v0.0.0-20180114000226-4dad034d9db2/go.mod h1:9pIqrY6SXNL8vjRQE5Hd/OL5GyK/9MrGUWs87z/eFfk=
+github.com/aarzilli/golua v0.0.0-20190714183732-fc27908ace94 h1:BdnmhcIVWErdfypFo/f9Ai2KoC2BpkLpGSyv0aquYuI=
+github.com/aarzilli/golua v0.0.0-20190714183732-fc27908ace94/go.mod h1:SV7PRru1lATaCdZXNt5AZHw0uKiN1BoYBHrcctQ1Ouc=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da/go.mod h1:eHEWzANqSiWQsof+nXEI9bUVUyV6F53Fp89EuCh2EAA=
 github.com/aead/siphash v1.0.1 h1:FwHfE/T45KPKYuuSAKyyvE+oPWcaQ+CUmFW0bPlM+kg=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
@@ -77,6 +79,8 @@ github.com/fiatjaf/lightningd-gjson-rpc v1.4.1/go.mod h1:SQGA0qcY2qypaMXDQlE5V5+
 github.com/fiatjaf/ln-decodepay v1.0.0/go.mod h1:/LWK+ZUa3i8MqbRjIMAiVQS2+NbhwKWlwib2n446cMQ=
 github.com/fiatjaf/ln-decodepay v1.1.0 h1:HigjqNH+ApiO6gm7RV23jXNFuvwq+zgsWl4BJAfPWwE=
 github.com/fiatjaf/ln-decodepay v1.1.0/go.mod h1:2qdTT95b8Z4dfuxiZxXuJ1M7bQ9CrLieEA1DKC50q6s=
+github.com/fiatjaf/lunatico v1.0.0 h1:uqO/C85qCxbfaJFndmDNyMmEDMT8bUf93Gj4ureBh94=
+github.com/fiatjaf/lunatico v1.0.0/go.mod h1:9EpgiQCVqIzB5HBxdZmiOkPE9mAzyznhs7DvKkYcGAA=
 github.com/frankban/quicktest v1.2.2/go.mod h1:Qh/WofXFeiAFII1aEBu529AtJo6Zg2VHscnEsbBnJ20=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=

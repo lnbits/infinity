@@ -8,15 +8,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/fiatjaf/relampago"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/api"
+	"github.com/lnbits/lnbits/apps"
 	"github.com/lnbits/lnbits/lightning"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
-	"gorm.io/gorm"
 )
 
 type Settings struct {
@@ -35,8 +34,6 @@ type Settings struct {
 }
 
 var s Settings
-var ln relampago.Wallet
-var db *gorm.DB
 var log = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: os.Stdout})
 var router = mux.NewRouter()
 var commit string // will be set at compile time
@@ -60,12 +57,10 @@ func main() {
 		log.Fatal().Err(err).Str("database", s.Database).
 			Msg("couldn't open database.")
 	}
-	db = storage.DB
 
 	// lightning backend
 	lightning.Connect(s.LightningBackend)
-	ln = lightning.LN
-	if info, err := ln.GetInfo(); err != nil {
+	if info, err := lightning.LN.GetInfo(); err != nil {
 		log.Fatal().Err(err).Str("lightning", s.LightningBackend).
 			Msg("couldn't start lightning backend.")
 		return
@@ -77,7 +72,8 @@ func main() {
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)
 	router.Path("/api/user").HandlerFunc(api.User)
-	router.Path("/api/create-wallet").HandlerFunc(api.CreateWallet)
+	router.Path("/api/user/create-wallet").HandlerFunc(api.CreateWallet)
+	router.Path("/api/user/add-app").HandlerFunc(api.AddApp)
 	router.Path("/api/wallet").HandlerFunc(api.Wallet)
 	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(api.RenameWallet)
 	router.Path("/api/wallet/create-invoice").HandlerFunc(api.CreateInvoice)
@@ -87,6 +83,13 @@ func main() {
 	router.Path("/api/wallet/payment/{id}").HandlerFunc(api.GetPayment)
 	router.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
 	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
+
+	// app endpoints
+	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.AppInfo)
+	router.Path("/api/wallet/app/{appid}/list").HandlerFunc(apps.AppListItems)
+	router.Path("/api/wallet/app/{appid}/set/{key}").HandlerFunc(apps.AppSetItem)
+	router.Path("/api/wallet/app/{appid}/del/{key}").HandlerFunc(apps.AppDeleteItem)
+	router.PathPrefix("/app/{wallet}/{appid}").HandlerFunc(apps.AppCustom)
 
 	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
 	router.Path("/api/v1/wallet").HandlerFunc(api.Wallet)
