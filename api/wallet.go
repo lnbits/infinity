@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"net/url"
 
 	lnurl "github.com/fiatjaf/go-lnurl"
-	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
 	mux "github.com/gorilla/mux"
 
@@ -164,64 +162,26 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
 	var params struct {
-		DescriptionHashHex string `json:"description_hash"`
-		Callback           string `json:"callback"`
-		Amount             int64  `json:"amount"`
-		Comment            string `json:"comment"`
+		Params  lnurl.LNURLPayParams `json:"params"`
+		Amount  int64                `json:"amount"`
+		Comment string               `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
-	// call callback with params and get invoice
-	callback, err := url.Parse(params.Callback)
+	values, err := params.Params.Call(params.Amount, params.Comment, nil)
 	if err != nil {
-		SendJSONError(w, 400, "got invalid callback URL: %s", err.Error())
-		return
-	}
-	qs := callback.Query()
-	if params.Comment != "" {
-		qs.Set("comment", params.Comment)
-	}
-	qs.Set("amount", fmt.Sprintf("%d", params.Amount))
-	callback.RawQuery = qs.Encode()
-
-	var lnurlResponse lnurl.LNURLPayResponse2
-	if resp, err := http.Get(callback.String()); err != nil {
-		SendJSONError(w, 400, "failed to call %s: %s", callback.String(), err.Error())
-		return
-	} else {
-		if err := json.NewDecoder(resp.Body).Decode(&lnurlResponse); err != nil {
-			SendJSONError(w, 400, "got invalid json from %s", callback.Host)
-			return
-		}
-	}
-	if lnurlResponse.Status == "ERROR" {
-		SendJSONError(w, 420, "%s said: %s", callback.Host, lnurlResponse.Reason)
-		return
-	}
-
-	// check invoice amount and description_hash
-	inv, err := decodepay.Decodepay(lnurlResponse.PR)
-	if err != nil {
-		SendJSONError(w, 420, "%s has sent an invalid invoice", callback.Host)
-		return
-	}
-	if inv.DescriptionHash != params.DescriptionHashHex {
-		SendJSONError(w, 420, "%s has sent an invoice with wrong description_hash", callback.Host)
-		return
-	}
-	if int64(inv.MSatoshi) != params.Amount {
-		SendJSONError(w, 420, "%s has sent an invoice with wrong msatoshi amount", callback.Host)
+		SendJSONError(w, 450, "failed to get lnurl invoice: %s", err.Error())
 		return
 	}
 
 	extra := make(models.JSONObject)
 
 	// store successAction
-	if lnurlResponse.SuccessAction != nil {
-		extra["success_action"] = lnurlResponse.SuccessAction
+	if values.SuccessAction != nil {
+		extra["success_action"] = values.SuccessAction
 	}
 
 	// store comment
@@ -232,7 +192,7 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 	// actually pay
 	payment, err := services.PayInvoice(wallet, services.PayInvoiceParams{
 		PaymentParams: rp.PaymentParams{
-			Invoice: lnurlResponse.PR,
+			Invoice: values.PR,
 		},
 		Extra: extra,
 	})
@@ -246,9 +206,9 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		PaymentHash   string               `json:"payment_hash"`
 		CheckingID    string               `json:"checking_id"`
 	}{
-		lnurlResponse.SuccessAction,
+		values.SuccessAction,
 		payment.CheckingID,
-		inv.PaymentHash,
+		values.ParsedInvoice.PaymentHash,
 	})
 }
 
@@ -308,16 +268,16 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 	response.LNURLParams = lnurlParams
 
 	switch params := lnurlParams.(type) {
-	case lnurl.LNURLPayResponse1:
+	case lnurl.LNURLPayParams:
 		response.Kind = "pay"
 		response.Fixed = params.MinSendable == params.MaxSendable
 
-		h := sha256.Sum256([]byte(params.EncodedMetadata))
+		h := params.Metadata.Hash()
 		response.DescriptionHashHex = hex.EncodeToString(h[:])
 
-		response.Description = params.Metadata.Description()
-		response.Image = params.Metadata.ImageDataURI()
-		response.TargetUser = params.Metadata.LightningAddress()
+		response.Description = params.Metadata.Description
+		response.Image = params.Metadata.Image.DataURI
+		response.TargetUser = params.Metadata.LightningAddress
 		response.CommentAllowed = int(params.CommentAllowed)
 	case lnurl.LNURLWithdrawResponse:
 		response.Kind = "withdraw"
