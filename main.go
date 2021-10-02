@@ -1,10 +1,9 @@
 package main
 
 import (
-	"embed"
 	"encoding/json"
-	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -19,8 +18,10 @@ import (
 )
 
 type Settings struct {
-	Host     string `envconfig:"HOST" default:"0.0.0.0"`
-	Port     string `envconfig:"PORT" default:"5000"`
+	Host            string   `envconfig:"HOST" default:"0.0.0.0"`
+	Port            string   `envconfig:"PORT" default:"5000"`
+	QuasarDevServer *url.URL `envconfig:"QUASAR_DEV_SERVER"`
+
 	Database string `envconfig:"DATABASE" required:"true"`
 
 	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
@@ -37,9 +38,6 @@ var s Settings
 var log = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: os.Stdout})
 var router = mux.NewRouter()
 var commit string // will be set at compile time
-
-//go:embed client/dist/spa
-var static embed.FS
 
 func main() {
 	err := envconfig.Process("", &s)
@@ -122,15 +120,7 @@ func main() {
 	router.Use(walletMiddleware)
 	router.Use(cors.AllowAll().Handler)
 
-	// serve static client
-	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
-		log.Fatal().Err(err).Msg("failed to load static files subdir")
-		return
-	} else {
-		spaFS := SpaFS{staticFS}
-		httpFS := http.FS(spaFS)
-		router.PathPrefix("/").Handler(http.FileServer(httpFS))
-	}
+	serveStaticClient()
 
 	// start http server
 	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")
@@ -142,17 +132,5 @@ func main() {
 	}
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error().Err(err).Msg("error serving http")
-	}
-}
-
-type SpaFS struct {
-	base fs.FS
-}
-
-func (s SpaFS) Open(name string) (fs.File, error) {
-	if file, err := s.base.Open(name); err == nil {
-		return file, nil
-	} else {
-		return s.base.Open("index.html")
 	}
 }
