@@ -1,5 +1,5 @@
 <template>
-  <div class="row q-col-gutter-md">
+  <div class="row q-col-gutter-md q-mb-md">
     <div class="col-12 col-md-7 q-gutter-y-md">
       <q-card>
         <q-card-section>
@@ -7,9 +7,6 @@
             >New {{ model.name }}</q-btn
           >
         </q-card-section>
-      </q-card>
-
-      <q-card>
         <q-card-section>
           <div class="row items-center no-wrap q-mb-md">
             <div class="col">
@@ -28,8 +25,11 @@
           >
             <template #header="props">
               <q-tr :props="props">
-                <q-th v-for="field in model.fields" :key="field.name" auto-width
-                  >{field.name}</q-th
+                <q-th
+                  v-for="field in model.fields"
+                  :key="field.name"
+                  auto-width
+                  >{{ field.name }}</q-th
                 >
                 <q-th auto-width></q-th>
                 <q-th auto-width></q-th>
@@ -76,7 +76,7 @@
             filled
             dense
             type="text"
-            :label="field.name + field.required ? ' *' : ''"
+            :label="field.name + (field.required ? ' *' : '')"
           />
           <q-input
             v-if="field.type === 'number'"
@@ -84,12 +84,12 @@
             filled
             dense
             type="number"
-            :label="field.name + field.required ? ' *' : ''"
+            :label="field.name + (field.required ? ' *' : '')"
           />
           <q-checkbox
             v-if="field.type === 'boolean'"
             v-model="formDialog.item[field.name]"
-            :label="field.name + field.required ? ' *' : ''"
+            :label="field.name + (field.required ? ' *' : '')"
           />
         </template>
         <div class="row q-mt-lg">
@@ -104,7 +104,7 @@
             v-else
             unelevated
             color="primary"
-            :disable="isFormSubmitDisabled"
+            :disabled="isFormSubmitDisabled"
             type="submit"
             >Create {{ model.name }}</q-btn
           >
@@ -131,6 +131,11 @@ export default {
   data() {
     return {
       items: [],
+      table: {
+        pagination: {
+          rowsPerPage: 15
+        }
+      },
       formDialog: {
         show: false,
         item: null

@@ -84,15 +84,13 @@ export default {
   },
   methods: {
     clickApp(appURL) {
-      this.$router.push(
-        `/wallet/${this.$store.state.wallet.id}/app/${Buffer.from(
+      this.$router.push({
+        path: `/wallet/${this.$store.state.wallet.id}/app/${Buffer.from(
           appURL,
           'utf-8'
         ).toString('hex')}`,
-        {
-          query: this.$route.query
-        }
-      )
+        query: this.$route.query
+      })
     },
 
     async addApp() {
@@ -100,12 +98,10 @@ export default {
         await addApp(this.appURL)
         const appid = Buffer.from(this.appURL, 'utf-8').toString('hex')
         this.$store.dispatch('fetchUser')
-        this.$router.push(
-          `/wallet/${this.$store.state.wallet.id}/app/${appid}`,
-          {
-            query: this.$route.query
-          }
-        )
+        this.$router.push({
+          path: `/wallet/${this.$store.state.wallet.id}/app/${appid}`,
+          query: this.$route.query
+        })
         this.$store.dispatch('fetchUser')
         this.appURL = ''
       } catch (err) {

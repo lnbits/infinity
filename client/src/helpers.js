@@ -98,7 +98,7 @@ export const listAppItems = async id =>
 export const setAppItem = async (id, key, value) =>
   await request(`/api/wallet/app/${id}/set/${key}`)
 
-export const delAppitem = async (id, key) =>
+export const delAppItem = async (id, key) =>
   await request(`/api/wallet/app/${id}/del/${key}`)
 
 export const decryptLnurlPayAES = (success_action, preimage) => {

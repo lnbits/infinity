@@ -35,10 +35,7 @@
         <q-item-label lines="1">{{ wallet.name }}</q-item-label>
         <q-item-label caption>{{ wallet.balance }} sat</q-item-label>
       </q-item-section>
-      <q-item-section
-        v-show="activeWallet && activeWallet.id === wallet.id"
-        side
-      >
+      <q-item-section v-show="$store.state.wallet?.id === wallet.id" side>
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
       </q-item-section>
     </q-item>
@@ -101,7 +98,10 @@ export default {
 
     goToWallet(wallet) {
       this.$store.commit('setWallet', wallet)
-      this.$router.push(`/wallet/${wallet.id}`)
+      this.$router.push({
+        path: `/wallet/${wallet.id}`,
+        query: this.$route.query
+      })
       this.$store.dispatch('fetchWallet', wallet.id)
     }
   }

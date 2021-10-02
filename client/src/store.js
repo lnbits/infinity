@@ -27,6 +27,9 @@ export default createStore({
     },
     setWallet(state, wallet) {
       state.wallet = wallet
+    },
+    setApp(state, app) {
+      state.app = app
     }
   },
   actions: {

@@ -172,10 +172,14 @@ export default {
     const store = useStore()
     const route = useRoute()
 
+    store.dispatch('init')
+    store.dispatch('fetchUser')
+
     watch(
       () => [store.state.user?.id, route.params.id],
       ([user, id], [olduser, oldid]) => {
         if (id === oldid && user === olduser) return
+
         if (!user) return
         if (!id) return
 
@@ -203,11 +207,6 @@ export default {
     return {
       visibleDrawer: false
     }
-  },
-
-  async beforeCreate() {
-    this.$store.dispatch('init')
-    await this.$store.dispatch('fetchUser')
   },
 
   methods: {

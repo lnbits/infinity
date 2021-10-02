@@ -757,7 +757,7 @@ export default {
           }
         ],
         pagination: {
-          rowsPerPage: 10
+          rowsPerPage: 15
         },
         filter: null,
         filterMethod: (rows, terms) => {
