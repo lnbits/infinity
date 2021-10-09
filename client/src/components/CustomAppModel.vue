@@ -29,7 +29,7 @@
                   v-for="field in model.fields"
                   :key="field.name"
                   auto-width
-                  >{{ field.name }}</q-th
+                  >{{ field.display || field.name }}</q-th
                 >
                 <q-th auto-width></q-th>
                 <q-th auto-width></q-th>
@@ -149,7 +149,11 @@ export default {
         this.formDialog.show &&
         this.model.fields
           .filter(field => field.required)
-          .map(field => this.formDialog.item[field.name] !== undefined)
+          .filter(
+            field =>
+              this.formDialog.item[field.name] === undefined ||
+              this.formDialog.item[field.name] === ''
+          ).length > 0
       )
     }
   },

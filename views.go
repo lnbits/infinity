@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/lnbits/lnbits/services"
+	"github.com/lnbits/lnbits/utils"
 )
 
 func viewSettings(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +21,6 @@ func viewSettings(w http.ResponseWriter, r *http.Request) {
 		s.SiteDescription,
 		s.ThemeOptions,
 		commit,
-		services.CURRENCIES,
+		utils.CURRENCIES,
 	})
 }

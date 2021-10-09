@@ -66,6 +66,7 @@ type AppDataItem struct {
 
 	App      string `gorm:"primaryKey;index:app_user_items_idx" json:"app"`
 	WalletID string `gorm:"primaryKey;index:app_user_items_idx" json:"walletID"`
+	Model    string `gorm:"primaryKey;index:app_user_items_idx" json:"model"`
 	Key      string `gorm:"primaryKey" json:"key"`
 
 	Value JSONObject `gorm:"not null" json:"value"`

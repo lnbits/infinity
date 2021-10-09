@@ -18,7 +18,7 @@ type CreateInvoiceParams struct {
 	Webhook string       `json:"webhook"`
 }
 
-func CreateInvoice(wallet *m.Wallet, params CreateInvoiceParams) (m.Payment, error) {
+func CreateInvoice(walletID string, params CreateInvoiceParams) (m.Payment, error) {
 	data, err := lightning.LN.CreateInvoice(params.InvoiceParams)
 	if err != nil {
 		return m.Payment{}, fmt.Errorf("failed to create invoice: %w", err)
@@ -37,7 +37,7 @@ func CreateInvoice(wallet *m.Wallet, params CreateInvoiceParams) (m.Payment, err
 		Hash:       inv.PaymentHash,
 		Bolt11:     data.Invoice,
 		Amount:     params.Msatoshi,
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)

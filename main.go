@@ -84,10 +84,10 @@ func main() {
 
 	// app endpoints
 	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.AppInfo)
-	router.Path("/api/wallet/app/{appid}/list").HandlerFunc(apps.AppListItems)
+	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.AppListItems)
 	router.Path("/api/wallet/app/{appid}/set/{key}").HandlerFunc(apps.AppSetItem)
 	router.Path("/api/wallet/app/{appid}/del/{key}").HandlerFunc(apps.AppDeleteItem)
-	router.PathPrefix("/app/{wallet}/{appid}").HandlerFunc(apps.AppCustom)
+	router.Path("/app/{wallet}/{appid}/action/{action}").HandlerFunc(apps.AppCustomAction)
 
 	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
 	router.Path("/api/v1/wallet").HandlerFunc(api.Wallet)

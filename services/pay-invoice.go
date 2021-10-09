@@ -19,7 +19,7 @@ type PayInvoiceParams struct {
 	Webhook string       `json:"webhook"`
 }
 
-func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, err error) {
+func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, err error) {
 	// parse invoice
 	inv, err := decodepay.Decodepay(params.Invoice)
 	if err != nil {
@@ -51,7 +51,7 @@ func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, e
 		Tag:        params.Tag,
 		Extra:      params.Extra,
 		Webhook:    params.Webhook,
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save temp payment: %w", result.Error)
@@ -71,7 +71,7 @@ func PayInvoice(wallet *m.Wallet, params PayInvoiceParams) (payment m.Payment, e
 	if result := storage.DB.Model(&m.Payment{}).
 		Select("sum(amount)").
 		Where("amount < 0 OR (amount > 0 AND NOT pending)").
-		Where("wallet_id = ?", wallet.ID).
+		Where("wallet_id = ?", walletID).
 		First(&balance); result.Error != nil {
 		return payment, fmt.Errorf("failed to check balance: %w", result.Error)
 	}

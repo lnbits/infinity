@@ -3,7 +3,7 @@ module github.com/lnbits/lnbits
 go 1.16
 
 require (
-	github.com/aarzilli/golua v0.0.0-20190714183732-fc27908ace94
+	github.com/aarzilli/golua v0.0.0-20210507130708-11106aa57765 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta.0.20200515232429-9f0179fd2c46
 	github.com/fiatjaf/go-lnurl v1.6.1
 	github.com/fiatjaf/ln-decodepay v1.1.0
@@ -23,3 +23,5 @@ require (
 replace github.com/fiatjaf/relampago => /home/fiatjaf/comp/relampago
 
 replace github.com/fiatjaf/go-lnurl => /home/fiatjaf/comp/go-lnurl
+
+replace github.com/fiatjaf/lunatico => /home/fiatjaf/comp/lunatico

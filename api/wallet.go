@@ -14,6 +14,7 @@ import (
 	models "github.com/lnbits/lnbits/models"
 	services "github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/storage"
+	utils "github.com/lnbits/lnbits/utils"
 )
 
 func Wallet(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +79,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	if params.Unit == "sat" {
 		params.Msatoshi = int64(params.Amount) * 1000
 	} else {
-		if msats, err := services.GetMsatsPerFiatUnit(params.Unit); err == nil {
+		if msats, err := utils.GetMsatsPerFiatUnit(params.Unit); err == nil {
 			params.Msatoshi = int64(params.Amount * float64(msats))
 		} else {
 			SendJSONError(w, 400, fmt.Sprintf("failed to get rate for currency %s: %s", params.Unit, err.Error()))
@@ -86,7 +87,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	payment, err := services.CreateInvoice(wallet, params.CreateInvoiceParams)
+	payment, err := services.CreateInvoice(wallet.ID, params.CreateInvoiceParams)
 	if err != nil {
 		SendJSONError(w, 450, fmt.Sprintf("failed to create invoice: %s", err.Error()))
 		return
@@ -115,7 +116,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		params.Invoice = params.Bolt11
 	}
 
-	payment, err := services.PayInvoice(wallet, params.PayInvoiceParams)
+	payment, err := services.PayInvoice(wallet.ID, params.PayInvoiceParams)
 	if err != nil {
 		SendJSONError(w, 450, fmt.Sprintf("failed to pay invoice: %s", err.Error()))
 		return
@@ -149,8 +150,8 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sk := services.AuthKey(wallet, parsed.Host)
-	if err := services.PerformKeyAuthFlow(sk, parsed, k1); err != nil {
+	sk := services.AuthKey(wallet.ID, parsed.Host)
+	if err := utils.PerformKeyAuthFlow(sk, parsed, k1); err != nil {
 		SendJSONError(w, 500, "Failed to sign: %s.", err.Error())
 		return
 	}
@@ -190,7 +191,7 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// actually pay
-	payment, err := services.PayInvoice(wallet, services.PayInvoiceParams{
+	payment, err := services.PayInvoice(wallet.ID, services.PayInvoiceParams{
 		PaymentParams: rp.PaymentParams{
 			Invoice: values.PR,
 		},
@@ -272,7 +273,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 		response.Kind = "pay"
 		response.Fixed = params.MinSendable == params.MaxSendable
 
-		h := params.Metadata.Hash()
+		h := params.HashMetadata()
 		response.DescriptionHashHex = hex.EncodeToString(h[:])
 
 		response.Description = params.Metadata.Description
@@ -292,7 +293,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 	case lnurl.LNURLAuthParams:
 		response.Kind = "auth"
 		response.Pubkey = hex.EncodeToString(
-			services.AuthKey(wallet, params.CallbackURL.Host).
+			services.AuthKey(wallet.ID, params.CallbackURL.Host).
 				PubKey().SerializeCompressed(),
 		)
 	default:

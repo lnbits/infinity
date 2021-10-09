@@ -1,50 +1,58 @@
 package runlua
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/lunatico"
 )
 
-func RunLua(actualCode, functionToRun string) (interface{}, error) {
+type Params struct {
+	AppCode          string
+	WalletID         string
+	FunctionToRun    string
+	InjectedGlobals  *map[string]interface{}
+	ExtractedGlobals interface{}
+}
+
+func RunLua(params Params) (interface{}, error) {
 	L := lua.NewState()
 	defer L.Close()
 	L.OpenLibs()
 
-	lunatico.SetGlobals(L, map[string]interface{}{
-		"code": actualCode + "\nreturn " + functionToRun + "()",
-	})
+	var code string
+	var globalsToGet []string
+	if params.FunctionToRun != "" {
+		code = params.AppCode + "\nreturn " + params.FunctionToRun + "()"
+		globalsToGet = []string{"ret"}
+	} else {
+		code = params.AppCode
+		globalsToGet = []string{
+			"models",
+			"actions",
+			"on",
+		}
+	}
 
-	code := `
-sandbox_env = {
-  ipairs = ipairs,
-  next = next,
-  pairs = pairs,
-  error = error,
-  tonumber = tonumber,
-  tostring = tostring,
-  type = type,
-  unpack = unpack,
-  utf8 = utf8,
-  string = { byte = string.byte, char = string.char, find = string.find,
-      format = string.format, gmatch = string.gmatch, gsub = string.gsub,
-      len = string.len, lower = string.lower, match = string.match,
-      rep = string.rep, reverse = string.reverse, sub = string.sub,
-      upper = string.upper },
-  table = { insert = table.insert, maxn = table.maxn, remove = table.remove,
-      sort = table.sort, pack = table.pack },
-  math = { abs = math.abs, acos = math.acos, asin = math.asin,
-      atan = math.atan, atan2 = math.atan2, ceil = math.ceil, cos = math.cos,
-      cosh = math.cosh, deg = math.deg, exp = math.exp, floor = math.floor,
-      fmod = math.fmod, frexp = math.frexp, huge = math.huge,
-      ldexp = math.ldexp, log = math.log, log10 = math.log10, max = math.max,
-      min = math.min, modf = math.modf, pi = math.pi, pow = math.pow,
-      rad = math.rad, random = math.random, randomseed = math.randomseed,
-      sin = math.sin, sinh = math.sinh, sqrt = math.sqrt, tan = math.tan, tanh = math.tanh  },
-  os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
-}
+	lunatico.SetGlobals(L, map[string]interface{}{"code": code})
+	lunatico.SetGlobals(L, exposedUtils)
 
+	// this means this code can create invoices, pay invoices and do crud operations
+	// on entries for this wallet/app db
+	if params.WalletID != "" {
+		lunatico.SetGlobals(L, map[string]interface{}{
+			"wallet_id": params.WalletID,
+		})
+		lunatico.SetGlobals(L, exposedWalletMethods)
+	}
+
+	if params.InjectedGlobals != nil {
+		lunatico.SetGlobals(L, *params.InjectedGlobals)
+	}
+
+	err := L.DoString(SANDBOX_ENV + params.AppCode + `
 _calls = 0
 function count ()
   _calls = _calls + 1
@@ -55,15 +63,30 @@ end
 debug.sethook(count, 'c')
 
 ret = load(code, 'call', 't', sandbox_env)()
-    `
-
-	err := L.DoString(code)
+    `)
 	if err != nil {
-		st := stackTraceWithCode(err.Error(), actualCode)
+		st := stackTraceWithCode(err.Error(), params.AppCode)
 		err = errors.New(st)
 		return nil, err
 	}
 
-	ret, _ := lunatico.GetGlobals(L, "ret")["ret"]
-	return ret, nil
+	globals := lunatico.GetGlobals(L, globalsToGet...)
+
+	if params.FunctionToRun != "" {
+		return globals["ret"], nil
+	} else if params.ExtractedGlobals != nil {
+		j, err := json.Marshal(globals)
+		if err != nil {
+			return nil, fmt.Errorf("failed to json-encode globals: %w", err)
+		}
+
+		if err := json.Unmarshal(j, params.ExtractedGlobals); err != nil {
+			return nil, fmt.Errorf("failed to decode '%s' into interface: %w",
+				string(j), err)
+		}
+
+		return nil, nil
+	}
+
+	return nil, nil
 }
