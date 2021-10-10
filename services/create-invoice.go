@@ -31,13 +31,14 @@ func CreateInvoice(walletID string, params CreateInvoiceParams) (m.Payment, erro
 	}
 
 	payment := m.Payment{
-		CheckingID: data.CheckingID,
-		Pending:    true,
-		Preimage:   data.Preimage,
-		Hash:       inv.PaymentHash,
-		Bolt11:     data.Invoice,
-		Amount:     params.Msatoshi,
-		WalletID:   walletID,
+		CheckingID:  data.CheckingID,
+		Pending:     true,
+		Preimage:    data.Preimage,
+		Hash:        inv.PaymentHash,
+		Bolt11:      data.Invoice,
+		Amount:      params.Msatoshi,
+		WalletID:    walletID,
+		Description: params.Description,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)

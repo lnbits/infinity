@@ -28,7 +28,10 @@ func Wallet(w http.ResponseWriter, r *http.Request) {
 		First(&wallet.Balance)
 
 	// load wallet payments
-	storage.DB.Where("wallet_id = ?", wallet.ID).Find(&wallet.Payments)
+	storage.DB.
+		Order("created_at desc").
+		Where("wallet_id = ?", wallet.ID).
+		Find(&wallet.Payments)
 
 	// load wallet balanceChecks
 	storage.DB.Where("wallet_id = ?", wallet.ID).Find(&wallet.BalanceChecks)
@@ -69,6 +72,11 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	// lnbits compatibility
 	if params.Memo != "" && params.Description == "" {
 		params.Description = params.Memo
+	}
+
+	if params.Description == "" {
+		SendJSONError(w, 400, "Missing description.")
+		return
 	}
 
 	// transform input

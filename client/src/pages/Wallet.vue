@@ -73,7 +73,7 @@
               dense
               clearable
               debounce="300"
-              placeholder="Search by tag, memo, amount"
+              placeholder="Search by tag, description, amount"
               class="q-mb-md"
             >
             </q-input>
@@ -81,7 +81,7 @@
               v-model:pagination="paymentsTable.pagination"
               dense
               flat
-              :data="$store.state.wallet.payments"
+              :rows="$store.state.wallet.payments"
               :row-key="paymentTableRowKey"
               :columns="paymentsTable.columns"
               no-data-label="No transactions made yet"
@@ -119,40 +119,23 @@
                     </q-icon>
                   </q-td>
                   <q-td
-                    key="memo"
+                    key="description"
                     :props="props"
                     style="white-space: normal; word-break: break-all"
                   >
-                    <q-badge
-                      v-if="props.row.tag"
-                      color="yellow"
-                      text-color="black"
-                    >
-                      <a
-                        class="inherit"
-                        :href="
-                          [
-                            '/',
-                            props.row.tag,
-                            '/?usr=',
-                            $store.state.user.id
-                          ].join('')
-                        "
-                      >
-                        #{{ props.row.tag }}
-                      </a>
-                    </q-badge>
-                    {{ props.row.memo }}
+                    {{ props.row.description }}
                   </q-td>
                   <q-td key="date" auto-width :props="props">
-                    <q-tooltip>{{ props.row.date }}</q-tooltip>
-                    {{ props.row.dateFrom }}
+                    <q-tooltip>{{
+                      formatDate(props.row.date, true)
+                    }}</q-tooltip>
+                    {{ formatDate(props.row.date) }}
                   </q-td>
-                  <q-td key="sat" auto-width :props="props">
-                    {{ props.row.sat }}
+                  <q-td key="amount" auto-width :props="props">
+                    {{ formatMsatToSat(props.row.amount) }}
                   </q-td>
                   <q-td key="fee" auto-width :props="props">
-                    {{ props.row.fee }}
+                    {{ props.row.fee.toString() }}
                   </q-td>
                 </q-tr>
 
@@ -162,20 +145,19 @@
                       <div v-if="props.row.isIn && props.row.pending">
                         <q-icon name="settings_ethernet" color="grey"></q-icon>
                         Invoice waiting to be paid
-                        <lnbits-payment-details
-                          :payment="props.row"
-                        ></lnbits-payment-details>
+                        <PaymentDetails :payment="props.row" />
                         <div
                           v-if="props.row.bolt11"
                           class="text-center q-mb-lg"
                         >
                           <a :href="'lightning:' + props.row.bolt11">
                             <q-responsive :ratio="1" class="q-mx-xl">
-                              <qrcode
+                              <QRCode
+                                :size="500"
                                 :value="props.row.bolt11"
                                 :options="{width: 340}"
                                 class="rounded-borders"
-                              ></qrcode>
+                              ></QRCode>
                             </q-responsive>
                           </a>
                         </div>
@@ -202,9 +184,7 @@
                           :color="'green'"
                         ></q-icon>
                         Payment Received
-                        <lnbits-payment-details
-                          :payment="props.row"
-                        ></lnbits-payment-details>
+                        <PaymentDetails :payment="props.row" />
                       </div>
                       <div v-else-if="props.row.isPaid && props.row.isOut">
                         <q-icon
@@ -213,16 +193,12 @@
                           :color="'pink'"
                         ></q-icon>
                         Payment Sent
-                        <lnbits-payment-details
-                          :payment="props.row"
-                        ></lnbits-payment-details>
+                        <PaymentDetails :payment="props.row" />
                       </div>
                       <div v-else-if="props.row.isOut && props.row.pending">
                         <q-icon name="settings_ethernet" color="grey"></q-icon>
                         Outgoing payment pending
-                        <lnbits-payment-details
-                          :payment="props.row"
-                        ></lnbits-payment-details>
+                        <PaymentDetails :payment="props.row" />
                       </div>
                     </div>
                   </q-card>
@@ -279,10 +255,11 @@
                       from this wallet. Do not share with anyone.
                     </p>
                     <a href="lightning:{{wallet.lnurlwithdraw_full}}">
-                      <qrcode
+                      <QRCode
+                        :size="500"
                         value="{{wallet.lnurlwithdraw_full}}"
                         :options="{width: 240}"
-                      ></qrcode>
+                      ></QRCode>
                     </a>
                     <p>
                       It is compatible with <code>balanceCheck</code> and
@@ -306,13 +283,14 @@
                       You can scan it from your phone to open your wallet from
                       there.
                     </p>
-                    <qrcode
+                    <QRCode
+                      :size="500"
                       :value="
                         '{{request.url_root}}' +
                         'wallet?usr={{user.id}}&wal={{wallet.id}}'
                       "
                       :options="{width: 240}"
-                    ></qrcode>
+                    ></QRCode>
                   </q-card-section>
                 </q-card>
               </q-expansion-item>
@@ -435,11 +413,12 @@
         <div class="text-center q-mb-lg">
           <a :href="'lightning:' + receive.paymentReq">
             <q-responsive :ratio="1" class="q-mx-xl">
-              <qrcode
+              <QRCode
+                :size="500"
                 :value="receive.paymentReq"
                 :options="{width: 340}"
                 class="rounded-borders"
-              ></qrcode>
+              ></QRCode>
             </q-responsive>
           </a>
         </div>
@@ -676,21 +655,26 @@
 </template>
 
 <script>
-import bolt11 from 'bolt11'
+import bolt11 from 'light-bolt11-decoder'
+import {date} from 'quasar'
 
 import {generateChart} from '../chart'
-
 import {
   notifyError,
+  exportCSV,
+  formatDate,
+  formatMsatToSat,
+  copyText
+} from '../helpers'
+import {
   createInvoice,
   deleteWallet,
   renameWallet,
   payInvoice,
-  exportCSV,
   authLnurl,
   scanLnurl,
   payLnurl
-} from '../helpers'
+} from '../api'
 
 export default {
   name: 'Wallet',
@@ -732,28 +716,24 @@ export default {
           {
             name: 'description',
             align: 'left',
-            label: 'Description',
-            field: 'description'
+            label: 'Description'
           },
           {
             name: 'date',
             align: 'left',
             label: 'Date',
-            field: 'date',
             sortable: true
           },
           {
-            name: 'sat',
+            name: 'amount',
             align: 'right',
             label: 'Amount (sat)',
-            field: 'sat',
             sortable: true
           },
           {
             name: 'fee',
             align: 'right',
-            label: 'Fee (msat)',
-            field: 'fee'
+            label: 'Fee (msat)'
           }
         ],
         pagination: {
@@ -802,7 +782,6 @@ export default {
       // if (this.receive.paymentHash === paymentHash) {
       //   this.receive.show = false
       //   this.receive.paymentHash = null
-      //   clearInterval(this.receive.paymentChecker)
       // }
     })
     this.$events.on('payment-complete', payment => {
@@ -860,8 +839,11 @@ export default {
   },
 
   methods: {
+    log: console.log,
+    formatMsatToSat,
+    formatDate,
     paymentTableRowKey(row) {
-      return row.payment_hash + row.amount
+      return row.hash + row.amount
     },
     closeCamera() {
       this.parse.camera.show = false
@@ -886,6 +868,9 @@ export default {
       this.receive.minMax = [0, 2100000000000000]
       this.receive.lnurl = null
     },
+    closeReceiveDialog() {
+      this.receive.show = false
+    },
     showParseDialog() {
       this.parse.show = true
       this.parse.invoice = null
@@ -895,44 +880,47 @@ export default {
       this.parse.data.comment = ''
       this.parse.camera.show = false
     },
+    closeParseDialog() {
+      this.parse.show = false
+    },
     async createInvoice() {
       this.receive.status = 'loading'
 
       try {
         const response = await createInvoice({
           amount: this.receive.data.amount,
-          description: this.receive.data.memo,
+          description: this.receive.data.description,
           unit: this.receive.unit,
           lnurlCallback: this.receive.lnurl && this.receive.lnurl.callback
         })
 
         this.receive.status = 'success'
-        this.receive.paymentReq = response.data.payment_request
-        this.receive.paymentHash = response.data.payment_hash
+        this.receive.paymentReq = response.bolt11
+        this.receive.paymentHash = response.hash
 
-        if (response.data.lnurl_response !== null) {
-          if (response.data.lnurl_response === false) {
-            response.data.lnurl_response = `Unable to connect`
-          }
+        // if (response.lnurl_response !== null) {
+        //   if (response.lnurl_response === false) {
+        //     response.lnurl_response = `Unable to connect`
+        //   }
 
-          if (typeof response.data.lnurl_response === 'string') {
-            // failure
-            this.$q.notify({
-              timeout: 5000,
-              type: 'warning',
-              message: `${this.receive.lnurl.domain} lnurl-withdraw call failed.`,
-              caption: response.data.lnurl_response
-            })
-            return
-          } else if (response.data.lnurl_response === true) {
-            // success
-            this.$q.notify({
-              timeout: 5000,
-              message: `Invoice sent to ${this.receive.lnurl.domain}!`,
-              spinner: true
-            })
-          }
-        }
+        //   if (typeof response.data.lnurl_response === 'string') {
+        //     // failure
+        //     this.$q.notify({
+        //       timeout: 5000,
+        //       type: 'warning',
+        //       message: `${this.receive.lnurl.domain} lnurl-withdraw call failed.`,
+        //       caption: response.data.lnurl_response
+        //     })
+        //     return
+        //   } else if (response.data.lnurl_response === true) {
+        //     // success
+        //     this.$q.notify({
+        //       timeout: 5000,
+        //       message: `Invoice sent to ${this.receive.lnurl.domain}!`,
+        //       spinner: true
+        //     })
+        //   }
+        // }
       } catch (err) {
         notifyError(err)
         this.receive.status = 'pending'
@@ -968,29 +956,27 @@ export default {
         try {
           const response = await scanLnurl(this.parse.data.request)
 
-          let data = response.data
-
-          if (data.kind === 'pay') {
-            this.parse.lnurlpay = Object.freeze(data)
-            this.parse.data.amount = data.minSendable / 1000
-          } else if (data.kind === 'auth') {
-            this.parse.lnurlauth = Object.freeze(data)
-          } else if (data.kind === 'withdraw') {
+          if (response.kind === 'pay') {
+            this.parse.lnurlpay = Object.freeze(response)
+            this.parse.response.amount = response.minSendable / 1000
+          } else if (response.kind === 'auth') {
+            this.parse.lnurlauth = Object.freeze(response)
+          } else if (response.kind === 'withdraw') {
             this.parse.show = false
             this.receive.show = true
             this.receive.status = 'pending'
             this.receive.paymentReq = null
             this.receive.paymentHash = null
-            this.receive.data.amount = data.maxWithdrawable / 1000
-            this.receive.data.memo = data.defaultDescription
+            this.receive.response.amount = response.maxWithdrawable / 1000
+            this.receive.response.description = response.defaultDescription
             this.receive.minMax = [
-              data.minWithdrawable / 1000,
-              data.maxWithdrawable / 1000
+              response.minWithdrawable / 1000,
+              response.maxWithdrawable / 1000
             ]
             this.receive.lnurl = {
-              domain: data.domain,
-              callback: data.callback,
-              fixed: data.fixed
+              domain: response.domain,
+              callback: response.callback,
+              fixed: response.fixed
             }
           }
         } catch (err) {
@@ -1001,30 +987,16 @@ export default {
 
       try {
         const invoice = bolt11.decode(this.parse.data.request)
-
         let cleanInvoice = {
-          msat: invoice.human_readable_part.amount,
-          sat: invoice.human_readable_part.amount / 1000
+          msat: invoice.millisatoshis,
+          sat: invoice.millisatoshis / 1000,
+          hash: invoice.payment_hash,
+          description: invoice.description,
+          expireDate: date.formatDate(
+            invoice.expiry,
+            'YYYY-MM-DDTHH:mm:ss.SSSZ'
+          )
         }
-
-        invoice.data.tags.forEach(tag => {
-          if (tag && 'description' in tag) {
-            if (tag.description === 'payment_hash') {
-              cleanInvoice.hash = tag.value
-            } else if (tag.description === 'description') {
-              cleanInvoice.description = tag.value
-            } else if (tag.description === 'expiry') {
-              var expireDate = new Date(
-                (invoice.data.time_stamp + tag.value) * 1000
-              )
-              cleanInvoice.expireDate = this.$q.utils.date.formatDate(
-                expireDate,
-                'YYYY-MM-DDTHH:mm:ss.SSSZ'
-              )
-              cleanInvoice.expired = false // TODO
-            }
-          }
-        })
 
         this.parse.invoice = cleanInvoice
       } catch (error) {
@@ -1125,7 +1097,8 @@ export default {
     },
     exportCSV() {
       exportCSV(this.paymentsTable.columns, this.payments)
-    }
+    },
+    copyText
   }
 }
 </script>

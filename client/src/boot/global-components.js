@@ -1,5 +1,5 @@
 import VueQrcodeReader from 'vue-qrcode-reader'
-import VueQrcode from 'vue-qrcode'
+import VueQrious from 'vue-qrious'
 
 import APIDocs from '../components/APIDocs'
 import AppList from '../components/AppList'
@@ -10,7 +10,7 @@ import LnurlPaySuccessAction from '../components/LnurlPaySuccessAction'
 
 export default ({app}) => {
   app.use(VueQrcodeReader)
-  app.component(VueQrcode)
+  app.component('QRCode', VueQrious)
 
   app.component('APIDocs', APIDocs)
   app.component('AppList', AppList)

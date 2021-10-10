@@ -1,3 +1,4 @@
+import {date} from 'quasar'
 import groupBy from 'lodash.groupby'
 import {Chart} from 'chart.js'
 
@@ -16,7 +17,7 @@ export function generateChart(canvas, payments) {
     .sort((a, b) => a.time - b.time)
     .forEach(tx => {
       txs.push({
-        hour: this.$q.utils.date.formatDate(tx.date, 'YYYY-MM-DDTHH:00'),
+        hour: date.formatDate(tx.date, 'YYYY-MM-DDTHH:00'),
         sat: tx.sat
       })
     })

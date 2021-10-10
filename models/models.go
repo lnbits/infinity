@@ -34,14 +34,14 @@ type Wallet struct {
 }
 
 type Payment struct {
-	CreatedAt time.Time `json:"-"`
+	CreatedAt time.Time `json:"date"`
 	UpdatedAt time.Time `json:"-"`
 
 	CheckingID    string     `gorm:"uniqueIndex;not null" json:"checkingID"`
 	Pending       bool       `gorm:"not null" json:"pending"`
 	Amount        int64      `gorm:"not null" json:"amount"`
 	Fee           int64      `json:"fee"`
-	Memo          string     `json:"memo"`
+	Description   string     `json:"description"`
 	Bolt11        string     `json:"bolt11"`
 	Preimage      string     `json:"preimage"`
 	Hash          string     `gorm:"index:hash_idx;not null" json:"hash"`

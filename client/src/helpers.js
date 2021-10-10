@@ -1,105 +1,32 @@
-import {exportFile, Notify} from 'quasar'
+import {LocalStorage, exportFile, Notify, copyToClipboard} from 'quasar'
 
-import store from './store'
+export * from './api'
 
-const request = async (path, opts = {}) => {
-  opts.headers = opts.headers || {}
-
-  if (path.startsWith('/api/wallet')) {
-    opts.headers['X-API-Key'] = store.state.wallet.invoicekey
-  } else if (path.startsWith('/api/user')) {
-    const key = new URLSearchParams(location.search).get('key')
-    if (key) opts.headers['X-MasterKey'] = key
-  }
-
-  const r = await fetch(path, opts)
-  const text = await r.text()
-
-  if (!r.ok) {
-    let message
-    let data = {}
-    try {
-      data = JSON.parse(text)
-      message = data.message
-    } catch (_) {
-      message = text
-    }
-    const error = new Error(message)
-    error.data = data
-    error.response = r
-    throw error
-  }
-
-  if (text && text.length) {
-    return JSON.parse(text)
-  } else {
-    return
-  }
+export const formatMsatToSat = msat => {
+  const sat = msat / 1000
+  const satInt = parseInt(sat)
+  if (sat - satInt > 0) return sat.toFixed(3)
+  else return satInt.toString()
 }
 
-export const loadSettings = async () => await request('/v/settings')
+export const formatDate = (date, full) => {
+  const timestampMilli = Date.parse(date)
 
-export const loadUser = async () => await request('/api/user')
+  if (full)
+    return new Date(timestampMilli)
+      .toISOString()
+      .split('.')[0]
+      .replace('T', ' ')
 
-export const createWallet = async name =>
-  await request('/api/user/create-wallet', {
-    method: 'POST',
-    body: JSON.stringify({name})
-  })
+  const timestamp = timestampMilli / 1000
+  const now = Date.now() / 1000
+  const delta = now - timestamp
+  if (delta < 60 * 100) return parseInt((now - timestamp) / 60) + ' minutes ago'
+  if (delta < 48 * 60 * 60)
+    return parseInt((now - timestamp) / (60 * 60)) + ' hours ago'
 
-export const addApp = async url =>
-  await request('/api/user/add-app', {
-    method: 'POST',
-    body: JSON.stringify({url})
-  })
-
-export const loadWallet = async () => await request(`/api/wallet`)
-
-export const createInvoice = async params =>
-  await request(`/api/wallet/create-invoice`, {
-    method: 'POST',
-    body: JSON.stringify(params)
-  })
-
-export const payInvoice = async ({invoice, customAmount = 0}) =>
-  await request(`/api/wallet/pay-invoice`, {
-    method: 'POST',
-    body: JSON.stringify({invoice, customAmount})
-  })
-
-export const payLnurl = async params =>
-  await request(`/api/wallet/pay-lnurl`, {
-    method: 'POST',
-    body: JSON.stringify({params})
-  })
-
-export const authLnurl = async callback =>
-  await request(`/api/wallet/lnurlauth`, {
-    method: 'POST',
-    body: JSON.stringify({callback})
-  })
-
-export const renameWallet = async name =>
-  await request(`/api/wallet/${name}`, {method: 'POST'})
-
-export const deleteWallet = async () =>
-  await request(`/api/wallet/delete`, {
-    method: 'POST'
-  })
-
-export const scanLnurl = async lnurl =>
-  await request(`/api/wallet/scan/${lnurl}`, {})
-
-export const appInfo = async appid => await request(`/api/wallet/app/${appid}`)
-
-export const listAppItems = async id =>
-  await request(`/api/wallet/app/${id}/list`)
-
-export const setAppItem = async (id, key, value) =>
-  await request(`/api/wallet/app/${id}/set/${key}`)
-
-export const delAppItem = async (id, key) =>
-  await request(`/api/wallet/app/${id}/del/${key}`)
+  return new Date(timestampMilli).toISOString().split('T')[0]
+}
 
 export const decryptLnurlPayAES = (success_action, preimage) => {
   let keyb = new Uint8Array(
@@ -192,5 +119,14 @@ export const notifyError = (error, title, type) => {
 
 export const changeColorTheme = newValue => {
   document.body.setAttribute('data-theme', newValue)
-  this.$q.localStorage.set('lnbits.theme', newValue)
+  LocalStorage.set('lnbits.theme', newValue)
+}
+
+export const copyText = (text, message, position) => {
+  copyToClipboard(text).then(function () {
+    Notify.create({
+      message: message || 'Copied to clipboard!',
+      position: position || 'bottom'
+    })
+  })
 }
