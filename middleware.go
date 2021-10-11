@@ -68,7 +68,14 @@ func walletMiddleware(next http.Handler) http.Handler {
 		var permission string
 		var wallet models.Wallet
 		var err error
+
+		// try header
 		walletKey := r.Header.Get("X-Api-Key")
+		if walletKey == "" {
+			// try querystring
+			walletKey = r.URL.Query().Get("api-key")
+		}
+
 		if walletKey == "" {
 			err = fmt.Errorf("X-Api-Key header not provided")
 		} else {

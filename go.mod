@@ -15,6 +15,7 @@ require (
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.25.0
 	github.com/tidwall/gjson v1.9.0
+	gopkg.in/antage/eventsource.v1 v1.0.0-20150318155416-803f4c5af225 // indirect
 	gorm.io/driver/postgres v1.1.1
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.15
