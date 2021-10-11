@@ -6,7 +6,7 @@ import (
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
 	"github.com/lnbits/lnbits/lightning"
-	m "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/lnbits/lnbits/utils"
 )
@@ -14,12 +14,12 @@ import (
 type PayInvoiceParams struct {
 	rp.PaymentParams
 
-	Tag     string       `json:"tag"`
-	Extra   m.JSONObject `json:"extra"`
-	Webhook string       `json:"webhook"`
+	Tag     string            `json:"tag"`
+	Extra   models.JSONObject `json:"extra"`
+	Webhook string            `json:"webhook"`
 }
 
-func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, err error) {
+func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Payment, err error) {
 	// parse invoice
 	inv, err := decodepay.Decodepay(params.Invoice)
 	if err != nil {
@@ -42,7 +42,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, er
 
 	// add payment to database first
 	temp := "tmp" + utils.RandomHex(16)
-	payment = m.Payment{
+	payment = models.Payment{
 		CheckingID: temp,
 		Pending:    true,
 		Amount:     -invoiceAmount,
@@ -59,7 +59,8 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, er
 
 	defer func() {
 		if err != nil {
-			if result := storage.DB.Delete(&payment); result.Error != nil {
+			result := storage.DB.Where("checking_id", temp).Delete(&payment)
+			if result.Error != nil {
 				panic("failed to delete temp payment " + payment.CheckingID + ": " +
 					result.Error.Error())
 			}
@@ -68,7 +69,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, er
 
 	// check balance
 	var balance int64
-	if result := storage.DB.Model(&m.Payment{}).
+	if result := storage.DB.Model(&models.Payment{}).
 		Select("sum(amount)").
 		Where("amount < 0 OR (amount > 0 AND NOT pending)").
 		Where("wallet_id = ?", walletID).
@@ -87,9 +88,12 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment m.Payment, er
 	}
 
 	// update checking_id
-	payment.CheckingID = data.CheckingID
-	if result := storage.DB.Save(payment); result.Error != nil {
-		return payment, fmt.Errorf("failed to update checking_id: %w", err)
+	result := storage.DB.
+		Model(&models.Payment{}).
+		Where("checking_id", temp).
+		Update("checking_id", data.CheckingID)
+	if result.Error != nil {
+		return payment, fmt.Errorf("failed to update checking_id: %w", result.Error)
 	}
 
 	return payment, nil

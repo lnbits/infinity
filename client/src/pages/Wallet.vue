@@ -9,7 +9,10 @@
         <q-card>
           <q-card-section>
             <h3 class="q-my-none">
-              <strong>{{ $store.state.wallet.balance }}</strong> sat
+              <strong>{{
+                formatMsatToSat($store.state.wallet.balance)
+              }}</strong>
+              sat
             </h3>
           </q-card-section>
           <div class="row q-pb-md q-px-md q-col-gutter-md">
@@ -103,10 +106,12 @@
                 <q-tr :props="props">
                   <q-td auto-width class="text-center">
                     <q-icon
-                      v-if="props.row.isPaid"
+                      v-if="!props.row.pending"
                       size="14px"
-                      :name="props.row.isOut ? 'call_made' : 'call_received'"
-                      :color="props.row.isOut ? 'pink' : 'green'"
+                      :name="
+                        props.row.amount < 0 ? 'call_made' : 'call_received'
+                      "
+                      :color="props.row.amount < 0 ? 'pink' : 'green'"
                       @click="props.expand = !props.expand"
                     ></q-icon>
                     <q-icon
@@ -434,7 +439,9 @@
     <q-dialog v-model="parse.show" @hide="closeParseDialog">
       <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
         <div v-if="parse.invoice">
-          <h6 class="q-my-none">{{ parse.invoice.sat }} sat</h6>
+          <h6 class="q-my-none">
+            {{ formatMsatToSat(parse.invoice.msat) }} sat
+          </h6>
           <q-separator class="q-my-sm"></q-separator>
           <p class="text-wrap">
             <strong>Description:</strong> {{ parse.invoice.description }}<br />
@@ -762,7 +769,7 @@ export default {
   computed: {
     canPay() {
       if (!this.parse.invoice) return false
-      return this.parse.invoice.sat <= this.balance
+      return this.parse.invoice.msat <= this.$store.state.wallet.balance
     }
   },
 
@@ -989,7 +996,6 @@ export default {
         const invoice = bolt11.decode(this.parse.data.request)
         let cleanInvoice = {
           msat: invoice.millisatoshis,
-          sat: invoice.millisatoshis / 1000,
           hash: invoice.payment_hash,
           description: invoice.description,
           expireDate: date.formatDate(
