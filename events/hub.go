@@ -39,19 +39,31 @@ func EmitInvoicePaid(status relampago.InvoiceStatus) {
 		return
 	}
 
+	log := log.With().Interface("status", status).Logger()
+
 	payment := models.Payment{}
-	result := storage.DB.
+	result := storage.DB.Where("checking_id = ?", status.CheckingID).First(&payment)
+	if payment.CheckingID == "" {
+		log.Warn().Err(result.Error).
+			Msg("invoice paid, but no associated payment found on db?")
+		return
+	}
+
+	log = log.With().Interface("payment", payment).Logger()
+
+	result = storage.DB.
+		Model(&models.Payment{}).
 		Where("checking_id = ?", status.CheckingID).
 		Where("amount > 0"). // means this is the receiver side of a payment, just in case
 		Where("pending").
 		Updates(map[string]interface{}{
 			"pending": false,
 			"amount":  status.MSatoshiReceived,
-		}).
-		First(&payment)
+		})
+
 	if result.Error != nil {
-		log.Warn().Err(result.Error).
-			Msg("invoice paid, but no associated payment found on db?")
+		log.Warn().Err(result.Error).Interface("payment", payment).
+			Msg("failed to update payment received")
 	}
 
 	for _, c := range subs.paymentReceived {
@@ -60,18 +72,32 @@ func EmitInvoicePaid(status relampago.InvoiceStatus) {
 }
 
 func EmitPaymentSent(status relampago.PaymentStatus) {
+	if status.Status != relampago.Failed && status.Status != relampago.Complete {
+		return
+	}
+
+	log := log.With().Interface("status", status).Logger()
+
 	payment := models.Payment{}
+	result := storage.DB.Where("checking_id = ?", status.CheckingID).First(&payment)
+	if payment.CheckingID == "" {
+		log.Warn().Err(result.Error).
+			Msg("payment sent event, but no associated payment found on db?")
+		return
+	}
+
+	log = log.With().Interface("payment", payment).Logger()
 
 	switch status.Status {
 	case relampago.Failed:
 		result := storage.DB.
+			Model(&payment).
 			Where("checking_id = ?", status.CheckingID).
 			Where("pending").
-			Delete(&models.Payment{}).
-			Find(&payment)
+			Delete(&models.Payment{})
 
 		if result.Error != nil {
-			log.Warn().Err(result.Error).Str("checking_id", status.CheckingID).
+			log.Warn().Err(result.Error).
 				Msg("failed to delete failed sent payment")
 			return
 		}
@@ -84,6 +110,7 @@ func EmitPaymentSent(status relampago.PaymentStatus) {
 
 	case relampago.Complete:
 		result := storage.DB.
+			Model(&payment).
 			Where("checking_id = ?", status.CheckingID).
 			Where("amount < 0"). // means this is the sender side of a payment, just in case
 			Where("pending").
@@ -91,12 +118,11 @@ func EmitPaymentSent(status relampago.PaymentStatus) {
 				"pending":  false,
 				"preimage": status.Preimage,
 				"fee":      status.FeePaid,
-			}).
-			First(&payment)
+			})
 
 		if result.Error != nil {
 			log.Warn().Err(result.Error).
-				Msg("payment sent, but no associated payment found on db?")
+				Msg("failed to update payment successfully sent sent")
 		}
 
 		for _, c := range subs.paymentSent {

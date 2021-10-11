@@ -1,5 +1,3 @@
 import EventEmitter from 'events'
 
-export default ({app}) => {
-  app.config.globalProperties.$events = new EventEmitter()
-}
+window.events = new EventEmitter()

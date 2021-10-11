@@ -4,7 +4,7 @@ const request = async (path, opts = {}) => {
   opts.headers = opts.headers || {}
 
   if (path.startsWith('/api/wallet')) {
-    opts.headers['X-API-Key'] = store.state.wallet.invoicekey
+    opts.headers['X-API-Key'] = store.state.wallet.adminkey
   } else if (path.startsWith('/api/user')) {
     const key = new URLSearchParams(location.search).get('key')
     if (key) opts.headers['X-MasterKey'] = key

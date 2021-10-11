@@ -79,11 +79,11 @@ func walletMiddleware(next http.Handler) http.Handler {
 		if walletKey == "" {
 			err = fmt.Errorf("X-Api-Key header not provided")
 		} else {
-			result := storage.DB.Where("invoice_key", walletKey).First(&wallet)
-			permission = "invoice"
+			result := storage.DB.Where("admin_key", walletKey).First(&wallet)
+			permission = "admin"
 			if wallet.ID == "" {
-				result = storage.DB.Where("admin_key", walletKey).First(&wallet)
-				permission = "admin"
+				result = storage.DB.Where("invoice_key", walletKey).First(&wallet)
+				permission = "invoice"
 				if wallet.ID == "" {
 					err = result.Error
 				}

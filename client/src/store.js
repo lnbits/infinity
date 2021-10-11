@@ -15,7 +15,8 @@ export default createStore({
       settings: {},
       user: null,
       wallet: null,
-      app: null
+      app: null,
+      hasListeners: {} // { [walletID]: true }
     }
   },
   mutations: {
@@ -30,6 +31,9 @@ export default createStore({
     },
     setApp(state, app) {
       state.app = app
+    },
+    ackListeners(state, walletID) {
+      state.hasListeners[walletID] = true
     }
   },
   actions: {
@@ -58,9 +62,6 @@ export default createStore({
 
       // commit settings
       commit('setSettings', settings)
-
-      // listeners
-      dispatch('listenForPayments')
     },
     async fetchUser({state, dispatch, commit}) {
       if (!new URLSearchParams(location.search).get('key')) return
@@ -73,14 +74,31 @@ export default createStore({
         dispatch('fetchWallet', user.wallets[0].id)
       }
     },
-    async fetchWallet({commit}, walletID) {
+    async fetchWallet({commit, dispatch}, walletID) {
       const wallet = await loadWallet(walletID)
       commit('setWallet', wallet)
+      dispatch('listenForPayments')
     },
-    async listenForPayments({dispatch}) {
-      // TODO: listen for payments sent and received, and failures
-      // call callbacks
-      // refresh wallet
+    async listenForPayments({commit, state}) {
+      if (state.wallet.id in state.hasListeners) return
+
+      // prevent listening for events of this same wallet twice
+      commit('ackListeners', state.wallet.id)
+
+      // listen for payments sent and received, and failures
+      const es = new EventSource(
+        `/api/wallet/sse?api-key=${state.wallet.adminkey}`
+      )
+
+      es.addEventListener('payment-sent', ev => {
+        window.events.emit('payment-sent', JSON.parse(ev.data))
+      })
+      es.addEventListener('payment-failed', ev => {
+        window.events.emit('payment-failed', JSON.parse(ev.data))
+      })
+      es.addEventListener('payment-received', ev => {
+        window.events.emit('payment-received', JSON.parse(ev.data))
+      })
     },
     async fetchApp({state, commit}, appID) {
       const app = await appInfo(appID)

@@ -777,14 +777,14 @@ export default {
     }
 
     // listen to events
-    this.$events.on('invoice-paid', payment => {
+    window.events.on('invoice-paid', payment => {
       // TODO
       // if (this.receive.paymentHash === paymentHash) {
       //   this.receive.show = false
       //   this.receive.paymentHash = null
       // }
     })
-    this.$events.on('payment-complete', payment => {
+    window.events.on('payment-complete', payment => {
       // TODO
       // this.parse.show = false
       // dismissPaymentMsg()
@@ -833,7 +833,7 @@ export default {
       //   }
       // }
     })
-    this.$events.on('payment-failed', payment => {
+    window.events.on('payment-failed', payment => {
       // TODO
     })
   },
