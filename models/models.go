@@ -25,7 +25,7 @@ type Wallet struct {
 	InvoiceKey string `gorm:"not null" json:"invoicekey"`
 	AdminKey   string `gorm:"not null" json:"adminkey"`
 
-	Balance int64 `gorm:"-" json:"balance"`
+	Balance int64 `gorm:"->" json:"balance"`
 
 	// associations
 	UserID        string         `gorm:"index;not null" json:"userID"`

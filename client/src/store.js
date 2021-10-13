@@ -1,13 +1,8 @@
 import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
-import {
-  changeColorTheme,
-  loadSettings,
-  loadWallet,
-  loadUser,
-  appInfo
-} from './helpers'
+import {changeColorTheme} from './helpers'
+import {loadSettings, loadWallet, loadUser, appInfo} from './api'
 
 export default createStore({
   state() {
@@ -16,7 +11,7 @@ export default createStore({
       user: null,
       wallet: null,
       app: null,
-      hasListeners: {} // { [walletID]: true }
+      hasListeners: {} // { [walletID]: true },
     }
   },
   mutations: {
@@ -27,6 +22,7 @@ export default createStore({
       state.user = user
     },
     setWallet(state, wallet) {
+      if (!wallet) return
       state.wallet = wallet
     },
     setApp(state, app) {
@@ -74,10 +70,14 @@ export default createStore({
         dispatch('fetchWallet', user.wallets[0].id)
       }
     },
-    async fetchWallet({commit, dispatch}, walletID) {
+    async fetchWallet({state, commit, dispatch}, walletID) {
       const wallet = await loadWallet(walletID)
       commit('setWallet', wallet)
       dispatch('listenForPayments')
+    },
+    async fetchApp({state, commit}, appID) {
+      const app = await appInfo(appID)
+      commit('setApp', app)
     },
     async listenForPayments({commit, state, dispatch}) {
       if (state.wallet.id in state.hasListeners) return
@@ -94,6 +94,7 @@ export default createStore({
         const payment = JSON.parse(ev.data)
         window.events.emit('payment-sent', payment)
         dispatch('fetchWallet', payment.walletID)
+        dispatch('fetchUser')
       })
       es.addEventListener('payment-failed', ev => {
         const payment = JSON.parse(ev.data)
@@ -104,11 +105,8 @@ export default createStore({
         const payment = JSON.parse(ev.data)
         window.events.emit('payment-received', payment)
         dispatch('fetchWallet', payment.walletID)
+        dispatch('fetchUser')
       })
-    },
-    async fetchApp({state, commit}, appID) {
-      const app = await appInfo(appID)
-      commit('setApp', app)
     }
   }
 })

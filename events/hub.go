@@ -34,7 +34,7 @@ func OnPaymentFailed(c chan models.Payment) {
 	subs.paymentFailed = append(subs.paymentFailed, c)
 }
 
-func EmitInvoicePaid(status relampago.InvoiceStatus) {
+func NotifyInvoicePaid(status relampago.InvoiceStatus) {
 	if !status.Paid {
 		return
 	}
@@ -66,12 +66,10 @@ func EmitInvoicePaid(status relampago.InvoiceStatus) {
 			Msg("failed to update payment received")
 	}
 
-	for _, c := range subs.paymentReceived {
-		c <- payment
-	}
+	EmitPaymentReceived(payment)
 }
 
-func EmitPaymentSent(status relampago.PaymentStatus) {
+func NotifyPaymentSentStatus(status relampago.PaymentStatus) {
 	if status.Status != relampago.Failed && status.Status != relampago.Complete {
 		return
 	}
@@ -102,9 +100,7 @@ func EmitPaymentSent(status relampago.PaymentStatus) {
 			return
 		}
 
-		for _, c := range subs.paymentFailed {
-			c <- payment
-		}
+		EmitPaymentFailed(payment)
 
 		return
 
@@ -125,8 +121,24 @@ func EmitPaymentSent(status relampago.PaymentStatus) {
 				Msg("failed to update payment successfully sent sent")
 		}
 
-		for _, c := range subs.paymentSent {
-			c <- payment
-		}
+		EmitPaymentSent(payment)
+	}
+}
+
+func EmitPaymentSent(payment models.Payment) {
+	for _, c := range subs.paymentSent {
+		c <- payment
+	}
+}
+
+func EmitPaymentReceived(payment models.Payment) {
+	for _, c := range subs.paymentReceived {
+		c <- payment
+	}
+}
+
+func EmitPaymentFailed(payment models.Payment) {
+	for _, c := range subs.paymentFailed {
+		c <- payment
 	}
 }

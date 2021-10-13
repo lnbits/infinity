@@ -2,13 +2,17 @@ package services
 
 import (
 	"fmt"
+	"strings"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
+	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/lightning"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/lnbits/lnbits/utils"
+	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
 
 type PayInvoiceParams struct {
@@ -41,7 +45,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 	}
 
 	// add payment to database first
-	temp := "tmp" + utils.RandomHex(16)
+	temp := "tmp_" + utils.RandomHex(16)
 	payment = models.Payment{
 		CheckingID:  temp,
 		Pending:     true,
@@ -53,6 +57,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 		Webhook:     params.Webhook,
 		WalletID:    walletID,
 		Description: inv.Description,
+		Fee:         invoiceAmount / 100,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save temp payment: %w", result.Error)
@@ -82,6 +87,58 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 		return payment, fmt.Errorf("insufficient balance: needs %d more msat", -balance)
 	}
 
+	// check if this is an internal payment
+	var internal models.Payment
+	result := storage.DB.
+		Where("hash = ?", payment.Hash).
+		Where("amount > 0").
+		Where("pending"). // search for a pending incoming payment with this same hash
+		First(&internal)
+	if result.Error != nil {
+		return payment, fmt.Errorf("failed to check internal payment: %w", result.Error)
+	}
+	if internal.CheckingID != "" {
+		// if internal, settle it
+		newSenderCheckingID := strings.Replace(payment.CheckingID, "tmp_", "int_", 1)
+
+		go func() {
+			err := storage.DB.Transaction(func(tx *gorm.DB) error {
+				result := tx.Model(&models.Payment{}).
+					Where("checking_id", internal.CheckingID).
+					Update("pending", false)
+				if result.Error != nil {
+					return result.Error
+				}
+
+				result = tx.Model(&models.Payment{}).
+					Where("checking_id", payment.CheckingID).
+					Updates(map[string]interface{}{
+						"checking_id": newSenderCheckingID,
+						"pending":     false,
+					})
+				if result.Error != nil {
+					return result.Error
+				}
+
+				return nil
+			})
+			if err != nil {
+				log.Error().Err(err).Str("receiving", internal.CheckingID).
+					Str("paying", payment.CheckingID).
+					Msg("failed to settle internal payment")
+				return
+			}
+
+			// internal settlement has succeeded, emit events
+			payment.CheckingID = newSenderCheckingID
+			payment.Pending = false
+			events.EmitPaymentSent(payment)
+
+			internal.Pending = false
+			events.EmitPaymentReceived(internal)
+		}()
+	}
+
 	// actually perform the payment
 	data, err := lightning.LN.MakePayment(params.PaymentParams)
 	if err != nil {
@@ -89,7 +146,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 	}
 
 	// update checking_id
-	result := storage.DB.
+	result = storage.DB.
 		Model(&models.Payment{}).
 		Where("checking_id", temp).
 		Update("checking_id", data.CheckingID)

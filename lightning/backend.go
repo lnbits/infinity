@@ -51,13 +51,13 @@ func Connect(backendType string) {
 
 	go func() {
 		for payment := range paymentsStream {
-			events.EmitPaymentSent(payment)
+			events.NotifyPaymentSentStatus(payment)
 		}
 	}()
 
 	go func() {
 		for invoice := range paidInvoicesStream {
-			events.EmitInvoicePaid(invoice)
+			events.NotifyInvoicePaid(invoice)
 		}
 	}()
 }

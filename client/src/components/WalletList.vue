@@ -33,7 +33,9 @@
       </q-item-section>
       <q-item-section>
         <q-item-label lines="1">{{ wallet.name }}</q-item-label>
-        <q-item-label caption>{{ wallet.balance }} sat</q-item-label>
+        <q-item-label caption
+          >{{ formatMsatToSat(wallet.balance) }} sat</q-item-label
+        >
       </q-item-section>
       <q-item-section v-show="$store.state.wallet?.id === wallet.id" side>
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
@@ -54,7 +56,7 @@
     <q-item v-if="showForm">
       <q-item-section>
         <q-form @submit="createWallet">
-          <q-input v-model="walletName" filled dense label="Name wallet *">
+          <q-input v-model="newWalletName" filled dense label="Name wallet *">
             <template #append>
               <q-btn
                 round
@@ -62,7 +64,9 @@
                 flat
                 icon="send"
                 size="sm"
-                :disable="walletName === ''"
+                type="submit"
+                :disable="newWalletName === ''"
+                @click="createWallet"
               ></q-btn>
             </template>
           </q-input>
@@ -73,24 +77,28 @@
 </template>
 
 <script>
-import {createWallet, notifyError} from '../helpers'
+import {createWallet} from '../api'
+import {notifyError, formatMsatToSat} from '../helpers'
 
 export default {
   data() {
     return {
       showForm: false,
-      walletName: ''
+      newWalletName: ''
     }
   },
   methods: {
+    formatMsatToSat,
+
     async createWallet() {
       try {
-        const {wallet} = await createWallet(this.walletName)
+        const {wallet} = await createWallet(this.newWalletName)
         this.$store.commit('setWallet', wallet)
         this.$router.push({
           path: `/wallet/${wallet.id}`,
           query: this.$route.query
         })
+        this.$store.dispatch('fetchUser')
       } catch (err) {
         notifyError(err)
       }
@@ -102,7 +110,6 @@ export default {
         path: `/wallet/${wallet.id}`,
         query: this.$route.query
       })
-      this.$store.dispatch('fetchWallet', wallet.id)
     }
   }
 }
