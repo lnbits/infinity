@@ -79,7 +79,7 @@ export default createStore({
       commit('setWallet', wallet)
       dispatch('listenForPayments')
     },
-    async listenForPayments({commit, state}) {
+    async listenForPayments({commit, state, dispatch}) {
       if (state.wallet.id in state.hasListeners) return
 
       // prevent listening for events of this same wallet twice
@@ -91,13 +91,19 @@ export default createStore({
       )
 
       es.addEventListener('payment-sent', ev => {
-        window.events.emit('payment-sent', JSON.parse(ev.data))
+        const payment = JSON.parse(ev.data)
+        window.events.emit('payment-sent', payment)
+        dispatch('fetchWallet', payment.walletID)
       })
       es.addEventListener('payment-failed', ev => {
-        window.events.emit('payment-failed', JSON.parse(ev.data))
+        const payment = JSON.parse(ev.data)
+        window.events.emit('payment-failed', payment)
+        dispatch('fetchWallet', payment.walletID)
       })
       es.addEventListener('payment-received', ev => {
-        window.events.emit('payment-received', JSON.parse(ev.data))
+        const payment = JSON.parse(ev.data)
+        window.events.emit('payment-received', payment)
+        dispatch('fetchWallet', payment.walletID)
       })
     },
     async fetchApp({state, commit}, appID) {

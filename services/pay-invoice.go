@@ -43,15 +43,16 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 	// add payment to database first
 	temp := "tmp" + utils.RandomHex(16)
 	payment = models.Payment{
-		CheckingID: temp,
-		Pending:    true,
-		Amount:     -invoiceAmount,
-		Hash:       inv.PaymentHash,
-		Bolt11:     params.Invoice,
-		Tag:        params.Tag,
-		Extra:      params.Extra,
-		Webhook:    params.Webhook,
-		WalletID:   walletID,
+		CheckingID:  temp,
+		Pending:     true,
+		Amount:      -invoiceAmount,
+		Hash:        inv.PaymentHash,
+		Bolt11:      params.Invoice,
+		Tag:         params.Tag,
+		Extra:       params.Extra,
+		Webhook:     params.Webhook,
+		WalletID:    walletID,
+		Description: inv.Description,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save temp payment: %w", result.Error)

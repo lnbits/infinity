@@ -688,6 +688,7 @@ export default {
 
   data() {
     return {
+      dismiss: {},
       receive: {
         show: false,
         status: 'pending',
@@ -784,17 +785,35 @@ export default {
     }
 
     // listen to events
-    window.events.on('invoice-paid', payment => {
-      // TODO
-      // if (this.receive.paymentHash === paymentHash) {
-      //   this.receive.show = false
-      //   this.receive.paymentHash = null
-      // }
+    window.events.on('payment-received', payment => {
+      if (this.receive.paymentHash === payment.hash) {
+        this.receive.show = false
+        this.receive.paymentHash = null
+      }
+
+      this.$q.notify({
+        message: 'Payment received.',
+        caption: `${formatMsatToSat(payment.amount)} sat`,
+        type: 'positive',
+        timeout: 3000
+      })
     })
-    window.events.on('payment-complete', payment => {
-      // TODO
-      // this.parse.show = false
-      // dismissPaymentMsg()
+    window.events.on('payment-sent', payment => {
+      this.parse.show = false
+
+      let dismiss = this.dismiss[payment.hash]
+      if (dismiss) {
+        dismiss()
+        delete this.dismiss[payment.hash]
+      }
+
+      this.$q.notify({
+        message: 'Payment sent.',
+        caption: `${formatMsatToSat(-payment.amount)} sat`,
+        type: 'positive',
+        timeout: 3000
+      })
+
       // TODO
       // show lnurlpay success action
       // if (response.data.success_action) {
@@ -841,7 +860,16 @@ export default {
       // }
     })
     window.events.on('payment-failed', payment => {
-      // TODO
+      setTimeout(() => {
+        // show notification only if we were actively waiting for this to finish
+        if (payment.hash in this.dismiss) {
+          this.$q.notify({
+            message: 'Payment failed.',
+            type: 'warning',
+            timeout: 3000
+          })
+        }
+      }, 1000)
     })
   },
 
@@ -994,7 +1022,7 @@ export default {
 
       try {
         const invoice = bolt11.decode(this.parse.data.request)
-        let cleanInvoice = {
+        this.parse.invoice = {
           msat: invoice.millisatoshis,
           hash: invoice.payment_hash,
           description: invoice.description,
@@ -1003,8 +1031,6 @@ export default {
             'YYYY-MM-DDTHH:mm:ss.SSSZ'
           )
         }
-
-        this.parse.invoice = cleanInvoice
       } catch (error) {
         notifyError(error, 'Failed to parse invoice')
         this.parse.show = false
@@ -1012,7 +1038,7 @@ export default {
       }
     },
     async payInvoice() {
-      let dismissPaymentMsg = this.$q.notify({
+      this.dismiss[this.parse.invoice.hash] = this.$q.notify({
         timeout: 0,
         message: 'Processing payment...'
       })
@@ -1020,14 +1046,19 @@ export default {
       try {
         await payInvoice({invoice: this.parse.data.request})
       } catch (err) {
-        dismissPaymentMsg()
         notifyError(err)
+
+        let dismiss = this.dismiss[this.parse.invoice.hash]
+        if (dismiss) {
+          dismiss()
+          delete this.dismiss[this.parse.invoice.hash]
+        }
       }
     },
     async payLnurl() {
-      let dismissPaymentMsg = this.$q.notify({
+      let dismissLnurlpayMsg = this.$q.notify({
         timeout: 0,
-        message: 'Processing payment...'
+        message: 'Processing lnurl payment...'
       })
 
       try {
@@ -1041,7 +1072,7 @@ export default {
 
         this.parse.show = false
       } catch (err) {
-        dismissPaymentMsg()
+        dismissLnurlpayMsg()
         notifyError(err)
       }
     },
