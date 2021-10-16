@@ -14,10 +14,10 @@ models = {
     name = 'ticket',
     display = 'Ticket',
     fields = {
-      { name = 'bucket', display = 'Bucket', ref = 'Ticket Bucket' },
+      { name = 'bucket', display = 'Bucket', type = 'ref', ref = 'bucket' },
       { name = 'content', display = 'Content', type = 'string', required = true },
       { name = 'author', display = 'Author', type = 'string' },
-      { name = 'is_paid', type = 'boolean', hidden = true }
+      { name = 'is_paid', type = 'boolean', hidden = true },
     },
     filter = function (ticket)
       return not ticket.is_paid
@@ -27,17 +27,23 @@ models = {
 
 actions = {
   create_ticket = function (params)
-    s.create_invoice()
-
-    models.ticket.add({
+    local key = db.ticket.add({
       bucket = params.bucket,
+      content = params.content,
+      author = params.author,
+      is_paid = false,
+    })
 
+    local payment = s.create_invoice({
+      extra = { ticket = key }
     })
   end
 }
 
-on = {
+triggers = {
   payment_received = function (payment)
-
+    if payment.extra ~= nil then
+      db.ticket.update(payment.extra.ticket, { is_paid = true })
+    end
   end
 }

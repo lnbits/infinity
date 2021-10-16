@@ -7,6 +7,7 @@ import (
 	models "github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 	utils "github.com/lnbits/lnbits/utils"
+	"github.com/lucsky/cuid"
 )
 
 func User(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +36,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		user = r.Context().Value("user").(*models.User)
 	} else {
 		// create user
-		user.ID = utils.RandomHex(16)
+		user.ID = cuid.Slug()
 		user.Apps = make(models.StringList, 0)
 		masterKey = utils.RandomHex(32) // will only be returned if we're creating the user
 		user.MasterKey = masterKey
@@ -52,7 +53,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wallet := models.Wallet{
-		ID:         utils.RandomHex(16),
+		ID:         cuid.Slug(),
 		Name:       params.Name,
 		UserID:     user.ID,
 		InvoiceKey: utils.RandomHex(32),

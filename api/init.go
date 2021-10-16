@@ -22,7 +22,7 @@ func init() {
 		c := make(chan models.Payment)
 		events.OnPaymentSent(c)
 		for payment := range c {
-			SendWalletSSE(payment.WalletID, "payment-sent", payment)
+			go SendWalletSSE(payment.WalletID, "payment-sent", payment)
 		}
 	}()
 
@@ -30,7 +30,7 @@ func init() {
 		c := make(chan models.Payment)
 		events.OnPaymentSent(c)
 		for payment := range c {
-			SendWalletSSE(payment.WalletID, "payment-failed", payment.CheckingID)
+			go SendWalletSSE(payment.WalletID, "payment-failed", payment.CheckingID)
 		}
 	}()
 }

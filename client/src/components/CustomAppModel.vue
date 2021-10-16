@@ -26,7 +26,7 @@
             <template #header="props">
               <q-tr :props="props">
                 <q-th
-                  v-for="field in model.fields"
+                  v-for="field in model.fields.filter(f => !f.hidden)"
                   :key="field.name"
                   auto-width
                   >{{ field.display || field.name }}</q-th
@@ -37,9 +37,23 @@
             </template>
             <template #body="props">
               <q-tr :props="props">
-                <q-td v-for="field in model.fields" :key="field.name" auto-width
-                  >{props.row[field.name]}</q-td
+                <q-td
+                  v-for="field in model.fields"
+                  :key="field.name"
+                  auto-width
                 >
+                  <a
+                    v-if="field.type === 'url'"
+                    target="_blank"
+                    :href="props.row[field.name]"
+                  >
+                    <q-icon name="http" />
+                  </a>
+                  <span v-else-if="props.type === 'ref'">
+                    {JSON.stringify(refItemsMap[props.row[field.name]])}
+                  </span>
+                  <span v-else>{props.row[field.name]}</span>
+                </q-td>
                 <q-td auto-width>
                   <q-btn
                     flat
@@ -69,9 +83,12 @@
   <q-dialog v-model="formDialog.show" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
       <q-form class="q-gutter-md" @submit="setItem">
-        <template v-for="field in model.fields" :key="field.name">
+        <template
+          v-for="field in model.fields.filter(f => !f.hidden && !f.computed)"
+          :key="field.name"
+        >
           <q-input
-            v-if="field.type === 'string'"
+            v-if="field.type === 'string' || field.type === 'url'"
             v-model.trim="formDialog.item[field.name]"
             filled
             dense
@@ -86,10 +103,21 @@
             type="number"
             :label="field.name + (field.required ? ' *' : '')"
           />
-          <q-checkbox
+          <q-toggle
             v-if="field.type === 'boolean'"
             v-model="formDialog.item[field.name]"
             :label="field.name + (field.required ? ' *' : '')"
+          />
+          <q-select
+            v-if="field.type === 'ref'"
+            v-model="formDialog.item[field.name]"
+            filled
+            use-input
+            input-debounce="0"
+            behavior="dialog"
+            :options="refItemsFiltered[field.ref]"
+            :label="field.name + (field.required ? ' *' : '')"
+            @filter="refOptionsFilter(field.ref)"
           />
         </template>
         <div class="row q-mt-lg">
@@ -118,7 +146,8 @@
 </template>
 
 <script>
-import {listAppItems, setAppItem, delAppItem, notifyError} from '../helpers'
+import {listAppItems, setAppItem, delAppItem} from '../api'
+import {notifyError} from '../helpers'
 
 export default {
   props: {
@@ -139,11 +168,25 @@ export default {
       formDialog: {
         show: false,
         item: null
-      }
+      },
+      refItems: {},
+      refItemsFiltered: {}
     }
   },
 
   computed: {
+    refItemsMap() {
+      const map = {}
+
+      Object.values(this.refItems).forEach(items => {
+        items.forEach(item => {
+          map[item.key] = item
+        })
+      })
+
+      return map
+    },
+
     isFormSubmitDisabled() {
       return (
         this.formDialog.show &&
@@ -159,12 +202,36 @@ export default {
   },
 
   methods: {
+    async fetchRefItems(modelName) {
+      if (!this.refItems[modelName]) {
+        this.refItems[modelName] = await listAppItems(
+          this.$store.wallet.id,
+          modelName
+        )
+      }
+    },
+
+    refOptionsFilter(modelName) {
+      return async (val, update, abort) => {
+        update(() => {
+          this.refItemsFiltered[modelName] = this.refItems[modelName].filter(
+            v => v.toLowerCase().indexOf(val.trim().toLowerCase()) !== -1
+          )
+        })
+      }
+    },
+
     async loadItems() {
       try {
-        this.items = await listAppItems(this.$store.wallet.id)
+        this.items = await listAppItems(this.$store.wallet.id, this.model.name)
       } catch (err) {
         notifyError(err)
+        return
       }
+
+      this.model.fields.forEach(field => {
+        if (field.type === 'ref') this.fetchRefItems(field.ref)
+      })
     },
 
     openCreateDialog() {

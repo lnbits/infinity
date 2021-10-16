@@ -90,8 +90,8 @@ export const scanLnurl = async lnurl =>
 
 export const appInfo = async appid => await request(`/api/wallet/app/${appid}`)
 
-export const listAppItems = async id =>
-  await request(`/api/wallet/app/${id}/list`)
+export const listAppItems = async (id, model) =>
+  await request(`/api/wallet/app/${id}/list/${model}`)
 
 export const setAppItem = async (id, key, value) =>
   await request(`/api/wallet/app/${id}/set/${key}`)

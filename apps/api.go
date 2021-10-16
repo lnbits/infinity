@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm/clause"
 
 	api "github.com/lnbits/lnbits/api"
+	"github.com/lnbits/lnbits/apps/db"
 	"github.com/lnbits/lnbits/apps/runlua"
 	models "github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
@@ -37,10 +37,12 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var items []models.AppDataItem
-	if result := storage.DB.
+	result := storage.DB.
 		Order("created_at desc").
 		Where(&models.AppDataItem{WalletID: wallet.ID, App: app, Model: modelName}).
-		Find(&items); result.Error != nil {
+		Find(&items)
+
+	if result.Error != nil {
 		api.SendJSONError(w, 500, "database error: %s", result.Error.Error())
 		return
 	}
@@ -52,6 +54,7 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 		if field.Computed != nil {
 			for _, item := range items {
 				item.Value[field.Name], _ = runlua.RunLua(runlua.Params{
+					AppID:   app,
 					AppCode: code,
 					FunctionToRun: fmt.Sprintf(
 						"get_model_field('%s', '%s').computed(item)",
@@ -67,6 +70,7 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 		filteredItems := make([]models.AppDataItem, 0, len(items))
 		for _, item := range items {
 			returnedValue, _ := runlua.RunLua(runlua.Params{
+				AppID:           app,
 				AppCode:         code,
 				FunctionToRun:   fmt.Sprintf("get_model('%s').filter(item)", model.Name),
 				InjectedGlobals: &map[string]interface{}{"item": item.Value},
@@ -87,20 +91,16 @@ func AppSetItem(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
-	item := models.AppDataItem{
-		WalletID: wallet.ID,
-		App:      app,
-		Key:      key,
-	}
-	if err := json.NewDecoder(r.Body).Decode(&item.Value); err != nil {
+	var value map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&value); err != nil {
 		api.SendJSONError(w, 400, "failed to read data: %s", err.Error())
 		return
 	}
 
-	storage.DB.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "app"}, {Name: "wallet_id"}, {Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
-	}).Create(&item)
+	if err := db.Set(wallet.ID, app, key, value); err != nil {
+		api.SendJSONError(w, 500, "failed to set item: %s", err.Error())
+		return
+	}
 }
 
 func AppDeleteItem(w http.ResponseWriter, r *http.Request) {
@@ -108,11 +108,10 @@ func AppDeleteItem(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
-	storage.DB.Delete(&models.AppDataItem{
-		WalletID: wallet.ID,
-		App:      app,
-		Key:      key,
-	})
+	if err := db.Delete(wallet.ID, app, key); err != nil {
+		api.SendJSONError(w, 500, "failed to delete item: %s", err.Error())
+		return
+	}
 }
 
 func AppCustomAction(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +134,7 @@ func AppCustomAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	returned, err := runlua.RunLua(runlua.Params{
+		AppID:           app,
 		AppCode:         code,
 		FunctionToRun:   fmt.Sprintf("actions.%s(params)", action),
 		InjectedGlobals: &map[string]interface{}{"params": params},

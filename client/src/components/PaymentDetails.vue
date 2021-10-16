@@ -7,23 +7,25 @@
     </div>
     <div class="row">
       <div class="col-3"><b>Date</b>:</div>
-      <div class="col-9">{{ payment.date }} ({{ payment.dateFrom }})</div>
+      <div class="col-9" :title="formatDate(payment.date, true)">
+        {{ formatDate(payment.date) }}
+      </div>
     </div>
     <div class="row">
       <div class="col-3"><b>Description</b>:</div>
-      <div class="col-9">{{ payment.memo }}</div>
+      <div class="col-9">{{ payment.description }}</div>
     </div>
     <div class="row">
       <div class="col-3"><b>Amount</b>:</div>
-      <div class="col-9">{{ (payment.amount / 1000).toFixed(3) }} sat</div>
+      <div class="col-9">{{ formatMsatToSat(payment.amount) }} sat</div>
     </div>
     <div class="row">
       <div class="col-3"><b>Fee</b>:</div>
-      <div class="col-9">{{ (payment.fee / 1000).toFixed(3) }} sat</div>
+      <div class="col-9">{{ formatMsatToSat(payment.fee) }} sat</div>
     </div>
     <div class="row">
-      <div class="col-3"><b>Payment hash</b>:</div>
-      <div class="col-9 text-wrap mono">{{ payment.payment_hash }}</div>
+      <div class="col-3"><b>Payment Hash</b>:</div>
+      <div class="col-9 text-wrap mono">{{ payment.hash }}</div>
     </div>
     <div v-if="payment.webhook" class="row">
       <div class="col-3"><b>Webhook</b>:</div>
@@ -49,7 +51,7 @@
       <div class="col-9 text-wrap mono">{{ entry.value }}</div>
     </div>
     <div v-if="hasSuccessAction" class="row">
-      <div class="col-3"><b>Success action</b>:</div>
+      <div class="col-3"><b>Success Action</b>:</div>
       <div class="col-9">
         <LnurlPaySuccessAction
           :payment="payment"
@@ -61,6 +63,8 @@
 </template>
 
 <script>
+import {formatDate, formatMsatToSat} from '../helpers'
+
 export default {
   props: {
     payment: {
@@ -105,6 +109,10 @@ export default {
         .filter(key => key !== 'tag' && key !== 'success_action')
         .map(key => ({key, value: this.payment.extras[key]}))
     }
+  },
+  methods: {
+    formatMsatToSat,
+    formatDate
   }
 }
 </script>

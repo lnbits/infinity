@@ -147,7 +147,7 @@
                 <q-dialog v-model="props.expand" :props="props">
                   <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
                     <div class="text-center q-mb-lg">
-                      <div v-if="props.row.isIn && props.row.pending">
+                      <div v-if="props.row.amount > 0 && props.row.pending">
                         <q-icon name="settings_ethernet" color="grey"></q-icon>
                         Invoice waiting to be paid
                         <PaymentDetails :payment="props.row" />
@@ -182,7 +182,9 @@
                           >
                         </div>
                       </div>
-                      <div v-else-if="props.row.isPaid && props.row.isIn">
+                      <div
+                        v-else-if="!props.row.pending && props.row.amount > 0"
+                      >
                         <q-icon
                           size="18px"
                           :name="'call_received'"
@@ -191,7 +193,9 @@
                         Payment Received
                         <PaymentDetails :payment="props.row" />
                       </div>
-                      <div v-else-if="props.row.isPaid && props.row.isOut">
+                      <div
+                        v-else-if="!props.row.pending && props.row.amount < 0"
+                      >
                         <q-icon
                           size="18px"
                           :name="'call_made'"
@@ -200,7 +204,9 @@
                         Payment Sent
                         <PaymentDetails :payment="props.row" />
                       </div>
-                      <div v-else-if="props.row.isOut && props.row.pending">
+                      <div
+                        v-else-if="props.row.amount < 0 && props.row.pending"
+                      >
                         <q-icon name="settings_ethernet" color="grey"></q-icon>
                         Outgoing payment pending
                         <PaymentDetails :payment="props.row" />
@@ -663,14 +669,13 @@
 
 <script>
 import bolt11 from 'light-bolt11-decoder'
-import {date} from 'quasar'
 
 import {generateChart} from '../chart'
 import {
-  notifyError,
-  exportCSV,
-  formatDate,
   formatMsatToSat,
+  notifyError,
+  formatDate,
+  exportCSV,
   copyText
 } from '../helpers'
 import {
@@ -1026,10 +1031,7 @@ export default {
           msat: invoice.millisatoshis,
           hash: invoice.payment_hash,
           description: invoice.description,
-          expireDate: date.formatDate(
-            invoice.expiry,
-            'YYYY-MM-DDTHH:mm:ss.SSSZ'
-          )
+          expireDate: formatDate(new Date(invoice.expiry), 'full')
         }
       } catch (error) {
         notifyError(error, 'Failed to parse invoice')

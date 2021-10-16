@@ -10,6 +10,7 @@ import (
 )
 
 type Params struct {
+	AppID            string
 	AppCode          string
 	WalletID         string
 	FunctionToRun    string
@@ -36,7 +37,10 @@ func RunLua(params Params) (interface{}, error) {
 		}
 	}
 
-	lunatico.SetGlobals(L, map[string]interface{}{"code": code})
+	lunatico.SetGlobals(L, map[string]interface{}{
+		"app_id": params.AppID,
+		"code":   code,
+	})
 	lunatico.SetGlobals(L, exposedUtils)
 
 	// this means this code can create invoices, pay invoices and do crud operations
@@ -46,6 +50,7 @@ func RunLua(params Params) (interface{}, error) {
 			"wallet_id": params.WalletID,
 		})
 		lunatico.SetGlobals(L, exposedWalletMethods)
+		lunatico.SetGlobals(L, exposedDatabase)
 	}
 
 	if params.InjectedGlobals != nil {
