@@ -1,7 +1,7 @@
 import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
-import {changeColorTheme} from './helpers'
+import {changeColorTheme, notifyError} from './helpers'
 import {loadSettings, loadWallet, loadUser, appInfo} from './api'
 
 export default createStore({
@@ -62,7 +62,12 @@ export default createStore({
     async fetchUser({state, dispatch, commit}) {
       if (!new URLSearchParams(location.search).get('key')) return
 
-      const user = await loadUser()
+      let user
+      try {
+        user = await loadUser()
+      } catch (err) {
+        notifyError(err)
+      }
       commit('setUser', user)
 
       if (!state.wallet) {
@@ -71,13 +76,21 @@ export default createStore({
       }
     },
     async fetchWallet({state, commit, dispatch}, walletID) {
-      const wallet = await loadWallet(walletID)
-      commit('setWallet', wallet)
-      dispatch('listenForPayments')
+      try {
+        const wallet = await loadWallet(walletID)
+        commit('setWallet', wallet)
+        dispatch('listenForPayments')
+      } catch (err) {
+        notifyError(err)
+      }
     },
     async fetchApp({state, commit}, appID) {
-      const app = await appInfo(appID)
-      commit('setApp', app)
+      try {
+        const app = await appInfo(appID)
+        commit('setApp', app)
+      } catch (err) {
+        notifyError(err)
+      }
     },
     async listenForPayments({commit, state, dispatch}) {
       if (state.wallet.id in state.hasListeners) return

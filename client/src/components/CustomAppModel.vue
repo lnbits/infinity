@@ -4,14 +4,16 @@
       <q-card>
         <q-card-section>
           <q-btn unelevated color="primary" @click="openCreateDialog"
-            >New {{ model.name }}</q-btn
+            >New {{ model.display || model.name }}</q-btn
           >
         </q-card-section>
         <q-card-section>
           <div class="row items-center no-wrap q-mb-md">
             <div class="col">
               <h5 class="text-subtitle1 q-my-none">
-                {{ model.namePlural || `${model.name}s` }}
+                {{
+                  model.displayPlural || `${model.display}s` || `${model.name}s`
+                }}
               </h5>
             </div>
           </div>
@@ -20,7 +22,9 @@
             v-model:pagination="table.pagination"
             dense
             flat
-            :data="items"
+            binary-state-sort
+            column-sort-order="da"
+            :rows="items"
             row-key="key"
           >
             <template #header="props">
@@ -45,14 +49,14 @@
                   <a
                     v-if="field.type === 'url'"
                     target="_blank"
-                    :href="props.row[field.name]"
+                    :href="props.row.value[field.name]"
                   >
-                    <q-icon name="http" />
+                    <q-icon name="link" />
                   </a>
                   <span v-else-if="props.type === 'ref'">
-                    {JSON.stringify(refItemsMap[props.row[field.name]])}
+                    {{ json(refItemsMap[props.row.value[field.name]]) }}
                   </span>
-                  <span v-else>{props.row[field.name]}</span>
+                  <span v-else>{{ props.row.value[field.name] }}</span>
                 </q-td>
                 <q-td auto-width>
                   <q-btn
@@ -80,52 +84,62 @@
     </div>
   </div>
 
-  <q-dialog v-model="formDialog.show" @hide="closeFormDialog">
+  <q-dialog v-model="dialog.show" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
-      <q-form class="q-gutter-md" @submit="setItem">
+      <q-form class="q-gutter-md" @submit="saveItem">
         <template
           v-for="field in model.fields.filter(f => !f.hidden && !f.computed)"
           :key="field.name"
         >
           <q-input
             v-if="field.type === 'string' || field.type === 'url'"
-            v-model.trim="formDialog.item[field.name]"
+            v-model.trim="dialog.item[field.name]"
             filled
             dense
-            type="text"
-            :label="field.name + (field.required ? ' *' : '')"
+            :type="field.type === 'url' ? 'url' : 'text'"
+            :label="fieldLabel(field)"
           />
           <q-input
             v-if="field.type === 'number'"
-            v-model.number="formDialog.item[field.name]"
+            v-model.number="dialog.item[field.name]"
             filled
             dense
             type="number"
-            :label="field.name + (field.required ? ' *' : '')"
+            :label="fieldLabel(field)"
+          />
+          <q-input
+            v-if="field.type === 'msatoshi'"
+            filled
+            dense
+            type="text"
+            suffix="satoshis"
+            :label="fieldLabel(field)"
+            :model-value="
+              dialog.item[field.name] > 0 ? dialog.item[field.name] / 1000 : ''
+            "
+            @update:model-value="
+              dialog.item[field.name] = (parseInt($event) || 0) * 1000
+            "
           />
           <q-toggle
             v-if="field.type === 'boolean'"
-            v-model="formDialog.item[field.name]"
-            :label="field.name + (field.required ? ' *' : '')"
+            v-model="dialog.item[field.name]"
+            :label="fieldLabel(field)"
           />
           <q-select
             v-if="field.type === 'ref'"
-            v-model="formDialog.item[field.name]"
+            v-model="dialog.item[field.name]"
             filled
             use-input
             input-debounce="0"
             behavior="dialog"
             :options="refItemsFiltered[field.ref]"
-            :label="field.name + (field.required ? ' *' : '')"
+            :label="fieldLabel(field)"
             @filter="refOptionsFilter(field.ref)"
           />
         </template>
         <div class="row q-mt-lg">
-          <q-btn
-            v-if="formDialog.item.key"
-            unelevated
-            color="primary"
-            type="submit"
+          <q-btn v-if="dialog.item.key" unelevated color="primary" type="submit"
             >Update {{ model.name }}</q-btn
           >
           <q-btn
@@ -146,7 +160,7 @@
 </template>
 
 <script>
-import {listAppItems, setAppItem, delAppItem} from '../api'
+import {listAppItems, setAppItem, addAppItem, delAppItem} from '../api'
 import {notifyError} from '../helpers'
 
 export default {
@@ -162,10 +176,11 @@ export default {
       items: [],
       table: {
         pagination: {
-          rowsPerPage: 15
+          rowsPerPage: 15,
+          sortBy: 'created_at'
         }
       },
-      formDialog: {
+      dialog: {
         show: false,
         item: null
       },
@@ -189,23 +204,33 @@ export default {
 
     isFormSubmitDisabled() {
       return (
-        this.formDialog.show &&
+        this.dialog.show &&
         this.model.fields
           .filter(field => field.required)
           .filter(
             field =>
-              this.formDialog.item[field.name] === undefined ||
-              this.formDialog.item[field.name] === ''
+              this.dialog.item[field.name] === undefined ||
+              this.dialog.item[field.name] === ''
           ).length > 0
       )
     }
   },
 
+  mounted() {
+    this.loadItems()
+  },
+
   methods: {
+    json: JSON.stringify,
+
+    fieldLabel(field) {
+      return (field.display || field.name) + (field.required ? ' *' : '')
+    },
+
     async fetchRefItems(modelName) {
       if (!this.refItems[modelName]) {
         this.refItems[modelName] = await listAppItems(
-          this.$store.wallet.id,
+          this.$store.state.app.id,
           modelName
         )
       }
@@ -223,7 +248,10 @@ export default {
 
     async loadItems() {
       try {
-        this.items = await listAppItems(this.$store.wallet.id, this.model.name)
+        this.items = await listAppItems(
+          this.$store.state.app.id,
+          this.model.name
+        )
       } catch (err) {
         notifyError(err)
         return
@@ -235,31 +263,41 @@ export default {
     },
 
     openCreateDialog() {
-      this.formDialog.item = Object.fromEntries(
+      this.dialog.item = Object.fromEntries(
         this.model.fields.map(field => [field.name, field.default])
       )
-      this.formDialog.show = true
+      this.dialog.show = true
     },
 
     openUpdateDialog(key) {
       const item = this.items.find(item => item.key === key)
-      this.formDialog.item = {...item}
-      this.formDialog.show = true
+      this.dialog.item = {...item}
+      this.dialog.show = true
     },
 
     closeFormDialog() {
-      this.formDialog.show = false
+      this.dialog.show = false
     },
 
-    async setItem() {
+    async saveItem() {
       try {
-        await setAppItem(
-          this.$store.wallet.id,
-          this.formDialog.item.id,
-          this.formDialog.item
-        )
+        if (this.dialog.item.id) {
+          await setAppItem(
+            this.$store.state.app.id,
+            this.model.name,
+            this.dialog.item.id,
+            this.dialog.item
+          )
+        } else {
+          await addAppItem(
+            this.$store.state.app.id,
+            this.model.name,
+            this.dialog.item
+          )
+        }
+
         this.$q.notify({
-          message: `${this.model.name} saved.`,
+          message: `${this.model.display || this.model.name} saved.`,
           type: 'positive',
           timeout: 3500
         })
@@ -281,9 +319,9 @@ export default {
         }
       }).onOk(async () => {
         try {
-          await delAppItem(this.$store.wallet.id, key)
+          await delAppItem(this.$store.state.app.id, this.model.name, key)
           this.$q.notify({
-            message: `${this.model.name} deleted.`,
+            message: `${this.model.display || this.model.name} deleted.`,
             type: 'info',
             timeout: 2500
           })

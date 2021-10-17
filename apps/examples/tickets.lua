@@ -3,7 +3,7 @@ models = {
     name = 'bucket',
     display = 'Ticket Bucket',
     fields = {
-      { name = 'price', display = 'Price (msat)', type = 'number', required = true },
+      { name = 'price', display = 'Price (msat)', type = 'msatoshi', required = true },
       { name = 'description', display = 'Description', type = 'string' },
       { display = 'URL', type = 'url', computed = function (bucket)
         return '/' .. bucket.key

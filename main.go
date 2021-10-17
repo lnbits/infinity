@@ -83,11 +83,14 @@ func main() {
 	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
 
 	// app endpoints
-	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.AppInfo)
-	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.AppListItems)
-	router.Path("/api/wallet/app/{appid}/set/{key}").HandlerFunc(apps.AppSetItem)
-	router.Path("/api/wallet/app/{appid}/del/{key}").HandlerFunc(apps.AppDeleteItem)
-	router.Path("/app/{wallet}/{appid}/action/{action}").HandlerFunc(apps.AppCustomAction)
+	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
+	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
+	router.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)
+	router.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)
+	router.Path("/api/wallet/app/{appid}/add/{model}").HandlerFunc(apps.AddItem)
+	router.Path("/api/wallet/app/{appid}/del/{model}/{key}").HandlerFunc(apps.DeleteItem)
+	router.Path("/app/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
+	router.PathPrefix("/app/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
 
 	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
 	router.Path("/api/v1/wallet").HandlerFunc(api.Wallet)

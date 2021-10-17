@@ -3,7 +3,6 @@ package apps
 import (
 	"fmt"
 
-	"github.com/lnbits/lnbits/apps/runlua"
 	models "github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/rs/zerolog/log"
@@ -24,18 +23,8 @@ func TriggerEvent(trigger string, payment models.Payment) {
 	}
 
 	for _, app := range user.Apps {
-		code, err := getAppCode(app)
-		if err != nil {
-			log.Warn().Err(err).Str("app", app).
-				Str("trigger", trigger).
-				Interface("payment", payment).
-				Msg("couldn't get app code to trigger event")
-			return
-		}
-
-		_, err = runlua.RunLua(runlua.Params{
-			AppID:   app,
-			AppCode: code,
+		_, err := runlua(RunluaParams{
+			AppID: app,
 			FunctionToRun: fmt.Sprintf(
 				"get_trigger('%s')(payment)",
 				trigger,

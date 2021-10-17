@@ -8,13 +8,11 @@ import (
 	"github.com/gorilla/mux"
 
 	api "github.com/lnbits/lnbits/api"
-	"github.com/lnbits/lnbits/apps/db"
-	"github.com/lnbits/lnbits/apps/runlua"
 	models "github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 )
 
-func AppInfo(w http.ResponseWriter, r *http.Request) {
+func Info(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
 	_, settings, err := getAppSettings(app)
 	if err != nil {
@@ -25,12 +23,12 @@ func AppInfo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(settings)
 }
 
-func AppListItems(w http.ResponseWriter, r *http.Request) {
+func ListItems(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 	modelName := mux.Vars(r)["model"]
 
-	code, settings, err := getAppSettings(app)
+	_, settings, err := getAppSettings(app)
 	if err != nil {
 		api.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return
@@ -38,7 +36,6 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 
 	var items []models.AppDataItem
 	result := storage.DB.
-		Order("created_at desc").
 		Where(&models.AppDataItem{WalletID: wallet.ID, App: app, Model: modelName}).
 		Find(&items)
 
@@ -53,9 +50,8 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 	for _, field := range model.Fields {
 		if field.Computed != nil {
 			for _, item := range items {
-				item.Value[field.Name], _ = runlua.RunLua(runlua.Params{
-					AppID:   app,
-					AppCode: code,
+				item.Value[field.Name], _ = runlua(RunluaParams{
+					AppID: app,
 					FunctionToRun: fmt.Sprintf(
 						"get_model_field('%s', '%s').computed(item)",
 						model.Name, field.Name,
@@ -69,9 +65,8 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 	if model.Filter != nil {
 		filteredItems := make([]models.AppDataItem, 0, len(items))
 		for _, item := range items {
-			returnedValue, _ := runlua.RunLua(runlua.Params{
+			returnedValue, _ := runlua(RunluaParams{
 				AppID:           app,
-				AppCode:         code,
 				FunctionToRun:   fmt.Sprintf("get_model('%s').filter(item)", model.Name),
 				InjectedGlobals: &map[string]interface{}{"item": item.Value},
 			})
@@ -86,8 +81,23 @@ func AppListItems(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(items)
 }
 
-func AppSetItem(w http.ResponseWriter, r *http.Request) {
+func GetItem(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
+	model := mux.Vars(r)["model"]
+	key := mux.Vars(r)["key"]
+	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	if value, err := DBGet(wallet.ID, app, model, key); err != nil {
+		api.SendJSONError(w, 500, "failed to get item: %s", err.Error())
+		return
+	} else {
+		json.NewEncoder(w).Encode(value)
+	}
+}
+
+func SetItem(w http.ResponseWriter, r *http.Request) {
+	app := appidToURL(mux.Vars(r)["appid"])
+	model := mux.Vars(r)["model"]
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
@@ -97,24 +107,42 @@ func AppSetItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.Set(wallet.ID, app, key, value); err != nil {
+	if err := DBSet(wallet.ID, app, model, key, value); err != nil {
 		api.SendJSONError(w, 500, "failed to set item: %s", err.Error())
 		return
 	}
 }
 
-func AppDeleteItem(w http.ResponseWriter, r *http.Request) {
+func AddItem(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
+	model := mux.Vars(r)["model"]
+	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	var value map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&value); err != nil {
+		api.SendJSONError(w, 400, "failed to read data: %s", err.Error())
+		return
+	}
+
+	if err := DBAdd(wallet.ID, app, model, value); err != nil {
+		api.SendJSONError(w, 500, "failed to add item: %s", err.Error())
+		return
+	}
+}
+
+func DeleteItem(w http.ResponseWriter, r *http.Request) {
+	app := appidToURL(mux.Vars(r)["appid"])
+	model := mux.Vars(r)["model"]
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
-	if err := db.Delete(wallet.ID, app, key); err != nil {
+	if err := DBDelete(wallet.ID, app, model, key); err != nil {
 		api.SendJSONError(w, 500, "failed to delete item: %s", err.Error())
 		return
 	}
 }
 
-func AppCustomAction(w http.ResponseWriter, r *http.Request) {
+func CustomAction(w http.ResponseWriter, r *http.Request) {
 	walletID := mux.Vars(r)["wallet"]
 	app := appidToURL(mux.Vars(r)["appid"])
 	action := mux.Vars(r)["action"]
@@ -122,7 +150,7 @@ func AppCustomAction(w http.ResponseWriter, r *http.Request) {
 	var params interface{}
 	json.NewDecoder(r.Body).Decode(&params)
 
-	code, settings, err := getAppSettings(app)
+	_, settings, err := getAppSettings(app)
 	if err != nil {
 		api.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return
@@ -133,9 +161,8 @@ func AppCustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returned, err := runlua.RunLua(runlua.Params{
+	returned, err := runlua(RunluaParams{
 		AppID:           app,
-		AppCode:         code,
 		FunctionToRun:   fmt.Sprintf("actions.%s(params)", action),
 		InjectedGlobals: &map[string]interface{}{"params": params},
 		WalletID:        walletID,
@@ -146,4 +173,8 @@ func AppCustomAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(returned)
+}
+
+func StaticFile(w http.ResponseWriter, r *http.Request) {
+
 }

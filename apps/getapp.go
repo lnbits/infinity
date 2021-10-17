@@ -3,30 +3,20 @@ package apps
 import (
 	"fmt"
 	"io/ioutil"
-
-	"github.com/asaskevich/govalidator"
-	"github.com/lnbits/lnbits/apps/runlua"
 )
 
 func getAppSettings(url string) (code string, settings Settings, err error) {
-	code, err = getAppCode(url)
-	if err != nil {
-		err = fmt.Errorf("failed to fetch app code from %s: %w", url, err)
-		return
-	}
-
-	_, err = runlua.RunLua(runlua.Params{
+	_, err = runlua(RunluaParams{
 		AppID:            url,
-		AppCode:          code,
 		ExtractedGlobals: &settings,
 	})
 	if err != nil {
-		err = fmt.Errorf("failed to get settings from app code: %w", err)
+		err = fmt.Errorf("failed to run lua: %w", err)
 		return
 	}
 
-	if valid, validationErr := govalidator.ValidateStruct(settings); !valid {
-		err = fmt.Errorf("app returned invalid definitions: %w", validationErr)
+	if validationErr := settings.validate(); validationErr != nil {
+		err = fmt.Errorf("app exported invalid definitions: %w", validationErr)
 		return
 	}
 
