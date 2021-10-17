@@ -85,8 +85,8 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := 0; i < len(user.Apps); i++ {
-		if user.Apps[i] == params.URL {
+	for _, app := range user.Apps {
+		if app == params.URL {
 			w.WriteHeader(200)
 			return
 		}
@@ -96,4 +96,27 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 	storage.DB.Save(user)
 
 	w.WriteHeader(201)
+}
+
+func RemoveApp(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(*models.User)
+
+	var params struct {
+		URL string `json:"url"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		return
+	}
+
+	newAppsList := make([]string, 0, len(user.Apps))
+	for _, app := range user.Apps {
+		if app != params.URL {
+			newAppsList = append(newAppsList, app)
+		}
+	}
+	user.Apps = newAppsList
+	storage.DB.Save(user)
+
+	w.WriteHeader(200)
 }

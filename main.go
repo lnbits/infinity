@@ -72,6 +72,7 @@ func main() {
 	router.Path("/api/user").HandlerFunc(api.User)
 	router.Path("/api/user/create-wallet").HandlerFunc(api.CreateWallet)
 	router.Path("/api/user/add-app").HandlerFunc(api.AddApp)
+	router.Path("/api/user/remove-app").HandlerFunc(api.RemoveApp)
 	router.Path("/api/wallet").HandlerFunc(api.Wallet)
 	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(api.RenameWallet)
 	router.Path("/api/wallet/create-invoice").HandlerFunc(api.CreateInvoice)

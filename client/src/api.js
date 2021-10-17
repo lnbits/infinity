@@ -51,6 +51,12 @@ export const addApp = async url =>
     body: JSON.stringify({url})
   })
 
+export const removeApp = async url =>
+  await request('/api/user/remove-app', {
+    method: 'POST',
+    body: JSON.stringify({url})
+  })
+
 export const loadWallet = async () => await request(`/api/wallet`)
 
 export const createInvoice = async params =>

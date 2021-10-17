@@ -28,9 +28,16 @@
         </q-avatar>
       </q-item-section>
       <q-item-section>
-        <q-item-label lines="1">{{
-          app.split('/').slice(-1)[0].slice(0, -4)
-        }}</q-item-label>
+        <q-item-label lines="1">
+          {{ app.split('/').slice(-1)[0].slice(0, -4) }}
+          <q-menu context-menu>
+            <q-list dense style="min-width: 100px">
+              <q-item v-close-popup clickable @click="removeApp(app)">
+                <q-item-section>Remove</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-item-label>
       </q-item-section>
       <q-item-section v-show="app.isActive" side>
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
@@ -73,7 +80,8 @@
 <script>
 import {Buffer} from 'buffer'
 
-import {addApp, notifyError} from '../helpers'
+import {addApp, removeApp} from '../api'
+import {notifyError} from '../helpers'
 
 export default {
   data() {
@@ -102,8 +110,20 @@ export default {
           path: `/wallet/${this.$store.state.wallet.id}/app/${appid}`,
           query: this.$route.query
         })
-        this.$store.dispatch('fetchUser')
         this.appURL = ''
+      } catch (err) {
+        notifyError(err)
+      }
+    },
+
+    async removeApp(appURL) {
+      try {
+        await removeApp(appURL)
+        this.$store.dispatch('fetchUser')
+        this.$router.push({
+          path: `/wallet/${this.$store.state.wallet.id}`,
+          query: this.$route.query
+        })
       } catch (err) {
         notifyError(err)
       }
