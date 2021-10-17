@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-func getAppSettings(url string) (code string, settings Settings, err error) {
+func GetAppSettings(url string) (code string, settings Settings, err error) {
 	_, err = runlua(RunluaParams{
 		AppID:            url,
 		ExtractedGlobals: &settings,

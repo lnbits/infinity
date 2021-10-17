@@ -32,6 +32,10 @@ func (s Settings) validate() error {
 		"url",
 	}
 
+	if len(s.Models) == 0 {
+		return fmt.Errorf("no models declared")
+	}
+
 	for m, model := range s.Models {
 		if model.Name == "" {
 			return fmt.Errorf("models[%d].name is not provided", m)

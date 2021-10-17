@@ -11,10 +11,11 @@ import (
 	rp "github.com/fiatjaf/relampago"
 	mux "github.com/gorilla/mux"
 
-	models "github.com/lnbits/lnbits/models"
-	services "github.com/lnbits/lnbits/services"
+	"github.com/lnbits/lnbits/api/apiutils"
+	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/storage"
-	utils "github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/lnbits/utils"
 )
 
 func Wallet(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +66,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		SendJSONError(w, 400, err.Error())
+		apiutils.SendJSONError(w, 400, err.Error())
 		return
 	}
 
@@ -75,7 +76,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if params.Description == "" {
-		SendJSONError(w, 400, "Missing description.")
+		apiutils.SendJSONError(w, 400, "Missing description.")
 		return
 	}
 
@@ -90,14 +91,14 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		if msats, err := utils.GetMsatsPerFiatUnit(params.Unit); err == nil {
 			params.Msatoshi = int64(params.Amount * float64(msats))
 		} else {
-			SendJSONError(w, 400, fmt.Sprintf("failed to get rate for currency %s: %s", params.Unit, err.Error()))
+			apiutils.SendJSONError(w, 400, fmt.Sprintf("failed to get rate for currency %s: %s", params.Unit, err.Error()))
 			return
 		}
 	}
 
 	payment, err := services.CreateInvoice(wallet.ID, params.CreateInvoiceParams)
 	if err != nil {
-		SendJSONError(w, 450, fmt.Sprintf("failed to create invoice: %s", err.Error()))
+		apiutils.SendJSONError(w, 450, fmt.Sprintf("failed to create invoice: %s", err.Error()))
 		return
 	}
 
@@ -115,7 +116,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		SendJSONError(w, 400, err.Error())
+		apiutils.SendJSONError(w, 400, err.Error())
 		return
 	}
 
@@ -126,7 +127,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	payment, err := services.PayInvoice(wallet.ID, params.PayInvoiceParams)
 	if err != nil {
-		SendJSONError(w, 450, fmt.Sprintf("failed to pay invoice: %s", err.Error()))
+		apiutils.SendJSONError(w, 450, fmt.Sprintf("failed to pay invoice: %s", err.Error()))
 		return
 	}
 
@@ -140,13 +141,13 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 		Callback string `json:"callback"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
 	parsed, err := url.Parse(params.Callback)
 	if err != nil {
-		SendJSONError(w, 400, "got invalid callback URL '%s': %s",
+		apiutils.SendJSONError(w, 400, "got invalid callback URL '%s': %s",
 			params.Callback, err.Error())
 		return
 	}
@@ -154,13 +155,13 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 	k1hex := parsed.Query().Get("k1")
 	k1, err := hex.DecodeString(k1hex)
 	if err != nil {
-		SendJSONError(w, 400, "Invalid k1 hex '%s': %s.", k1hex, err.Error())
+		apiutils.SendJSONError(w, 400, "Invalid k1 hex '%s': %s.", k1hex, err.Error())
 		return
 	}
 
 	sk := services.AuthKey(wallet.ID, parsed.Host)
 	if err := utils.PerformKeyAuthFlow(sk, parsed, k1); err != nil {
-		SendJSONError(w, 500, "Failed to sign: %s.", err.Error())
+		apiutils.SendJSONError(w, 500, "Failed to sign: %s.", err.Error())
 		return
 	}
 
@@ -176,13 +177,13 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		Comment string               `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
 	values, err := params.Params.Call(params.Amount, params.Comment, nil)
 	if err != nil {
-		SendJSONError(w, 450, "failed to get lnurl invoice: %s", err.Error())
+		apiutils.SendJSONError(w, 450, "failed to get lnurl invoice: %s", err.Error())
 		return
 	}
 
@@ -206,7 +207,7 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		Extra: extra,
 	})
 	if err != nil {
-		SendJSONError(w, 500, "failed to pay: %s", err.Error())
+		apiutils.SendJSONError(w, 500, "failed to pay: %s", err.Error())
 		return
 	}
 
@@ -245,7 +246,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 			}{lnurlError.Reason, lnurlError.URL.Host})
 			http.Error(w, string(b), 410)
 		} else {
-			SendJSONError(w, 480, err.Error())
+			apiutils.SendJSONError(w, 480, err.Error())
 		}
 	}
 
@@ -305,7 +306,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 				PubKey().SerializeCompressed(),
 		)
 	default:
-		SendJSONError(w, 400, "Unsupported LNURL.")
+		apiutils.SendJSONError(w, 400, "Unsupported LNURL.")
 		return
 	}
 

@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	models "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/api/apiutils"
+	"github.com/lnbits/lnbits/apps"
+	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
-	utils "github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/lnbits/utils"
 	"github.com/lucsky/cuid"
 )
 
@@ -48,7 +50,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
@@ -61,7 +63,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 	result := storage.DB.Create(&wallet)
 	if result.Error != nil {
-		SendJSONError(w, 400, "error saving wallet: %s", result.Error.Error())
+		apiutils.SendJSONError(w, 400, "error saving wallet: %s", result.Error.Error())
 		return
 	}
 
@@ -81,17 +83,23 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 		URL string `json:"url"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
+	// try to fetch settings for this app first
+	if _, _, err := apps.GetAppSettings(params.URL); err != nil {
+		apiutils.SendJSONError(w, 470, "failed to run app: %s", err.Error())
+		return
+	}
+
+	// add it to the list of apps for this user
 	for _, app := range user.Apps {
 		if app == params.URL {
 			w.WriteHeader(200)
 			return
 		}
 	}
-
 	user.Apps = append(user.Apps, params.URL)
 	storage.DB.Save(user)
 
@@ -105,7 +113,7 @@ func RemoveApp(w http.ResponseWriter, r *http.Request) {
 		URL string `json:"url"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
+		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 

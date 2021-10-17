@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lnbits/lnbits/api"
+	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 )
@@ -40,7 +40,7 @@ func userMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			// the user is required for /api/user, but not for /api/create-wallet
 			if r.URL.Path != "/api/user/create-wallet" {
-				api.SendJSONError(w, 401, "error fetching user: %s", err.Error())
+				apiutils.SendJSONError(w, 401, "error fetching user: %s", err.Error())
 				return
 			}
 		} else {
@@ -91,7 +91,7 @@ func walletMiddleware(next http.Handler) http.Handler {
 		}
 
 		if err != nil {
-			api.SendJSONError(w, 401, "error fetching wallet: %s", err.Error())
+			apiutils.SendJSONError(w, 401, "error fetching wallet: %s", err.Error())
 			return
 		} else {
 			r = r.WithContext(
