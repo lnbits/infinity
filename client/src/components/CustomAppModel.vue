@@ -59,7 +59,13 @@
                     {{ formatMsatToSat(props.row.value[field.name]) }} sat
                   </span>
                   <span v-else-if="field.type === 'ref'">
-                    {{ json(refItemsMap[props.row.value[field.name]]) }}
+                    {{
+                      refItemsMap[field.ref] &&
+                      refItemsMap[field.ref][props.row.value[field.name]] &&
+                      refItemsMap[field.ref][props.row.value[field.name]].value[
+                        field.as
+                      ]
+                    }}
                   </span>
                   <span v-else>{{ props.row.value[field.name] }}</span>
                 </q-td>
@@ -133,16 +139,23 @@
             v-model="dialog.item.value[field.name]"
             :label="fieldLabel(field)"
           />
+
           <q-select
             v-if="field.type === 'ref'"
             v-model="dialog.item.value[field.name]"
             filled
             use-input
+            emit-value
+            map-options
             input-debounce="0"
             behavior="dialog"
-            :options="refItemsFiltered[field.ref]"
+            :options="
+              refItems[field.ref].map(item => ({
+                label: item.value[field.as],
+                value: item.key
+              }))
+            "
             :label="fieldLabel(field)"
-            @filter="refOptionsFilter(field.ref)"
           />
         </template>
         <div class="row q-mt-lg">
@@ -191,8 +204,7 @@ export default {
         show: false,
         item: null
       },
-      refItems: {},
-      refItemsFiltered: {}
+      refItems: {}
     }
   },
 
@@ -200,9 +212,11 @@ export default {
     refItemsMap() {
       const map = {}
 
-      Object.values(this.refItems).forEach(items => {
+      Object.entries(this.refItems).forEach(([modelName, items]) => {
+        map[modelName] = {}
+
         items.forEach(item => {
-          map[item.key] = item
+          map[modelName][item.key] = item
         })
       })
 
@@ -234,7 +248,7 @@ export default {
   },
 
   methods: {
-    json: JSON.stringify,
+    json: v => JSON.stringify(v, null, 2),
 
     formatMsatToSat,
 
@@ -274,16 +288,6 @@ export default {
           this.$store.state.app.url,
           modelName
         )
-      }
-    },
-
-    refOptionsFilter(modelName) {
-      return async (val, update, abort) => {
-        update(() => {
-          this.refItemsFiltered[modelName] = this.refItems[modelName].filter(
-            v => v.toLowerCase().indexOf(val.trim().toLowerCase()) !== -1
-          )
-        })
       }
     },
 

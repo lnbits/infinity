@@ -113,7 +113,7 @@ export const notifyError = (error, title, type) => {
     type,
     message: error.message || null,
     caption,
-    icon: null
+    actions: [{icon: 'close'}]
   })
 }
 

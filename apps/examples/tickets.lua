@@ -14,7 +14,13 @@ models = {
     name = 'ticket',
     display = 'Ticket',
     fields = {
-      { name = 'bucket', display = 'Bucket', type = 'ref', ref = 'bucket' },
+      {
+        name = 'bucket',
+        display = 'Bucket',
+        type = 'ref',
+        ref = 'bucket',
+        as = 'description',
+      },
       { name = 'content', display = 'Content', type = 'string', required = true },
       { name = 'author', display = 'Author', type = 'string' },
       { name = 'is_paid', type = 'boolean', hidden = true },

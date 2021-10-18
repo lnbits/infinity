@@ -64,18 +64,36 @@ func (s Settings) validate() error {
 
 			if field.Type == "ref" {
 				if field.Ref == "" {
-					return fmt.Errorf("%s.%s's ref not provided", model.Name, field.Name)
+					return fmt.Errorf("%s.%s has type='ref', but ref is not provided", model.Name, field.Name)
 				}
 
+				if field.As == "" {
+					return fmt.Errorf("%s.%s's as not provided, must be the name of a property in the referred model", model.Name, field.Name)
+				}
+
+				// check if referred model exists
 				refExists := false
 				for _, refModel := range s.Models {
 					if field.Ref == refModel.Name {
+						// check if the "as" property refers to a field
+						// on the referred model that does exist
+						asFieldExistsAsRefModelField := false
+						for _, refModelField := range refModel.Fields {
+							if refModelField.Name == field.As {
+								asFieldExistsAsRefModelField = true
+								break
+							}
+						}
+						if asFieldExistsAsRefModelField == false {
+							return fmt.Errorf("%s.%s's field as='%s', but model '%s' doesn't have a field '%s'", model.Name, field.Name, field.As, refModel.Name, field.As)
+						}
+
 						refExists = true
 						break
 					}
 				}
 				if refExists == false {
-					return fmt.Errorf("%s.%s's ref '%s' doesn't exist",
+					return fmt.Errorf("%s.%s's ref '%s' doesn't exist as a model",
 						model.Name, field.Name, field.Ref)
 				}
 			}
@@ -90,7 +108,7 @@ type Model struct {
 	Display string      `json:"display,omitempty"`
 	Plural  string      `json:"plural,omitempty"`
 	Fields  []Field     `json:"fields"`
-	Filter  interface{} `json:"filter"` // in lua this is a function, just check for presence
+	Filter  interface{} `json:"filter,omitempty"` // in lua this is a function, here we just check for its presence
 }
 
 func (m Model) validateItem(item models.AppDataItem) error {
@@ -178,6 +196,7 @@ type Field struct {
 	Required bool        `json:"required,omitempty"`
 	Default  interface{} `json:"default,omitempty"`
 	Ref      string      `json:"ref,omitempty"`
+	As       string      `json:"as,omitempty"`
 	Hidden   bool        `json:"hidden,omitempty"`
 	Computed interface{} `json:"computed,omitempty"` // lua function, like above
 }
