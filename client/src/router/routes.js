@@ -3,14 +3,20 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      {path: '', component: () => import('pages/Index.vue')},
+      {
+        path: '',
+        component: () => import('pages/Index.vue'),
+        name: 'index'
+      },
       {
         path: '/wallet/:id',
-        component: () => import('pages/Wallet.vue')
+        component: () => import('pages/Wallet.vue'),
+        name: 'wallet'
       },
       {
         path: '/wallet/:id/app/:appid',
-        component: () => import('pages/CustomApp.vue')
+        component: () => import('pages/CustomApp.vue'),
+        name: 'app'
       }
     ]
   },

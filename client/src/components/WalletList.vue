@@ -8,8 +8,8 @@
     <q-item
       v-for="wallet in $store.state.user.wallets"
       :key="wallet.id"
+      :active="isActive(wallet)"
       clickable
-      :active="$store.state.wallet?.id === wallet.id"
       tag="a"
       @click="goToWallet(wallet)"
     >
@@ -17,7 +17,7 @@
         <q-avatar
           size="md"
           :color="
-            $store.state.wallet?.id === wallet.id
+            isActive(wallet)
               ? $q.dark.isActive
                 ? 'primary'
                 : 'primary'
@@ -37,7 +37,10 @@
           >{{ formatMsatToSat(wallet.balance) }} sat</q-item-label
         >
       </q-item-section>
-      <q-item-section v-show="$store.state.wallet?.id === wallet.id" side>
+      <q-item-section
+        v-show="isActive(wallet) && $route.name === 'wallet'"
+        side
+      >
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
       </q-item-section>
     </q-item>
@@ -89,6 +92,10 @@ export default {
   },
   methods: {
     formatMsatToSat,
+
+    isActive(wallet) {
+      return this.$store.state.wallet?.id === wallet.id
+    },
 
     async createWallet() {
       try {

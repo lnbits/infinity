@@ -4,8 +4,8 @@
     <q-item
       v-for="app in $store.state.user.apps"
       :key="app"
+      :active="isActive(app)"
       clickable
-      :active="$store.app?.id === app"
       tag="a"
       @click="clickApp(app)"
     >
@@ -13,7 +13,7 @@
         <q-avatar
           size="md"
           :color="
-            $store.app?.id === app
+            isActive(app)
               ? $q.dark.isActive
                 ? 'primary'
                 : 'primary'
@@ -39,7 +39,7 @@
           </q-menu>
         </q-item-label>
       </q-item-section>
-      <q-item-section v-show="app.isActive" side>
+      <q-item-section v-show="isActive(app) && $route.name === 'app'" side>
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
       </q-item-section>
     </q-item>
@@ -88,7 +88,12 @@ export default {
       appURL: ''
     }
   },
+
   methods: {
+    isActive(app) {
+      return this.$store.state.app?.url === app
+    },
+
     clickApp(appURL) {
       this.$router.push({
         path: `/wallet/${this.$store.state.wallet.id}/app/${btoa(appURL)}`,
