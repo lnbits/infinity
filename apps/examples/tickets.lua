@@ -3,9 +3,9 @@ models = {
     name = 'bucket',
     display = 'Ticket Bucket',
     fields = {
-      { name = 'price', display = 'Price (msat)', type = 'msatoshi', required = true },
       { name = 'description', display = 'Description', type = 'string' },
-      { display = 'URL', type = 'url', computed = function (bucket)
+      { name = 'price', display = 'Price', type = 'msatoshi', required = true },
+      { name = 'url', display = 'URL', type = 'url', computed = function (bucket)
         return '/' .. bucket.key
       end }
     }
@@ -20,7 +20,7 @@ models = {
       { name = 'is_paid', type = 'boolean', hidden = true },
     },
     filter = function (ticket)
-      return not ticket.is_paid
+      return not ticket.value.is_paid
     end
   },
 }

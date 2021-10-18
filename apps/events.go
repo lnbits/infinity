@@ -3,9 +3,8 @@ package apps
 import (
 	"fmt"
 
-	models "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
-	"github.com/rs/zerolog/log"
 )
 
 func TriggerEvent(trigger string, payment models.Payment) {
@@ -25,11 +24,11 @@ func TriggerEvent(trigger string, payment models.Payment) {
 	for _, app := range user.Apps {
 		_, err := runlua(RunluaParams{
 			AppID: app,
-			FunctionToRun: fmt.Sprintf(
-				"get_trigger('%s')(payment)",
+			CodeToRun: fmt.Sprintf(
+				"internal.get_trigger('%s')(internal.arg)",
 				trigger,
 			),
-			InjectedGlobals: &map[string]interface{}{"payment": payment},
+			InjectedGlobals: &map[string]interface{}{"arg": structToMap(payment)},
 		})
 		if err != nil {
 			log.Warn().Err(err).Str("app", app).

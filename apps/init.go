@@ -2,15 +2,21 @@ package apps
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/models"
+	"github.com/rs/zerolog"
 )
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 5,
 }
+
+var log zerolog.Logger
+
+var appStreams = sync.Map{}
 
 func init() {
 	go func() {
@@ -28,4 +34,8 @@ func init() {
 			go TriggerEvent("payment_sent", payment)
 		}
 	}()
+}
+
+func SetLogger(logger zerolog.Logger) {
+	log = logger
 }

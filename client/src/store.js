@@ -79,7 +79,7 @@ export default createStore({
       try {
         const wallet = await loadWallet(walletID)
         commit('setWallet', wallet)
-        dispatch('listenForPayments')
+        dispatch('listen')
       } catch (err) {
         notifyError(err)
       }
@@ -92,33 +92,42 @@ export default createStore({
         notifyError(err)
       }
     },
-    async listenForPayments({commit, state, dispatch}) {
+    async listen({commit, state, dispatch}) {
       if (state.wallet.id in state.hasListeners) return
 
       // prevent listening for events of this same wallet twice
       commit('ackListeners', state.wallet.id)
 
       // listen for payments sent and received, and failures
-      const es = new EventSource(
+      const payments = new EventSource(
         `/api/wallet/sse?api-key=${state.wallet.adminkey}`
       )
 
-      es.addEventListener('payment-sent', ev => {
+      payments.addEventListener('payment-sent', ev => {
         const payment = JSON.parse(ev.data)
         window.events.emit('payment-sent', payment)
         dispatch('fetchWallet', payment.walletID)
         dispatch('fetchUser')
       })
-      es.addEventListener('payment-failed', ev => {
+      payments.addEventListener('payment-failed', ev => {
         const payment = JSON.parse(ev.data)
         window.events.emit('payment-failed', payment)
         dispatch('fetchWallet', payment.walletID)
       })
-      es.addEventListener('payment-received', ev => {
+      payments.addEventListener('payment-received', ev => {
         const payment = JSON.parse(ev.data)
         window.events.emit('payment-received', payment)
         dispatch('fetchWallet', payment.walletID)
         dispatch('fetchUser')
+      })
+
+      // listen for app db changes (all apps for this wallet)
+      const apps = new EventSource(
+        `/api/wallet/apps/sse?api-key=${state.wallet.adminkey}`
+      )
+      apps.addEventListener('item', ev => {
+        const item = JSON.parse(ev.data)
+        window.events.emit('item', item)
       })
     }
   }

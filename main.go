@@ -49,6 +49,7 @@ func main() {
 	// setup logger
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log = log.With().Timestamp().Logger()
+	apps.SetLogger(log)
 
 	// database
 	if err := storage.Connect(s.Database); err != nil {
@@ -84,6 +85,7 @@ func main() {
 	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
 
 	// app endpoints
+	router.Path("/api/wallet/apps/sse").HandlerFunc(apps.SSE)
 	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
 	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
 	router.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)

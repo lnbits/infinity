@@ -11,6 +11,7 @@ require (
 	github.com/fiatjaf/relampago v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/rs/cors v1.8.0

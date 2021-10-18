@@ -109,7 +109,7 @@ export const notifyError = (error, title, type) => {
     ((error.response && error.response.status) >= 500 ? 'negative' : 'warning')
 
   Notify.create({
-    timeout: 5000,
+    timeout: ((caption + (error.message || '')).length / 12) * 1000,
     type,
     message: error.message || null,
     caption,

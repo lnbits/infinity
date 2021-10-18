@@ -1119,7 +1119,7 @@ export default {
       }
     },
     deleteWallet() {
-      this.$q.plugins.Dialog.create({
+      this.$q.dialog({
         message: `Are you sure you want to delete the wallet '${this.$store.state.wallet.name}'?`,
         ok: {
           flat: true,

@@ -11,9 +11,7 @@
           <div class="row items-center no-wrap q-mb-md">
             <div class="col">
               <h5 class="text-subtitle1 q-my-none">
-                {{
-                  model.displayPlural || `${model.display}s` || `${model.name}s`
-                }}
+                {{ model.plural || `${model.display}s` || `${model.name}s` }}
               </h5>
             </div>
           </div>
@@ -45,15 +43,22 @@
                   v-for="field in model.fields"
                   :key="field.name"
                   auto-width
+                  class="text-center"
                 >
-                  <a
+                  <q-btn
                     v-if="field.type === 'url'"
-                    target="_blank"
-                    :href="props.row.value[field.name]"
-                  >
-                    <q-icon name="link" />
-                  </a>
-                  <span v-else-if="props.type === 'ref'">
+                    flat
+                    dense
+                    size="xs"
+                    icon="link"
+                    color="light-blue"
+                    :title="props.row.value[field.name]"
+                    @click.stop="goToURL(props.row.value[field.name])"
+                  ></q-btn>
+                  <span v-else-if="field.type === 'msatoshi'">
+                    {{ formatMsatToSat(props.row.value[field.name]) }} sat
+                  </span>
+                  <span v-else-if="field.type === 'ref'">
                     {{ json(refItemsMap[props.row.value[field.name]]) }}
                   </span>
                   <span v-else>{{ props.row.value[field.name] }}</span>
@@ -93,7 +98,7 @@
         >
           <q-input
             v-if="field.type === 'string' || field.type === 'url'"
-            v-model.trim="dialog.item[field.name]"
+            v-model.trim="dialog.item.value[field.name]"
             filled
             dense
             :type="field.type === 'url' ? 'url' : 'text'"
@@ -101,7 +106,7 @@
           />
           <q-input
             v-if="field.type === 'number'"
-            v-model.number="dialog.item[field.name]"
+            v-model.number="dialog.item.value[field.name]"
             filled
             dense
             type="number"
@@ -115,20 +120,22 @@
             suffix="satoshis"
             :label="fieldLabel(field)"
             :model-value="
-              dialog.item[field.name] > 0 ? dialog.item[field.name] / 1000 : ''
+              dialog.item.value[field.name] > 0
+                ? dialog.item.value[field.name] / 1000
+                : ''
             "
             @update:model-value="
-              dialog.item[field.name] = (parseInt($event) || 0) * 1000
+              dialog.item.value[field.name] = (parseInt($event) || 0) * 1000
             "
           />
           <q-toggle
             v-if="field.type === 'boolean'"
-            v-model="dialog.item[field.name]"
+            v-model="dialog.item.value[field.name]"
             :label="fieldLabel(field)"
           />
           <q-select
             v-if="field.type === 'ref'"
-            v-model="dialog.item[field.name]"
+            v-model="dialog.item.value[field.name]"
             filled
             use-input
             input-debounce="0"
@@ -161,7 +168,7 @@
 
 <script>
 import {listAppItems, setAppItem, addAppItem, delAppItem} from '../api'
-import {notifyError} from '../helpers'
+import {formatMsatToSat, notifyError} from '../helpers'
 
 export default {
   props: {
@@ -209,8 +216,8 @@ export default {
           .filter(field => field.required)
           .filter(
             field =>
-              this.dialog.item[field.name] === undefined ||
-              this.dialog.item[field.name] === ''
+              this.dialog.item.value[field.name] === undefined ||
+              this.dialog.item.value[field.name] === ''
           ).length > 0
       )
     }
@@ -218,10 +225,44 @@ export default {
 
   mounted() {
     this.loadItems()
+
+    window.events.on('item', this.handleItemEvent)
+  },
+
+  beforeUnmount() {
+    window.events.off('item', this.handleItemEvent)
   },
 
   methods: {
     json: JSON.stringify,
+
+    formatMsatToSat,
+
+    handleItemEvent(item) {
+      if (
+        item.walletID !== this.$store.state.wallet.id ||
+        item.app !== this.$store.state.app.id ||
+        item.model !== this.model.name
+      ) {
+        return
+      }
+
+      const index = this.items.findIndex(({key}) => item.key === key)
+      if (!item.value && index !== -1) {
+        // deleted
+        this.items.splice(index, 1)
+      } else if (index !== -1) {
+        // updated
+        this.items[index] = item.value
+      } else {
+        // added
+        this.items.push(item)
+      }
+    },
+
+    goToURL: url => {
+      window.open(url)
+    },
 
     fieldLabel(field) {
       return (field.display || field.name) + (field.required ? ' *' : '')
@@ -263,15 +304,27 @@ export default {
     },
 
     openCreateDialog() {
-      this.dialog.item = Object.fromEntries(
-        this.model.fields.map(field => [field.name, field.default])
-      )
+      this.dialog.item = {
+        wallet: this.$store.state.wallet.id,
+        model: this.model.name,
+        value: Object.fromEntries(
+          this.model.fields
+            .filter(field => !field.computed)
+            .map(field => [field.name, field.default])
+        )
+      }
+      console.log(this.dialog)
       this.dialog.show = true
     },
 
     openUpdateDialog(key) {
       const item = this.items.find(item => item.key === key)
-      this.dialog.item = {...item}
+      this.dialog.item = {...item, value: {...item.value}}
+      this.model.fields
+        .filter(field => field.computed)
+        .forEach(f => {
+          delete this.dialog.item.value[f.name]
+        })
       this.dialog.show = true
     },
 
@@ -281,18 +334,18 @@ export default {
 
     async saveItem() {
       try {
-        if (this.dialog.item.id) {
+        if (this.dialog.item.key) {
           await setAppItem(
             this.$store.state.app.id,
             this.model.name,
-            this.dialog.item.id,
-            this.dialog.item
+            this.dialog.item.key,
+            this.dialog.item.value
           )
         } else {
           await addAppItem(
             this.$store.state.app.id,
             this.model.name,
-            this.dialog.item
+            this.dialog.item.value
           )
         }
 
@@ -307,28 +360,30 @@ export default {
     },
 
     deleteItem(key) {
-      this.$.plugins.Dialog.create({
-        message: 'Are you sure you want to delete this item?',
-        ok: {
-          flat: true,
-          color: 'orange'
-        },
-        cancel: {
-          flat: true,
-          color: 'grey'
-        }
-      }).onOk(async () => {
-        try {
-          await delAppItem(this.$store.state.app.id, this.model.name, key)
-          this.$q.notify({
-            message: `${this.model.display || this.model.name} deleted.`,
-            type: 'info',
-            timeout: 2500
-          })
-        } catch (err) {
-          notifyError(err)
-        }
-      })
+      this.$q
+        .dialog({
+          message: 'Are you sure you want to delete this item?',
+          ok: {
+            flat: true,
+            color: 'orange'
+          },
+          cancel: {
+            flat: true,
+            color: 'grey'
+          }
+        })
+        .onOk(async () => {
+          try {
+            await delAppItem(this.$store.state.app.id, this.model.name, key)
+            this.$q.notify({
+              message: `${this.model.display || this.model.name} deleted.`,
+              type: 'info',
+              timeout: 2500
+            })
+          } catch (err) {
+            notifyError(err)
+          }
+        })
     }
   }
 }

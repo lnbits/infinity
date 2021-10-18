@@ -78,8 +78,6 @@
 </template>
 
 <script>
-import {Buffer} from 'buffer'
-
 import {addApp, removeApp} from '../api'
 import {notifyError} from '../helpers'
 
@@ -93,10 +91,7 @@ export default {
   methods: {
     clickApp(appURL) {
       this.$router.push({
-        path: `/wallet/${this.$store.state.wallet.id}/app/${Buffer.from(
-          appURL,
-          'utf-8'
-        ).toString('hex')}`,
+        path: `/wallet/${this.$store.state.wallet.id}/app/${btoa(appURL)}`,
         query: this.$route.query
       })
     },
@@ -104,10 +99,11 @@ export default {
     async addApp() {
       try {
         await addApp(this.appURL)
-        const appid = Buffer.from(this.appURL, 'utf-8').toString('hex')
         this.$store.dispatch('fetchUser')
         this.$router.push({
-          path: `/wallet/${this.$store.state.wallet.id}/app/${appid}`,
+          path: `/wallet/${this.$store.state.wallet.id}/app/${btoa(
+            this.appURL
+          )}`,
           query: this.$route.query
         })
         this.appURL = ''

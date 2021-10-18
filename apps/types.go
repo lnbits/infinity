@@ -46,7 +46,7 @@ func (s Settings) validate() error {
 		}
 
 		for f, field := range model.Fields {
-			if field.Name == "" && !(field.Computed != nil && field.Display != "") {
+			if field.Name == "" {
 				return fmt.Errorf("models[%d].fields[%d].name is not provided", m, f)
 			}
 
@@ -88,6 +88,7 @@ func (s Settings) validate() error {
 type Model struct {
 	Name    string      `json:"name"`
 	Display string      `json:"display,omitempty"`
+	Plural  string      `json:"plural,omitempty"`
 	Fields  []Field     `json:"fields"`
 	Filter  interface{} `json:"filter"` // in lua this is a function, just check for presence
 }
@@ -97,45 +98,65 @@ func (m Model) validateItem(item models.AppDataItem) error {
 		return fmt.Errorf("unknown model")
 	}
 
+	if item.Value == nil {
+		return fmt.Errorf("empty item value")
+	}
+
 	for fieldName, fieldValue := range item.Value {
 		fieldExpected := false
 		for _, field := range m.Fields {
+			if field.Computed != nil {
+				// we don't expected computed fields
+				continue
+			}
+
 			if field.Name == fieldName {
 				fieldExpected = true
 
+				fieldValueType := reflect.TypeOf(fieldValue)
+				if fieldValueType == nil {
+					return fmt.Errorf("%s=%v has unexpected type %v",
+						field.Name, fieldValue, fieldValueType)
+				}
+
 				switch field.Type {
 				case "string", "url":
-					if reflect.TypeOf(fieldValue).Name() != "string" {
-						return fmt.Errorf("'%v' is not a string", fieldValue)
+					if fieldValueType.Name() != "string" {
+						return fmt.Errorf("%s=%v is not a string", field.Name, fieldValue)
 					}
 				case "number":
-					if reflect.TypeOf(fieldValue).Name() != "float64" {
-						return fmt.Errorf("'%v' is not a number", fieldValue)
+					if fieldValueType.Name() != "float64" {
+						return fmt.Errorf("%s=%v is not a number", field.Name, fieldValue)
 					}
 				case "msatoshi":
-					if reflect.TypeOf(fieldValue).Name() != "float64" {
-						return fmt.Errorf("'%v' is not a number", fieldValue)
+					if fieldValueType.Name() != "float64" {
+						return fmt.Errorf("%s=%v is not a number", field.Name, fieldValue)
 					}
 					msat := int64(fieldValue.(float64))
 					if float64(msat) != fieldValue.(float64) {
 						return fmt.Errorf(
-							"'%v' is not an integer, msatoshi must be integer", fieldValue)
+							"%s=%v is not an integer, msatoshi must be integer",
+							field.Name, fieldValue,
+						)
 					}
 					if msat > 100000000000 {
-						return fmt.Errorf("'%v' is way too many satoshis", fieldValue)
+						return fmt.Errorf("%s=%v is way too many satoshis",
+							field.Name, fieldValue)
 					}
 				case "boolean":
-					if reflect.TypeOf(fieldValue).ConvertibleTo(booltype) {
-						return fmt.Errorf("'%v' is not a boolean", fieldValue)
+					if fieldValueType.ConvertibleTo(booltype) {
+						return fmt.Errorf("%s=%v is not a boolean", field.Name, fieldValue)
 					}
 				case "ref":
-					if reflect.TypeOf(fieldValue).Name() != "string" {
-						return fmt.Errorf("'%v' is not a ref string", fieldValue)
+					if fieldValueType.Name() != "string" {
+						return fmt.Errorf("%s=%v is not a ref string",
+							field.Name, fieldValue)
 					}
 					ref, err := DBGet(
 						item.WalletID, item.App, field.Ref, fieldValue.(string))
 					if err != nil || ref == nil {
-						return fmt.Errorf("'%v' is not a valid ref", fieldValue)
+						return fmt.Errorf("%s=%v is not a valid ref",
+							field.Name, fieldValue)
 					}
 				}
 
@@ -143,7 +164,7 @@ func (m Model) validateItem(item models.AppDataItem) error {
 			}
 		}
 		if fieldExpected == false {
-			return fmt.Errorf("unexpected field %s", fieldName)
+			return fmt.Errorf("unexpected field '%s'", fieldName)
 		}
 	}
 

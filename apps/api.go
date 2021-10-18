@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
 	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
@@ -50,26 +49,41 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	for _, field := range model.Fields {
 		if field.Computed != nil {
 			for _, item := range items {
-				item.Value[field.Name], _ = runlua(RunluaParams{
+				var err error
+				item.Value[field.Name], err = runlua(RunluaParams{
 					AppID: app,
-					FunctionToRun: fmt.Sprintf(
-						"get_model_field('%s', '%s').computed(item)",
+					CodeToRun: fmt.Sprintf(
+						"internal.get_model_field('%s', '%s').computed(internal.arg)",
 						model.Name, field.Name,
 					),
-					InjectedGlobals: &map[string]interface{}{"item": item.Value},
+					InjectedGlobals: &map[string]interface{}{"arg": structToMap(item)},
 				})
+				if err != nil {
+					log.Debug().Err(err).Interface("item", item).
+						Str("model", model.Name).Str("field", field.Name).
+						Msg("failed to run compute")
+				}
 			}
 		}
 	}
+
 	/// filter
 	if model.Filter != nil {
 		filteredItems := make([]models.AppDataItem, 0, len(items))
 		for _, item := range items {
-			returnedValue, _ := runlua(RunluaParams{
-				AppID:           app,
-				FunctionToRun:   fmt.Sprintf("get_model('%s').filter(item)", model.Name),
-				InjectedGlobals: &map[string]interface{}{"item": item.Value},
+			returnedValue, err := runlua(RunluaParams{
+				AppID: app,
+				CodeToRun: fmt.Sprintf(
+					"internal.get_model('%s').filter(internal.arg)",
+					model.Name,
+				),
+				InjectedGlobals: &map[string]interface{}{"arg": structToMap(item)},
 			})
+			if err != nil {
+				log.Debug().Err(err).Interface("item", item).
+					Str("model", model.Name).
+					Msg("failed to run filter")
+			}
 
 			if shouldKeep, ok := returnedValue.(bool); ok && shouldKeep {
 				filteredItems = append(filteredItems, item)
@@ -147,7 +161,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
 	action := mux.Vars(r)["action"]
 
-	var params interface{}
+	var params map[string]interface{}
 	json.NewDecoder(r.Body).Decode(&params)
 
 	_, settings, err := GetAppSettings(app)
@@ -163,8 +177,8 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 
 	returned, err := runlua(RunluaParams{
 		AppID:           app,
-		FunctionToRun:   fmt.Sprintf("actions.%s(params)", action),
-		InjectedGlobals: &map[string]interface{}{"params": params},
+		CodeToRun:       fmt.Sprintf("actions.%s(internal.arg)", action),
+		InjectedGlobals: &map[string]interface{}{"arg": params},
 		WalletID:        walletID,
 	})
 	if err != nil {

@@ -41,11 +41,18 @@ func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
 	}
 
 	result := storage.DB.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "app"}, {Name: "wallet_id"}, {Name: "key"}},
+		Columns: []clause.Column{
+			{Name: "app"}, {Name: "wallet_id"}, {Name: "model"}, {Name: "key"},
+		},
 		DoUpdates: clause.AssignmentColumns([]string{"value"}),
 	}).Create(&item)
 
-	return result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+
+	SendItemSSE(item)
+	return nil
 }
 
 func DBAdd(wallet, app, model string, value map[string]interface{}) error {
@@ -66,12 +73,20 @@ func DBUpdate(wallet, app, model, key string, updates map[string]interface{}) er
 }
 
 func DBDelete(wallet, app, model, key string) error {
-	result := storage.DB.Delete(&models.AppDataItem{
+	item := models.AppDataItem{
 		WalletID: wallet,
 		App:      app,
 		Model:    model,
 		Key:      key,
-	})
+	}
+	result := storage.DB.Delete(&item)
 
-	return result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// an item with an empty .Value means it was deleted
+	SendItemSSE(item)
+
+	return nil
 }
