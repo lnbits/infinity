@@ -790,7 +790,23 @@ export default {
     }
 
     // listen to events
-    window.events.on('payment-received', payment => {
+    window.events.on('payment-received', this.handlePaymentReceived)
+    window.events.on('payment-sent', this.handlePaymentSent)
+    window.events.on('payment-failed', this.handlePaymentFailed)
+  },
+
+  beforeUnmount() {
+    window.events.off('payment-received', this.handlePaymentReceived)
+    window.events.off('payment-send', this.handlePaymentSent)
+    window.events.off('payment-failed', this.handlePaymentFailed)
+  },
+
+  methods: {
+    log: console.log,
+    formatMsatToSat,
+    formatDate,
+
+    handlePaymentReceived(payment) {
       if (this.receive.paymentHash === payment.hash) {
         this.receive.show = false
         this.receive.paymentHash = null
@@ -802,8 +818,9 @@ export default {
         type: 'positive',
         timeout: 3000
       })
-    })
-    window.events.on('payment-sent', payment => {
+    },
+
+    handlePaymentSent(payment) {
       this.parse.show = false
 
       let dismiss = this.dismiss[payment.hash]
@@ -863,8 +880,9 @@ export default {
       //       break
       //   }
       // }
-    })
-    window.events.on('payment-failed', payment => {
+    },
+
+    handlePaymentFailed(payment) {
       setTimeout(() => {
         // show notification only if we were actively waiting for this to finish
         if (payment.hash in this.dismiss) {
@@ -875,13 +893,8 @@ export default {
           })
         }
       }, 1000)
-    })
-  },
+    },
 
-  methods: {
-    log: console.log,
-    formatMsatToSat,
-    formatDate,
     paymentTableRowKey(row) {
       return row.hash + row.amount
     },
@@ -1119,20 +1132,22 @@ export default {
       }
     },
     deleteWallet() {
-      this.$q.dialog({
-        message: `Are you sure you want to delete the wallet '${this.$store.state.wallet.name}'?`,
-        ok: {
-          flat: true,
-          color: 'orange'
-        },
-        cancel: {
-          flat: true,
-          color: 'grey'
-        }
-      }).onOk(async () => {
-        await deleteWallet()
-        location.href = `/?${location.search}`
-      })
+      this.$q
+        .dialog({
+          message: `Are you sure you want to delete the wallet '${this.$store.state.wallet.name}'?`,
+          ok: {
+            flat: true,
+            color: 'orange'
+          },
+          cancel: {
+            flat: true,
+            color: 'grey'
+          }
+        })
+        .onOk(async () => {
+          await deleteWallet()
+          location.href = `/?${location.search}`
+        })
     },
     exportCSV() {
       exportCSV(this.paymentsTable.columns, this.payments)
