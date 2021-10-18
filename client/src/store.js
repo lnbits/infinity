@@ -2,7 +2,7 @@ import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
 import {changeColorTheme, notifyError} from './helpers'
-import {loadSettings, loadWallet, loadUser, appInfo} from './api'
+import {loadSettings, loadWallet, loadUser, appInfo, listAppItems} from './api'
 
 export default createStore({
   state() {
@@ -27,6 +27,10 @@ export default createStore({
     },
     setApp(state, app) {
       state.app = app
+    },
+    setAppItems(state, {modelName, items}) {
+      if (!state.app) return
+      state.app.items[modelName] = items
     },
     ackListeners(state, walletID) {
       state.hasListeners[walletID] = true
@@ -87,6 +91,14 @@ export default createStore({
     async fetchApp({state, commit}, appID) {
       try {
         const app = await appInfo(appID)
+        app.items = Object.fromEntries(
+          await Promise.all(
+            app.models.map(async model => [
+              model.name,
+              await listAppItems(app.url, model.name)
+            ])
+          )
+        )
         commit('setApp', app)
       } catch (err) {
         notifyError(err)
@@ -127,7 +139,37 @@ export default createStore({
       )
       apps.addEventListener('item', ev => {
         const item = JSON.parse(ev.data)
-        window.events.emit('item', item)
+
+        if (
+          !state.app ||
+          item.walletID !== state.wallet.id ||
+          item.app !== state.app.url ||
+          !(item.model in state.app.items)
+        ) {
+          return
+        }
+
+        const items = state.app.items[item.model]
+        const index = items.findIndex(({key}) => item.key === key)
+        if (!item.value && index !== -1) {
+          // deleted
+          commit('setAppItems', {
+            modelName: item.model,
+            items: [...items.slice(0, index), ...items.slice(index + 1)]
+          })
+        } else if (index !== -1) {
+          // updated
+          commit('setAppItems', {
+            modelName: item.model,
+            items: [...items.slice(0, index), item, ...items.slice(index + 1)]
+          })
+        } else {
+          // added
+          commit('setAppItems', {
+            modelName: item.model,
+            items: [...items, item]
+          })
+        }
       })
     }
   }

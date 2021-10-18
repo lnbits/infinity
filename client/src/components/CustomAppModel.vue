@@ -22,7 +22,7 @@
             flat
             binary-state-sort
             column-sort-order="da"
-            :rows="items"
+            :rows="items[model.name]"
             row-key="key"
           >
             <template #header="props">
@@ -60,9 +60,9 @@
                   </span>
                   <span v-else-if="field.type === 'ref'">
                     {{
-                      refItemsMap[field.ref] &&
-                      refItemsMap[field.ref][props.row.value[field.name]] &&
-                      refItemsMap[field.ref][props.row.value[field.name]].value[
+                      itemsMap[field.ref] &&
+                      itemsMap[field.ref][props.row.value[field.name]] &&
+                      itemsMap[field.ref][props.row.value[field.name]].value[
                         field.as
                       ]
                     }}
@@ -150,7 +150,7 @@
             input-debounce="0"
             behavior="dialog"
             :options="
-              refItems[field.ref].map(item => ({
+              items[field.ref].map(item => ({
                 label: item.value[field.as],
                 value: item.key
               }))
@@ -180,7 +180,7 @@
 </template>
 
 <script>
-import {listAppItems, setAppItem, addAppItem, delAppItem} from '../api'
+import {setAppItem, addAppItem, delAppItem} from '../api'
 import {formatMsatToSat, notifyError} from '../helpers'
 
 export default {
@@ -188,12 +188,19 @@ export default {
     model: {
       type: Object,
       required: true
+    },
+    items: {
+      type: Object,
+      required: true
+    },
+    itemsMap: {
+      type: Object,
+      required: true
     }
   },
 
   data() {
     return {
-      items: [],
       table: {
         pagination: {
           rowsPerPage: 15,
@@ -203,26 +210,11 @@ export default {
       dialog: {
         show: false,
         item: null
-      },
-      refItems: {}
+      }
     }
   },
 
   computed: {
-    refItemsMap() {
-      const map = {}
-
-      Object.entries(this.refItems).forEach(([modelName, items]) => {
-        map[modelName] = {}
-
-        items.forEach(item => {
-          map[modelName][item.key] = item
-        })
-      })
-
-      return map
-    },
-
     isFormSubmitDisabled() {
       return (
         this.dialog.show &&
@@ -237,42 +229,10 @@ export default {
     }
   },
 
-  mounted() {
-    this.loadItems()
-
-    window.events.on('item', this.handleItemEvent)
-  },
-
-  beforeUnmount() {
-    window.events.off('item', this.handleItemEvent)
-  },
-
   methods: {
     json: v => JSON.stringify(v, null, 2),
 
     formatMsatToSat,
-
-    handleItemEvent(item) {
-      if (
-        item.walletID !== this.$store.state.wallet.id ||
-        item.app !== this.$store.state.app.url ||
-        item.model !== this.model.name
-      ) {
-        return
-      }
-
-      const index = this.items.findIndex(({key}) => item.key === key)
-      if (!item.value && index !== -1) {
-        // deleted
-        this.items.splice(index, 1)
-      } else if (index !== -1) {
-        // updated
-        this.items[index] = item
-      } else {
-        // added
-        this.items.push(item)
-      }
-    },
 
     goToURL: url => {
       window.open(url)
@@ -280,31 +240,6 @@ export default {
 
     fieldLabel(field) {
       return (field.display || field.name) + (field.required ? ' *' : '')
-    },
-
-    async fetchRefItems(modelName) {
-      if (!this.refItems[modelName]) {
-        this.refItems[modelName] = await listAppItems(
-          this.$store.state.app.url,
-          modelName
-        )
-      }
-    },
-
-    async loadItems() {
-      try {
-        this.items = await listAppItems(
-          this.$store.state.app.url,
-          this.model.name
-        )
-      } catch (err) {
-        notifyError(err)
-        return
-      }
-
-      this.model.fields.forEach(field => {
-        if (field.type === 'ref') this.fetchRefItems(field.ref)
-      })
     },
 
     openCreateDialog() {
@@ -321,7 +256,7 @@ export default {
     },
 
     openUpdateDialog(key) {
-      const item = this.items.find(item => item.key === key)
+      const item = this.items[this.model.name].find(item => item.key === key)
       this.dialog.item = {...item, value: {...item.value}}
       this.model.fields
         .filter(field => field.computed)

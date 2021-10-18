@@ -85,7 +85,6 @@
         </q-card>
       </div>
 
-      <!-- Ads -->
       <div v-if="'{{SITE_TITLE}}' == 'LNbits'" class="col-12 col-md-3 col-lg-3">
         <div class="row q-col-gutter-lg justify-center">
           <div class="col-6 col-sm-4 col-md-8 q-gutter-y-sm">

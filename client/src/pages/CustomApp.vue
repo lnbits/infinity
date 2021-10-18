@@ -5,9 +5,11 @@
     :class="{'q-px-lg': $q.screen.gt.xs}"
   >
     <CustomAppModel
-      v-for="model in $store.state.app.models"
+      v-for="model in $store.state.app?.models"
       :key="model.name"
       :model="model"
+      :items="($store.state.app || {}).items || []"
+      :items-map="itemsMap"
     />
   </q-page>
 </template>
@@ -20,6 +22,24 @@ export default {
     return {}
   },
 
-  methods: {}
+  computed: {
+    itemsMap() {
+      if (!this.$store.state.app) return {}
+
+      const map = {}
+
+      Object.entries(this.$store.state.app.items).forEach(
+        ([modelName, items]) => {
+          map[modelName] = {}
+
+          items.forEach(item => {
+            map[modelName][item.key] = item
+          })
+        }
+      )
+
+      return map
+    }
+  }
 }
 </script>
