@@ -79,7 +79,7 @@ func DBDelete(wallet, app, model, key string) error {
 		Model:    model,
 		Key:      key,
 	}
-	result := storage.DB.Delete(&item)
+	result := storage.DB.Delete(&models.AppDataItem{}, item)
 
 	if result.Error != nil {
 		return result.Error

@@ -241,7 +241,7 @@ export default {
     handleItemEvent(item) {
       if (
         item.walletID !== this.$store.state.wallet.id ||
-        item.app !== this.$store.state.app.id ||
+        item.app !== this.$store.state.app.url ||
         item.model !== this.model.name
       ) {
         return
@@ -253,7 +253,7 @@ export default {
         this.items.splice(index, 1)
       } else if (index !== -1) {
         // updated
-        this.items[index] = item.value
+        this.items[index] = item
       } else {
         // added
         this.items.push(item)
@@ -271,7 +271,7 @@ export default {
     async fetchRefItems(modelName) {
       if (!this.refItems[modelName]) {
         this.refItems[modelName] = await listAppItems(
-          this.$store.state.app.id,
+          this.$store.state.app.url,
           modelName
         )
       }
@@ -290,7 +290,7 @@ export default {
     async loadItems() {
       try {
         this.items = await listAppItems(
-          this.$store.state.app.id,
+          this.$store.state.app.url,
           this.model.name
         )
       } catch (err) {
@@ -313,7 +313,6 @@ export default {
             .map(field => [field.name, field.default])
         )
       }
-      console.log(this.dialog)
       this.dialog.show = true
     },
 
@@ -336,14 +335,14 @@ export default {
       try {
         if (this.dialog.item.key) {
           await setAppItem(
-            this.$store.state.app.id,
+            this.$store.state.app.url,
             this.model.name,
             this.dialog.item.key,
             this.dialog.item.value
           )
         } else {
           await addAppItem(
-            this.$store.state.app.id,
+            this.$store.state.app.url,
             this.model.name,
             this.dialog.item.value
           )
@@ -354,6 +353,8 @@ export default {
           type: 'positive',
           timeout: 3500
         })
+
+        this.closeFormDialog()
       } catch (err) {
         notifyError(err)
       }
@@ -374,7 +375,7 @@ export default {
         })
         .onOk(async () => {
           try {
-            await delAppItem(this.$store.state.app.id, this.model.name, key)
+            await delAppItem(this.$store.state.app.url, this.model.name, key)
             this.$q.notify({
               message: `${this.model.display || this.model.name} deleted.`,
               type: 'info',

@@ -96,27 +96,27 @@ export const scanLnurl = async lnurl =>
 
 export const appInfo = async appid => {
   const appSettings = await request(`/api/wallet/app/${appid}`)
-  appSettings.id = appid
+  appSettings.url = atob(appid)
   return appSettings
 }
 
-export const listAppItems = async (id, model) =>
-  await request(`/api/wallet/app/${id}/list/${model}`)
+export const listAppItems = async (appURL, model) =>
+  await request(`/api/wallet/app/${btoa(appURL)}/list/${model}`)
 
-export const getAppItem = async (id, model, key) =>
-  await request(`/api/wallet/app/${id}/set/${model}/${key}`)
+export const getAppItem = async (appURL, model, key) =>
+  await request(`/api/wallet/app/${btoa(appURL)}/set/${model}/${key}`)
 
-export const setAppItem = async (id, model, key, value) =>
-  await request(`/api/wallet/app/${id}/set/${model}/${key}`, {
+export const setAppItem = async (appURL, model, key, value) =>
+  await request(`/api/wallet/app/${btoa(appURL)}/set/${model}/${key}`, {
     method: 'POST',
     body: JSON.stringify(value)
   })
 
-export const addAppItem = async (id, model, value) =>
-  await request(`/api/wallet/app/${id}/add/${model}`, {
+export const addAppItem = async (appURL, model, value) =>
+  await request(`/api/wallet/app/${btoa(appURL)}/add/${model}`, {
     method: 'POST',
     body: JSON.stringify(value)
   })
 
-export const delAppItem = async (id, model, key) =>
-  await request(`/api/wallet/app/${id}/del/${model}/${key}`)
+export const delAppItem = async (appURL, model, key) =>
+  await request(`/api/wallet/app/${btoa(appURL)}/del/${model}/${key}`)
