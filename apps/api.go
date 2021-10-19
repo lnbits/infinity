@@ -13,7 +13,7 @@ import (
 
 func Info(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
-	_, settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return
@@ -27,7 +27,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 	modelName := mux.Vars(r)["model"]
 
-	_, settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return
@@ -164,7 +164,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 	var params map[string]interface{}
 	json.NewDecoder(r.Body).Decode(&params)
 
-	_, settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return

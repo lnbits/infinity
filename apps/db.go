@@ -31,7 +31,7 @@ func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
 		Value:    value,
 	}
 
-	_, settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app)
 	if err != nil {
 		return fmt.Errorf("failed to get app on model.set: %w", err)
 	}
