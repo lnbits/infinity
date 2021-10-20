@@ -96,6 +96,7 @@ export const scanLnurl = async lnurl =>
 
 export const appInfo = async appid => {
   const appSettings = await request(`/api/wallet/app/${appid}`)
+  appSettings.id = appid
   appSettings.url = atob(appid)
   return appSettings
 }

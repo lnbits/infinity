@@ -39,7 +39,7 @@
           </q-menu>
         </q-item-label>
       </q-item-section>
-      <q-item-section v-show="isActive(app) && $route.name === 'app'" side>
+      <q-item-section v-show="isActive(app)" side>
         <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
       </q-item-section>
     </q-item>
@@ -91,7 +91,7 @@ export default {
 
   methods: {
     isActive(app) {
-      return this.$store.state.app?.url === app
+      return this.$store.state.app?.url === app && this.$route.name === 'app'
     },
 
     clickApp(appURL) {
