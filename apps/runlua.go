@@ -33,7 +33,7 @@ func runlua(params RunluaParams) (interface{}, error) {
 	if params.CodeToRun != "" {
 		code += "return " + params.CodeToRun
 	} else {
-		code += "return {models=models, triggers=triggers, actions=actions}"
+		code += "return {models=models, triggers=triggers, actions=actions, files=files}"
 	}
 
 	globalsToInject := map[string]interface{}{

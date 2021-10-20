@@ -8,7 +8,7 @@ import (
 	"github.com/rif/cache2go"
 )
 
-var settingsCache = cache2go.New(128, time.Minute*45)
+var settingsCache = cache2go.New(AppCacheSize, time.Minute*45)
 
 func GetAppSettings(url string) (*Settings, error) {
 	if settings, ok := settingsCache.Get(url); ok {
@@ -28,12 +28,14 @@ func GetAppSettings(url string) (*Settings, error) {
 		return nil, fmt.Errorf("app exported invalid definitions: %w", validationErr)
 	}
 
-	settingsCache.Set(url, &settings)
+	if AppCacheSize > 0 {
+		settingsCache.Set(url, &settings)
+	}
 
 	return &settings, nil
 }
 
-var codeCache = cache2go.New(64, time.Minute*45)
+var codeCache = cache2go.New(AppCacheSize/2, time.Minute*45)
 
 func getAppCode(url string) (string, error) {
 	if code, ok := codeCache.Get(url); ok {
@@ -56,7 +58,9 @@ func getAppCode(url string) (string, error) {
 
 	code := string(body)
 
-	codeCache.Set(url, code)
+	if AppCacheSize > 0 {
+		codeCache.Set(url, code)
+	}
 
 	return code, nil
 }

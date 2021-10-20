@@ -11,6 +11,7 @@ type Settings struct {
 	Models   []Model                `json:"models"`
 	Triggers map[string]interface{} `json:"triggers"` // functions
 	Actions  map[string]interface{} `json:"actions"`  // functions
+	Files    map[string]string      `json:"files"`
 }
 
 func (s Settings) getModel(modelName string) Model {

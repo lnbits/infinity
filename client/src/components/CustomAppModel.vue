@@ -53,7 +53,16 @@
                     icon="link"
                     color="light-blue"
                     :title="props.row.value[field.name]"
-                    @click.stop="goToURL(props.row.value[field.name])"
+                    @click.stop="
+                      goToURL(
+                        props.row.value[field.name].startsWith('http') ||
+                          props.row.value[field.name].startsWith('/')
+                          ? props.row.value[field.name]
+                          : `/app/${$store.state.wallet.id}/${
+                              $store.state.app.id
+                            }/${props.row.value[field.name]}`
+                      )
+                    "
                   ></q-btn>
                   <span v-else-if="field.type === 'msatoshi'">
                     {{ formatMsatToSat(props.row.value[field.name]) }} sat

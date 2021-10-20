@@ -3,6 +3,10 @@ package apps
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"path"
 	"reflect"
 	"strings"
 
@@ -39,4 +43,28 @@ func structToMap(v interface{}) map[string]interface{} {
 	var m map[string]interface{}
 	json.Unmarshal(j, &m)
 	return m
+}
+
+func urljoin(baseURL *url.URL, elems ...string) *url.URL {
+	for _, elem := range elems {
+		if strings.HasPrefix(elem, "/") {
+			baseURL.Path = elem
+		} else if strings.HasPrefix(elem, "http") {
+			baseURL, _ = url.Parse(elem)
+		} else {
+			baseURL.Path = path.Join(baseURL.Path, elem)
+		}
+	}
+
+	return baseURL
+}
+
+func serveFile(w http.ResponseWriter, r *http.Request, fileURL *url.URL) {
+	log.Print(fileURL.String())
+	(&httputil.ReverseProxy{
+		Director: func(r *http.Request) {
+			r.URL = fileURL
+			r.Host = fileURL.Host
+		},
+	}).ServeHTTP(w, r)
 }

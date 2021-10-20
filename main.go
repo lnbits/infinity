@@ -30,6 +30,8 @@ type Settings struct {
 	ThemeOptions      []string `envconfig:"LNBITS_THEME_OPTIONS" default:"classic, flamingo, mint, salvador, monochrome, autumn"`
 	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
+	AppCacheSize int `envconfig:"APP_CACHE_SIZE" default:"128"`
+
 	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
 	// -- other env vars are defined in the 'lightning' package
 }
@@ -40,11 +42,13 @@ var router = mux.NewRouter()
 var commit string // will be set at compile time
 
 func main() {
+	// environment variables
 	err := envconfig.Process("", &s)
 	if err != nil {
 		log.Fatal().Err(err).Msg("couldn't process envconfig.")
 		return
 	}
+	apps.AppCacheSize = s.AppCacheSize
 
 	// setup logger
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)

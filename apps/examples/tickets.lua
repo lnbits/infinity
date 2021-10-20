@@ -6,7 +6,7 @@ models = {
       { name = 'description', display = 'Description', type = 'string' },
       { name = 'price', display = 'Price', type = 'msatoshi', required = true },
       { name = 'url', display = 'URL', type = 'url', computed = function (bucket)
-        return '/' .. bucket.key
+        return bucket.key
       end }
     }
   },
@@ -52,4 +52,8 @@ triggers = {
       db.ticket.update(payment.extra.ticket, { is_paid = true })
     end
   end
+}
+
+files = {
+  ['*'] = '/index.html'
 }

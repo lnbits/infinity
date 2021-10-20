@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+var AppCacheSize int
+
 var httpClient = &http.Client{
 	Timeout: time.Second * 5,
 }
