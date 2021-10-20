@@ -60,7 +60,6 @@ func urljoin(baseURL *url.URL, elems ...string) *url.URL {
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fileURL *url.URL) {
-	log.Print(fileURL.String())
 	(&httputil.ReverseProxy{
 		Director: func(r *http.Request) {
 			r.URL = fileURL

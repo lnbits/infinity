@@ -23,7 +23,7 @@ func TriggerEvent(trigger string, payment models.Payment) {
 
 	for _, app := range user.Apps {
 		_, err := runlua(RunluaParams{
-			AppID: app,
+			AppURL: app,
 			CodeToRun: fmt.Sprintf(
 				"internal.get_trigger('%s')(internal.arg)",
 				trigger,

@@ -15,9 +15,15 @@ func GetAppSettings(url string) (*Settings, error) {
 		return settings.(*Settings), nil
 	}
 
+	code, err := getAppCode(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app code: %w", err)
+	}
+
 	var settings Settings
-	_, err := runlua(RunluaParams{
-		AppID:            url,
+	_, err = runlua(RunluaParams{
+		Code:             code,
+		AppURL:           url,
 		ExtractedGlobals: &settings,
 	})
 	if err != nil {
@@ -27,6 +33,8 @@ func GetAppSettings(url string) (*Settings, error) {
 	if validationErr := settings.validate(); validationErr != nil {
 		return nil, fmt.Errorf("app exported invalid definitions: %w", validationErr)
 	}
+
+	settings.Code = code
 
 	if AppCacheSize > 0 {
 		settingsCache.Set(url, &settings)

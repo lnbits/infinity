@@ -12,7 +12,8 @@ import (
 )
 
 type RunluaParams struct {
-	AppID            string
+	Code             string
+	AppURL           string
 	WalletID         string
 	CodeToRun        string
 	InjectedGlobals  *map[string]interface{}
@@ -24,12 +25,15 @@ func runlua(params RunluaParams) (interface{}, error) {
 	defer L.Close()
 	L.OpenLibs()
 
-	appCode, err := getAppCode(params.AppID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get app code: %w", err)
+	if params.Code == "" {
+		appCode, err := getAppCode(params.AppURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get app code: %w", err)
+		}
+		params.Code = appCode
 	}
 
-	code := appCode + "\n" + CUSTOM_ENV_DEF + "\n"
+	code := params.Code + "\n" + CUSTOM_ENV_DEF + "\n"
 	if params.CodeToRun != "" {
 		code += "return " + params.CodeToRun
 	} else {
@@ -37,7 +41,7 @@ func runlua(params RunluaParams) (interface{}, error) {
 	}
 
 	globalsToInject := map[string]interface{}{
-		"app_id": params.AppID,
+		"app_id": params.AppURL,
 		"code":   code,
 
 		"debug_print": luaPrint,
@@ -85,7 +89,7 @@ func runlua(params RunluaParams) (interface{}, error) {
 	}
 	sandboxGlobalsInjector += "}\n"
 
-	err = L.DoString(sandboxGlobalsInjector + `
+	err := L.DoString(sandboxGlobalsInjector + `
 local sandbox = require('apps.sandbox')
 ret = sandbox.run(code, { quota = 300, env = injected_globals })
     `)

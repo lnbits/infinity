@@ -31,7 +31,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	returned, err := runlua(RunluaParams{
-		AppID:           app,
+		AppURL:          app,
 		CodeToRun:       fmt.Sprintf("actions.%s(internal.arg)", action),
 		InjectedGlobals: &map[string]interface{}{"arg": params},
 		WalletID:        walletID,

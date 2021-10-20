@@ -8,6 +8,7 @@ import (
 )
 
 type Settings struct {
+	Code     string                 `json:"code"`
 	Models   []Model                `json:"models"`
 	Triggers map[string]interface{} `json:"triggers"` // functions
 	Actions  map[string]interface{} `json:"actions"`  // functions

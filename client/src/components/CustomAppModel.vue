@@ -1,108 +1,104 @@
 <template>
-  <div class="row q-col-gutter-md q-mb-md">
-    <div class="col-12 col-md-7 q-gutter-y-md">
-      <q-card>
-        <q-card-section>
-          <q-btn unelevated color="primary" @click="openCreateDialog"
-            >New {{ model.display || model.name }}</q-btn
-          >
-        </q-card-section>
-        <q-card-section>
-          <div class="row items-center no-wrap q-mb-md">
-            <div class="col">
-              <h5 class="text-subtitle1 q-my-none">
-                {{ model.plural || `${model.display}s` || `${model.name}s` }}
-              </h5>
-            </div>
-          </div>
+  <q-card>
+    <q-card-section>
+      <q-btn unelevated color="primary" @click="openCreateDialog"
+        >New {{ model.display || model.name }}</q-btn
+      >
+    </q-card-section>
+    <q-card-section>
+      <div class="row items-center no-wrap q-mb-md">
+        <div class="col">
+          <h5 class="text-subtitle1 q-my-none">
+            {{ model.plural || `${model.display}s` || `${model.name}s` }}
+          </h5>
+        </div>
+      </div>
 
-          <q-table
-            v-model:pagination="table.pagination"
-            dense
-            flat
-            binary-state-sort
-            column-sort-order="da"
-            :rows="items[model.name]"
-            row-key="key"
-          >
-            <template #header="props">
-              <q-tr :props="props">
-                <q-th
-                  v-for="field in model.fields.filter(f => !f.hidden)"
-                  :key="field.name"
-                  auto-width
-                  >{{ field.display || field.name }}</q-th
-                >
-                <q-th auto-width></q-th>
-                <q-th auto-width></q-th>
-              </q-tr>
-            </template>
-            <template #body="props">
-              <q-tr :props="props">
-                <q-td
-                  v-for="field in model.fields"
-                  :key="field.name"
-                  auto-width
-                  class="text-center"
-                >
-                  <q-btn
-                    v-if="field.type === 'url'"
-                    flat
-                    dense
-                    size="xs"
-                    icon="link"
-                    color="light-blue"
-                    :title="props.row.value[field.name]"
-                    @click.stop="
-                      goToURL(
-                        props.row.value[field.name].startsWith('http') ||
-                          props.row.value[field.name].startsWith('/')
-                          ? props.row.value[field.name]
-                          : `/app/${$store.state.wallet.id}/${
-                              $store.state.app.id
-                            }/${props.row.value[field.name]}`
-                      )
-                    "
-                  ></q-btn>
-                  <span v-else-if="field.type === 'msatoshi'">
-                    {{ formatMsatToSat(props.row.value[field.name]) }} sat
-                  </span>
-                  <span v-else-if="field.type === 'ref'">
-                    {{
-                      itemsMap[field.ref] &&
-                      itemsMap[field.ref][props.row.value[field.name]] &&
-                      itemsMap[field.ref][props.row.value[field.name]].value[
-                        field.as
-                      ]
-                    }}
-                  </span>
-                  <span v-else>{{ props.row.value[field.name] }}</span>
-                </q-td>
-                <q-td auto-width>
-                  <q-btn
-                    flat
-                    dense
-                    size="xs"
-                    icon="edit"
-                    color="light-blue"
-                    @click="openUpdateDialog(props.row.key)"
-                  ></q-btn>
-                  <q-btn
-                    flat
-                    dense
-                    size="xs"
-                    icon="cancel"
-                    color="pink"
-                    @click="deleteItem(props.row.key)"
-                  ></q-btn>
-                </q-td>
-              </q-tr>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
-    </div>
-  </div>
+      <q-table
+        v-model:pagination="table.pagination"
+        dense
+        flat
+        binary-state-sort
+        column-sort-order="da"
+        :rows="items[model.name]"
+        row-key="key"
+      >
+        <template #header="props">
+          <q-tr :props="props">
+            <q-th
+              v-for="field in model.fields.filter(f => !f.hidden)"
+              :key="field.name"
+              auto-width
+              >{{ field.display || field.name }}</q-th
+            >
+            <q-th auto-width></q-th>
+            <q-th auto-width></q-th>
+          </q-tr>
+        </template>
+        <template #body="props">
+          <q-tr :props="props">
+            <q-td
+              v-for="field in model.fields"
+              :key="field.name"
+              auto-width
+              class="text-center"
+            >
+              <q-btn
+                v-if="field.type === 'url'"
+                flat
+                dense
+                size="xs"
+                icon="link"
+                color="light-blue"
+                :title="props.row.value[field.name]"
+                @click.stop="
+                  goToURL(
+                    props.row.value[field.name].startsWith('http') ||
+                      props.row.value[field.name].startsWith('/')
+                      ? props.row.value[field.name]
+                      : `/app/${$store.state.wallet.id}/${
+                          $store.state.app.id
+                        }/${props.row.value[field.name]}`
+                  )
+                "
+              ></q-btn>
+              <span v-else-if="field.type === 'msatoshi'">
+                {{ formatMsatToSat(props.row.value[field.name]) }} sat
+              </span>
+              <span v-else-if="field.type === 'ref'">
+                {{
+                  itemsMap[field.ref] &&
+                  itemsMap[field.ref][props.row.value[field.name]] &&
+                  itemsMap[field.ref][props.row.value[field.name]].value[
+                    field.as
+                  ]
+                }}
+              </span>
+              <span v-else>{{ props.row.value[field.name] }}</span>
+            </q-td>
+            <q-td auto-width>
+              <q-btn
+                flat
+                dense
+                size="xs"
+                icon="edit"
+                color="light-blue"
+                @click="openUpdateDialog(props.row.key)"
+              ></q-btn>
+              <q-btn
+                flat
+                dense
+                size="xs"
+                icon="cancel"
+                color="pink"
+                @click="deleteItem(props.row.key)"
+              ></q-btn>
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
+    </q-card-section>
+  </q-card>
 
   <q-dialog v-model="dialog.show" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">

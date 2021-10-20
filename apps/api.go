@@ -51,7 +51,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 			for _, item := range items {
 				var err error
 				item.Value[field.Name], err = runlua(RunluaParams{
-					AppID: app,
+					AppURL: app,
 					CodeToRun: fmt.Sprintf(
 						"internal.get_model_field('%s', '%s').computed(internal.arg)",
 						model.Name, field.Name,
@@ -72,7 +72,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		filteredItems := make([]models.AppDataItem, 0, len(items))
 		for _, item := range items {
 			returnedValue, err := runlua(RunluaParams{
-				AppID: app,
+				AppURL: app,
 				CodeToRun: fmt.Sprintf(
 					"internal.get_model('%s').filter(internal.arg)",
 					model.Name,
