@@ -22,7 +22,7 @@ type Settings struct {
 	Port            string   `envconfig:"PORT" default:"5000"`
 	QuasarDevServer *url.URL `envconfig:"QUASAR_DEV_SERVER"`
 
-	Database string `envconfig:"DATABASE" required:"true"`
+	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
 
 	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
 	SiteTagline       string   `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`

@@ -12,5 +12,5 @@ quasar dev
 on the other, do
 
 ```
-make dev
+QUASAR_DEV_SERVER=http://localhost:8080 make dev
 ```
