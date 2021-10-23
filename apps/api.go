@@ -138,9 +138,11 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := DBAdd(wallet.ID, app, model, value); err != nil {
+	if key, err := DBAdd(wallet.ID, app, model, value); err != nil {
 		apiutils.SendJSONError(w, 500, "failed to add item: %s", err.Error())
 		return
+	} else {
+		json.NewEncoder(w).Encode(key)
 	}
 }
 

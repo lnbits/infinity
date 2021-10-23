@@ -19,6 +19,7 @@ var httpClient = &http.Client{
 var log zerolog.Logger
 
 var appStreams = sync.Map{}
+var publicAppStreams = sync.Map{}
 
 func init() {
 	go func() {

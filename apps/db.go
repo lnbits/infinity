@@ -55,8 +55,13 @@ func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
 	return nil
 }
 
-func DBAdd(wallet, app, model string, value map[string]interface{}) error {
-	return DBSet(wallet, app, model, cuid.Slug(), value)
+func DBAdd(wallet, app, model string, value map[string]interface{}) (string, error) {
+	key := cuid.Slug()
+	err := DBSet(wallet, app, model, key, value)
+	if err != nil {
+		return "", err
+	}
+	return key, nil
 }
 
 func DBUpdate(wallet, app, model, key string, updates map[string]interface{}) error {

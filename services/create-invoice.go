@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
@@ -16,6 +17,20 @@ type CreateInvoiceParams struct {
 	Tag     string            `json:"tag"`
 	Extra   models.JSONObject `json:"extra"`
 	Webhook string            `json:"webhook"`
+}
+
+func CreateInvoiceFromApp(walletID string, params map[string]interface{}) (interface{}, error) {
+	j, _ := json.Marshal(params)
+	var s CreateInvoiceParams
+	json.Unmarshal(j, &s)
+	payment, err := CreateInvoice(walletID, s)
+	if err != nil {
+		return nil, err
+	}
+	j, _ = json.Marshal(payment)
+	var resp interface{}
+	json.Unmarshal(j, &resp)
+	return resp, nil
 }
 
 func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment, error) {
@@ -39,6 +54,7 @@ func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment,
 		Amount:      params.Msatoshi,
 		WalletID:    walletID,
 		Description: params.Description,
+		Extra:       params.Extra,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)

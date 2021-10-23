@@ -23,33 +23,45 @@ models = {
       },
       { name = 'content', display = 'Content', type = 'string', required = true },
       { name = 'author', display = 'Author', type = 'string' },
-      { name = 'is_paid', type = 'boolean', hidden = true },
+      { name = 'is_paid', display = 'Paid', type = 'boolean' },
     },
-    filter = function (ticket)
-      return not ticket.value.is_paid
-    end
   },
 }
 
 actions = {
-  create_ticket = function (params)
-    local key = db.ticket.add({
+  createticket = function (params)
+    local key, err = db.ticket.add({
       bucket = params.bucket,
       content = params.content,
       author = params.author,
       is_paid = false,
     })
+    -- if err then error(err) end
 
-    local payment = s.create_invoice({
+    local bucket, err = db.bucket.get(params.bucket)
+    -- if err then error(err) end
+
+    local payment, err = wallet.create_invoice({
+      msatoshi = bucket.price,
+      description = 'Ticket on bucket ' .. params.bucket,
       extra = { ticket = key }
     })
+    -- if err then error(err) end
+
+    return {
+      bolt11 = payment.bolt11,
+      ticket = key,
+    }
   end
 }
 
 triggers = {
   payment_received = function (payment)
+    print('payment_received', payment)
+
     if payment.extra ~= nil then
       db.ticket.update(payment.extra.ticket, { is_paid = true })
+      app.emit_event('ticket-paid', payment.extra.ticket)
     end
   end
 }

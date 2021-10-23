@@ -164,7 +164,7 @@ func (m Model) validateItem(item models.AppDataItem) error {
 							field.Name, fieldValue)
 					}
 				case "boolean":
-					if fieldValueType.ConvertibleTo(booltype) {
+					if fieldValueType.Name() != "bool" {
 						return fmt.Errorf("%s=%v is not a boolean", field.Name, fieldValue)
 					}
 				case "ref":
@@ -199,6 +199,5 @@ type Field struct {
 	Default  interface{} `json:"default,omitempty"`
 	Ref      string      `json:"ref,omitempty"`
 	As       string      `json:"as,omitempty"`
-	Hidden   bool        `json:"hidden,omitempty"`
 	Computed interface{} `json:"computed,omitempty"` // lua function, like above
 }

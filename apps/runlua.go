@@ -63,9 +63,11 @@ func runlua(params RunluaParams) (interface{}, error) {
 		walletDependentGlobals := map[string]interface{}{
 			"wallet_id": params.WalletID,
 
+			"emit_public_event": emitPublicEvent,
+
 			"auth_key":       services.AuthKey,
-			"pay_invoice":    services.PayInvoice,
-			"create_invoice": services.CreateInvoice,
+			"pay_invoice":    services.PayInvoiceFromApp,
+			"create_invoice": services.CreateInvoiceFromApp,
 
 			"db_get":    DBGet,
 			"db_set":    DBSet,
@@ -135,6 +137,12 @@ wallet = {
   end,
 }
 
+app = {
+  emit_event = function (name, data)
+    emit_public_event(wallet_id, app_id, name, data)
+  end,
+}
+
 utils = {
   random_hex = random_hex,
   perform_key_auth_flow = perform_key_auth_flow,
@@ -187,24 +195,12 @@ internal = {
     end
   end,
   get_trigger = function (trigger_name)
-    if trigger == nil or trigger[trigger_name] ~= 'function' then
+    if triggers == nil or type(triggers[trigger_name]) ~= 'function' then
       return function () end
     end
-    return trigger[trigger_name]
+    return triggers[trigger_name]
   end,
-  arg = arg and setmetatable(arg, {
-    __index = function (base, attr)
-      local value = base.value
-
-      if base.key and value then -- it's an item
-        if attr ~= 'value' and attr ~= 'key' and attr ~= 'wallet' and attr ~= 'model' then
-          return value[attr]
-        end
-      end
-
-      return base[attr]
-    end,
-  }),
+  arg = arg
 }
 `
 

@@ -25,12 +25,9 @@
       >
         <template #header="props">
           <q-tr :props="props">
-            <q-th
-              v-for="field in model.fields.filter(f => !f.hidden)"
-              :key="field.name"
-              auto-width
-              >{{ field.display || field.name }}</q-th
-            >
+            <q-th v-for="field in model.fields" :key="field.name" auto-width>{{
+              field.display || field.name
+            }}</q-th>
             <q-th auto-width></q-th>
             <q-th auto-width></q-th>
           </q-tr>
@@ -64,6 +61,16 @@
               ></q-btn>
               <span v-else-if="field.type === 'msatoshi'">
                 {{ formatMsatToSat(props.row.value[field.name]) }} sat
+              </span>
+              <span v-else-if="field.type === 'boolean'">
+                <q-icon
+                  size="sm"
+                  :name="
+                    props.row.value[field.name]
+                      ? 'check_box'
+                      : 'check_box_outline_blank'
+                  "
+                />
               </span>
               <span v-else-if="field.type === 'ref'">
                 {{
@@ -104,7 +111,7 @@
     <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
       <q-form class="q-gutter-md" @submit="saveItem">
         <template
-          v-for="field in model.fields.filter(f => !f.hidden && !f.computed)"
+          v-for="field in model.fields.filter(f => !f.computed)"
           :key="field.name"
         >
           <q-input
@@ -143,6 +150,7 @@
             v-if="field.type === 'boolean'"
             v-model="dialog.item.value[field.name]"
             :label="fieldLabel(field)"
+            :indeterminate-value="'INDETERMINATE'"
           />
 
           <q-select

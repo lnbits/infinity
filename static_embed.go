@@ -9,15 +9,21 @@ import (
 )
 
 //go:embed client/dist/spa
+var client embed.FS
+
+//go:embed static
 var static embed.FS
 
 func serveStaticClient() {
+	// serve js library and other assets
+	router.PathPrefix("/static/").Handler(http.FileServer(http.FS(static)))
+
 	// serve static client
-	if staticFS, err := fs.Sub(static, "client/dist/spa"); err != nil {
+	if clientFS, err := fs.Sub(client, "client/dist/spa"); err != nil {
 		log.Fatal().Err(err).Msg("failed to load static files subdir")
 		return
 	} else {
-		spaFS := SpaFS{staticFS}
+		spaFS := SpaFS{clientFS}
 		httpFS := http.FS(spaFS)
 		router.PathPrefix("/").Handler(http.FileServer(httpFS))
 	}

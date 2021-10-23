@@ -12,8 +12,8 @@ func TriggerEvent(trigger string, payment models.Payment) {
 	var user models.User
 	result := storage.DB.Model(&models.User{}).
 		Select("apps").
-		Joins("Wallet").
-		Where("wallet_id = ?", payment.WalletID).
+		Joins("INNER JOIN wallets ON users.id = wallets.user_id").
+		Where("wallets.id = ?", payment.WalletID).
 		First(&user)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Interface("payment", payment).
@@ -23,7 +23,8 @@ func TriggerEvent(trigger string, payment models.Payment) {
 
 	for _, app := range user.Apps {
 		_, err := runlua(RunluaParams{
-			AppURL: app,
+			AppURL:   app,
+			WalletID: payment.WalletID,
 			CodeToRun: fmt.Sprintf(
 				"internal.get_trigger('%s')(internal.arg)",
 				trigger,

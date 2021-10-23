@@ -97,6 +97,7 @@ func main() {
 	router.Path("/api/wallet/app/{appid}/add/{model}").HandlerFunc(apps.AddItem)
 	router.Path("/api/wallet/app/{appid}/del/{model}/{key}").HandlerFunc(apps.DeleteItem)
 	router.Path("/app/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
+	router.Path("/app/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
 	router.PathPrefix("/app/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
 
 	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)

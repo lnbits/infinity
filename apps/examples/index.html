@@ -1,7 +1,60 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <title>Open a Support Ticket</title>
+<script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+<script src="/static/app.js"></script>
 
-<form>
+<div id="app">
+  <div v-if="invoice">{{ invoice }}</div>
+  <form v-if="!invoice" @submit="submit">
+    <label> Content: <input v-model="ticket.content" /> </label>
+    <label>
+      Your contact info (optional): <input v-model="ticket.author" />
+    </label>
+    <button>Submit</button>
+  </form>
+</div>
 
-</form>
+<script>
+  function initialTicket() {
+    return {
+      bucket: location.pathname.split('/').slice(-1)[0],
+      content: '',
+      author: ''
+    }
+  }
+
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        tickets: {},
+        ticket: initialTicket(),
+        invoice: null
+      }
+    },
+
+    mounted() {
+      bitsapp.on('ticket-paid', id => {
+        console.log(id, this.tickets)
+        if (id in this.tickets) {
+          alert(`ticket ${id} paid!`)
+        }
+      })
+    },
+
+    methods: {
+      async submit(ev) {
+        ev.preventDefault()
+
+        const {bolt11, ticket} = await bitsapp.action(
+          'createticket',
+          this.ticket
+        )
+        this.tickets[ticket] = this.ticket
+        this.invoice = bolt11
+        this.ticket = initialTicket()
+      }
+    }
+  })
+</script>
