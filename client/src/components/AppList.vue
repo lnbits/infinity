@@ -32,7 +32,10 @@
           {{ app.split('/').slice(-1)[0].slice(0, -4) }}
           <q-menu context-menu>
             <q-list dense style="min-width: 100px">
-              <q-item v-close-popup clickable @click="removeApp(app)">
+              <q-item v-close-popup clickable @click="refresh(app)">
+                <q-item-section>Refresh Cache</q-item-section>
+              </q-item>
+              <q-item v-close-popup clickable @click="remove(app)">
                 <q-item-section>Remove</q-item-section>
               </q-item>
             </q-list>
@@ -57,7 +60,7 @@
     </q-item>
     <q-item v-if="showForm">
       <q-item-section>
-        <q-form @submit="addApp">
+        <q-form @submit="add">
           <q-input v-model="appURL" filled dense label="App URL *">
             <template #append>
               <q-btn
@@ -67,7 +70,7 @@
                 icon="send"
                 size="sm"
                 :disable="appURL === ''"
-                @click="addApp"
+                @click="add"
               ></q-btn>
             </template>
           </q-input>
@@ -78,7 +81,7 @@
 </template>
 
 <script>
-import {addApp, removeApp} from '../api'
+import {addApp, removeApp, appRefresh} from '../api'
 import {notifyError} from '../helpers'
 
 export default {
@@ -101,7 +104,7 @@ export default {
       })
     },
 
-    async addApp() {
+    async add() {
       try {
         await addApp(this.appURL)
         this.$store.dispatch('fetchUser')
@@ -117,7 +120,7 @@ export default {
       }
     },
 
-    async removeApp(appURL) {
+    async remove(appURL) {
       try {
         await removeApp(appURL)
         this.$store.dispatch('fetchUser')
@@ -125,6 +128,20 @@ export default {
           path: `/wallet/${this.$store.state.wallet.id}`,
           query: this.$route.query
         })
+      } catch (err) {
+        notifyError(err)
+      }
+    },
+
+    async refresh(appURL) {
+      try {
+        await appRefresh(btoa(appURL))
+        if (
+          this.$route.pathname.indexOf('/app/') !== -1 &&
+          this.$store.state.app?.url === appURL
+        ) {
+          this.$store.dispatch('fetchApp', this.$store.state.app.id)
+        }
       } catch (err) {
         notifyError(err)
       }

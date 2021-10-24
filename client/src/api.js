@@ -101,6 +101,9 @@ export const appInfo = async appid => {
   return appSettings
 }
 
+export const appRefresh = async appid =>
+  await request(`/api/wallet/app/${appid}/refresh`)
+
 export const listAppItems = async (appURL, model) =>
   await request(`/api/wallet/app/${btoa(appURL)}/list/${model}`)
 
