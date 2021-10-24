@@ -84,7 +84,7 @@ export const authLnurl = async callback =>
   })
 
 export const renameWallet = async name =>
-  await request(`/api/wallet/${name}`, {method: 'POST'})
+  await request(`/api/wallet/rename/${name}`, {method: 'POST'})
 
 export const deleteWallet = async () =>
   await request(`/api/wallet/delete`, {

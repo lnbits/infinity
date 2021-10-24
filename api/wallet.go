@@ -49,6 +49,18 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func DeleteWallet(w http.ResponseWriter, r *http.Request) {
+	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	wallet.AdminKey = "del:" + wallet.AdminKey
+	wallet.InvoiceKey = "del:" + wallet.InvoiceKey
+	wallet.UserID = "del:" + wallet.UserID
+
+	storage.DB.Save(&wallet)
+
+	w.WriteHeader(200)
+}
+
 func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 

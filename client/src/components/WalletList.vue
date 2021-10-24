@@ -100,6 +100,7 @@ export default {
     async createWallet() {
       try {
         const {wallet} = await createWallet(this.newWalletName)
+        this.newWalletName = ''
         this.$store.commit('setWallet', wallet)
         this.$router.push({
           path: `/wallet/${wallet.id}`,

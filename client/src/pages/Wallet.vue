@@ -313,23 +313,22 @@
               >
                 <q-card>
                   <q-card-section>
-                    <div class="" style="max-width: 320px">
+                    <form style="max-width: 320px" @submit="updateWalletName">
                       <q-input
                         v-model.trim="newName"
                         filled
                         label="Label"
                         dense="dense"
-                        @update:model-value="e => console.log(e)"
                       />
-                    </div>
-                    <q-btn
-                      :disable="!newName.length"
-                      unelevated
-                      class="q-mt-sm"
-                      color="primary"
-                      @click="updateWalletName()"
-                      >Update name</q-btn
-                    >
+                      <q-btn
+                        :disable="!newName.length"
+                        unelevated
+                        class="q-mt-sm"
+                        color="primary"
+                        @click="updateWalletName"
+                        >Update name</q-btn
+                      >
+                    </form>
                   </q-card-section>
                 </q-card>
               </q-expansion-item>
@@ -1111,12 +1110,13 @@ export default {
         notifyError(err)
       }
     },
-    async updateWalletName() {
-      let newName = this.newName
-      if (!newName || !newName.length) return
+    async updateWalletName(ev) {
+      ev.preventDefault()
+
+      if (!this.newName || !this.newName.length) return
 
       try {
-        await renameWallet(newName)
+        await renameWallet(this.newName)
 
         this.newName = ''
         this.$q.notify({
@@ -1125,7 +1125,7 @@ export default {
           timeout: 3500
         })
 
-        this.$store.dispatch('fetchWallet', this.$store.state.wallets.id)
+        this.$store.dispatch('fetchUser')
       } catch (err) {
         this.newName = ''
         notifyError(err)
@@ -1145,8 +1145,36 @@ export default {
           }
         })
         .onOk(async () => {
-          await deleteWallet()
-          location.href = `/?${location.search}`
+          try {
+            await deleteWallet()
+
+            this.$q.notify({
+              message: `Wallet deleted.`,
+              type: 'positive',
+              timeout: 3500
+            })
+
+            if (this.$store.state.user.wallets.length === 1) {
+              // user only had this wallet, so log them out
+              location.href = '/'
+            } else {
+              // user had other wallets, so move to them
+              const currentIndex = this.$store.state.user.wallets.findIndex(
+                w => w.id === this.$store.state.wallet.id
+              )
+              const nextIndex =
+                (currentIndex + 1) % this.$store.state.user.wallets.length
+              const nextWallet = this.$store.state.user.wallets[nextIndex]
+
+              this.$router.push({
+                path: `/wallet/${nextWallet.id}`,
+                query: this.$route.query
+              })
+              this.$store.dispatch('fetchUser')
+            }
+          } catch (err) {
+            notifyError(err)
+          }
         })
     },
     exportCSV() {
