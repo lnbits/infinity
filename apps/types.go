@@ -106,11 +106,10 @@ func (s Settings) validate() error {
 }
 
 type Model struct {
-	Name    string      `json:"name"`
-	Display string      `json:"display,omitempty"`
-	Plural  string      `json:"plural,omitempty"`
-	Fields  []Field     `json:"fields"`
-	Filter  interface{} `json:"filter,omitempty"` // in lua this is a function, here we just check for its presence
+	Name    string  `json:"name"`
+	Display string  `json:"display,omitempty"`
+	Plural  string  `json:"plural,omitempty"`
+	Fields  []Field `json:"fields"`
 }
 
 func (m Model) validateItem(item models.AppDataItem) error {

@@ -74,31 +74,6 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	/// filter
-	if model.Filter != nil {
-		filteredItems := make([]models.AppDataItem, 0, len(items))
-		for _, item := range items {
-			returnedValue, err := runlua(RunluaParams{
-				AppURL: app,
-				CodeToRun: fmt.Sprintf(
-					"internal.get_model('%s').filter(internal.arg)",
-					model.Name,
-				),
-				InjectedGlobals: &map[string]interface{}{"arg": structToMap(item)},
-			})
-			if err != nil {
-				log.Debug().Err(err).Interface("item", item).
-					Str("model", model.Name).
-					Msg("failed to run filter")
-			}
-
-			if shouldKeep, ok := returnedValue.(bool); ok && shouldKeep {
-				filteredItems = append(filteredItems, item)
-			}
-		}
-		items = filteredItems
-	}
-
 	json.NewEncoder(w).Encode(items)
 }
 
