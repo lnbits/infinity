@@ -1,20 +1,63 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"sync"
+	"time"
 
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/storage"
 )
 
 var walletStreams = sync.Map{}
+
+var SiteTitle string
+
+var webhookClient = &http.Client{
+	Timeout: time.Second * 2,
+	CheckRedirect: func(r *http.Request, via []*http.Request) error {
+		return fmt.Errorf("target '%s' has returned a redirect", r.URL)
+	},
+}
 
 func init() {
 	go func() {
 		c := make(chan models.Payment)
 		events.OnPaymentReceived(c)
 		for payment := range c {
+			// sse stream
 			SendWalletSSE(payment.WalletID, "payment-received", payment)
+
+			// webhook
+			if payment.Webhook != "" && payment.WebhookStatus == 0 {
+				j, _ := json.Marshal(payment)
+				b := bytes.NewBuffer(j)
+				resp, err := webhookClient.Post(payment.Webhook, "application/json", b)
+				var status int
+				if err != nil {
+					status = -1
+				} else {
+					status = resp.StatusCode
+				}
+				storage.DB.
+					Model(&payment).
+					Where(&payment).
+					Update("webhook_status", status)
+			}
+
+			// balanceNotify
+			var wallet models.Wallet
+			storage.DB.
+				Where("id = ?", payment.WalletID).
+				Where("balance_notify IS NOT NULL").
+				First(&wallet)
+			if wallet.BalanceNotify != "" {
+				go webhookClient.Post(wallet.BalanceNotify, "application/lnurl", nil)
+			}
 		}
 	}()
 
@@ -22,7 +65,25 @@ func init() {
 		c := make(chan models.Payment)
 		events.OnPaymentSent(c)
 		for payment := range c {
+			// sse stream
 			go SendWalletSSE(payment.WalletID, "payment-sent", payment)
+
+			// webhook
+			if payment.Webhook != "" && payment.WebhookStatus == 0 {
+				j, _ := json.Marshal(payment)
+				b := bytes.NewBuffer(j)
+				resp, err := webhookClient.Post(payment.Webhook, "application/json", b)
+				var status int
+				if err != nil {
+					status = -1
+				} else {
+					status = resp.StatusCode
+				}
+				storage.DB.
+					Model(&payment).
+					Where(&payment).
+					Update("webhook_status", status)
+			}
 		}
 	}()
 

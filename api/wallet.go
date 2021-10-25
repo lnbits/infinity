@@ -22,26 +22,28 @@ func Wallet(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
 	// load wallet balance
-	storage.DB.Model(&models.Payment{}).
-		Select("coalesce(sum(amount), 0)").
-		Where("amount < 0 OR (amount > 0 AND NOT pending)").
-		Where("wallet_id = ?", wallet.ID).
-		First(&wallet.Balance)
+	wallet.Balance, _ = services.LoadWalletBalance(wallet.ID)
 
 	// load wallet payments
-	storage.DB.
-		Order("created_at desc").
-		Where("wallet_id = ?", wallet.ID).
-		Find(&wallet.Payments)
+	wallet.Payments, _ = services.LoadWalletPayments(wallet.ID)
 
 	// load wallet balanceChecks
 	storage.DB.Where("wallet_id = ?", wallet.ID).Find(&wallet.BalanceChecks)
+
+	// LNURL drain URL
+	wallet.LNURLDrain, _ = lnurl.LNURLEncode(
+		r.URL.Scheme + "://" + r.Host + "/lnurl/wallet/drain?api-key=" + wallet.AdminKey)
 
 	json.NewEncoder(w).Encode(wallet)
 }
 
 func RenameWallet(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	if r.Context().Value("permission").(string) != "admin" {
+		w.WriteHeader(401)
+		return
+	}
 
 	wallet.Name = mux.Vars(r)["new-name"]
 	storage.DB.Save(&wallet)
@@ -51,6 +53,11 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 
 func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	if r.Context().Value("permission").(string) != "admin" {
+		w.WriteHeader(401)
+		return
+	}
 
 	wallet.AdminKey = "del:" + wallet.AdminKey
 	wallet.InvoiceKey = "del:" + wallet.InvoiceKey
@@ -120,6 +127,11 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
+	if r.Context().Value("permission").(string) != "admin" {
+		w.WriteHeader(401)
+		return
+	}
+
 	var params struct {
 		services.PayInvoiceParams
 
@@ -148,6 +160,11 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	if r.Context().Value("permission").(string) != "admin" {
+		w.WriteHeader(401)
+		return
+	}
 
 	var params struct {
 		Callback string `json:"callback"`
@@ -182,6 +199,11 @@ func LnurlAuth(w http.ResponseWriter, r *http.Request) {
 
 func PayLnurl(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	if r.Context().Value("permission").(string) != "admin" {
+		w.WriteHeader(401)
+		return
+	}
 
 	var params struct {
 		Params  lnurl.LNURLPayParams `json:"params"`

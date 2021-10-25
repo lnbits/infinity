@@ -59,8 +59,8 @@ func userMiddleware(next http.Handler) http.Handler {
 
 func walletMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/api/v1/") && // lnbits-compatibility
-			!strings.HasPrefix(r.URL.Path, "/api/wallet") { // better API routes
+		if !strings.HasPrefix(r.URL.Path, "/api/wallet") && // better API routes
+			!strings.HasPrefix(r.URL.Path, "/api/v1/") { // lnbits-compatibility
 			next.ServeHTTP(w, r)
 			return
 		}

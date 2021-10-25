@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
@@ -20,17 +19,13 @@ type CreateInvoiceParams struct {
 }
 
 func CreateInvoiceFromApp(walletID string, params map[string]interface{}) (interface{}, error) {
-	j, _ := json.Marshal(params)
 	var s CreateInvoiceParams
-	json.Unmarshal(j, &s)
+	mapToStruct(params, &s)
 	payment, err := CreateInvoice(walletID, s)
 	if err != nil {
 		return nil, err
 	}
-	j, _ = json.Marshal(payment)
-	var resp interface{}
-	json.Unmarshal(j, &resp)
-	return resp, nil
+	return structToInterface(payment), nil
 }
 
 func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment, error) {

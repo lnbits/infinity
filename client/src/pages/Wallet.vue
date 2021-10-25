@@ -259,16 +259,16 @@
                 icon="crop_free"
                 label="Drain Funds"
               >
-                <q-card>
+                <q-card v-if="$store.state.wallet">
                   <q-card-section class="text-center">
                     <p>
                       This is an LNURL-withdraw QR code for slurping everything
                       from this wallet. Do not share with anyone.
                     </p>
-                    <a href="lightning:{{wallet.lnurlwithdraw_full}}">
+                    <a :href="`lightning:${$store.state.wallet.drain}`">
                       <QRCode
-                        :size="500"
-                        value="{{wallet.lnurlwithdraw_full}}"
+                        :size="300"
+                        :value="$store.state.wallet.drain.toUpperCase()"
                         :options="{width: 240}"
                       ></QRCode>
                     </a>

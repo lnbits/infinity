@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -25,17 +24,13 @@ type PayInvoiceParams struct {
 }
 
 func PayInvoiceFromApp(walletID string, params map[string]interface{}) (interface{}, error) {
-	j, _ := json.Marshal(params)
 	var s PayInvoiceParams
-	json.Unmarshal(j, &s)
+	mapToStruct(params, &s)
 	payment, err := PayInvoice(walletID, s)
 	if err != nil {
 		return nil, err
 	}
-	j, _ = json.Marshal(payment)
-	var resp interface{}
-	json.Unmarshal(j, &resp)
-	return resp, nil
+	return structToInterface(payment), nil
 }
 
 func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Payment, err error) {

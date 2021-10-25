@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/api"
@@ -49,6 +50,7 @@ func main() {
 		return
 	}
 	apps.AppCacheSize = s.AppCacheSize
+	api.SiteTitle = s.SiteTitle
 
 	// setup logger
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -88,10 +90,12 @@ func main() {
 	router.Path("/api/wallet/payment/{id}").HandlerFunc(api.GetPayment)
 	router.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
 	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
+	router.Path("/lnurl/wallet/drain").HandlerFunc(api.DrainFunds)
 
 	// app endpoints
 	router.Path("/api/wallet/apps/sse").HandlerFunc(apps.SSE)
 	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
+	router.Path("/api/wallet/app/{appid}/refresh").HandlerFunc(apps.Refresh)
 	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
 	router.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)
 	router.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)
@@ -127,6 +131,7 @@ func main() {
 	router.Path("/api/v1/payments/sse").HandlerFunc(api.SSE)
 
 	// middleware
+	router.Use(handlers.ProxyHeaders)
 	router.Use(jsonHeaderMiddleware)
 	router.Use(userMiddleware)
 	router.Use(walletMiddleware)

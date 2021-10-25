@@ -65,9 +65,13 @@ func runlua(params RunluaParams) (interface{}, error) {
 
 			"emit_public_event": emitPublicEvent,
 
-			"auth_key":       services.AuthKey,
-			"pay_invoice":    services.PayInvoiceFromApp,
-			"create_invoice": services.CreateInvoiceFromApp,
+			"auth_key":             services.AuthKey,
+			"pay_invoice":          services.PayInvoiceFromApp,
+			"create_invoice":       services.CreateInvoiceFromApp,
+			"internal_transfer":    services.Transfer,
+			"get_wallet_payment":   services.GetWalletPaymentFromApp,
+			"load_wallet_balance":  services.LoadWalletBalance,
+			"load_wallet_payments": services.LoadWalletPaymentsFromApp,
 
 			"db_get":    DBGet,
 			"db_set":    DBSet,
@@ -126,6 +130,11 @@ ret = sandbox.run(code, { quota = 300, env = injected_globals })
 
 const CUSTOM_ENV_DEF = `
 wallet = {
+  balance = function () return load_wallet_balance(wallet_id) end,
+  payments = function () return load_wallet_payments(wallet_id) end,
+  get_payment = function (checking_id_or_hash)
+    return get_wallet_payment(wallet_id, checking_id_or_hash)
+  end
   auth_key = function (domain) return auth_key(wallet_id, domain) end,
   pay_invoice = function (params)
     params.tag = app_id
@@ -134,6 +143,10 @@ wallet = {
   create_invoice = function (params)
     params.tag = app_id
     return create_invoice(wallet_id, params)
+  end,
+  transfer = function (to_wallet, msatoshi, description)
+    params.tag = app_id
+    return internal_transfer(wallet_id, to_wallet, msatoshi, description)
   end,
 }
 

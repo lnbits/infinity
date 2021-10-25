@@ -9,6 +9,7 @@ require (
 	github.com/fiatjaf/ln-decodepay v1.1.0
 	github.com/fiatjaf/lunatico v1.1.0
 	github.com/fiatjaf/relampago v1.0.0
+	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lucsky/cuid v1.2.1

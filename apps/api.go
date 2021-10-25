@@ -13,6 +13,7 @@ import (
 
 func Info(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
+
 	settings, err := GetAppSettings(app)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
@@ -20,6 +21,12 @@ func Info(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(settings)
+}
+
+func Refresh(w http.ResponseWriter, r *http.Request) {
+	app := appidToURL(mux.Vars(r)["appid"])
+	codeCache.Delete(app)
+	settingsCache.Delete(app)
 }
 
 func ListItems(w http.ResponseWriter, r *http.Request) {

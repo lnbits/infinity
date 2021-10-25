@@ -21,11 +21,13 @@ type Wallet struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 
-	Name       string `gorm:"not null" json:"name"`
-	InvoiceKey string `gorm:"not null" json:"invoicekey"`
-	AdminKey   string `gorm:"not null" json:"adminkey"`
+	Name          string `gorm:"not null" json:"name"`
+	InvoiceKey    string `gorm:"not null" json:"invoicekey"`
+	AdminKey      string `gorm:"not null" json:"adminkey"`
+	BalanceNotify string `json:"balanceNotify"`
 
-	Balance int64 `gorm:"->" json:"balance"`
+	Balance    int64  `gorm:"->" json:"balance"`
+	LNURLDrain string `gorm:"-" json:"drain"`
 
 	// associations
 	UserID        string         `gorm:"index;not null" json:"userID"`
