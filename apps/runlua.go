@@ -49,6 +49,12 @@ func runlua(params RunluaParams) (interface{}, error) {
 		"random_hex":              utils.RandomHex,
 		"perform_key_auth_flow":   utils.PerformKeyAuthFlow,
 		"get_msats_per_fiat_unit": utils.GetMsatsPerFiatUnit,
+		"http_get":                utils.HTTPGet,
+		"http_put":                utils.HTTPPut,
+		"http_post":               utils.HTTPPost,
+		"http_patch":              utils.HTTPPatch,
+		"http_delete":             utils.HTTPDelete,
+		"http_request":            utils.HTTP,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -156,7 +162,17 @@ app = {
   end,
 }
 
+http = {
+  request = http_request,
+  get = http_get,
+  put = http_put,
+  post = http_post,
+  patch = http_patch,
+  delete = http_delete,
+}
+
 utils = {
+  http = http,
   random_hex = random_hex,
   perform_key_auth_flow = perform_key_auth_flow,
   get_msats_per_fiat_unit = get_msats_per_fiat_unit,

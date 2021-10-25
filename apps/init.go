@@ -13,7 +13,7 @@ import (
 var AppCacheSize int
 
 var httpClient = &http.Client{
-	Timeout: time.Second * 5,
+	Timeout: time.Second * 2,
 }
 
 var log zerolog.Logger
