@@ -9,7 +9,11 @@
       <div class="row items-center no-wrap q-mb-md">
         <div class="col">
           <h5 class="text-subtitle1 q-my-none">
-            {{ model.plural || `${model.display}s` || `${model.name}s` }}
+            {{
+              model.plural || model.display
+                ? `${model.display}s`
+                : `${model.name}s`
+            }}
           </h5>
         </div>
       </div>

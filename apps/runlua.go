@@ -47,6 +47,8 @@ func runlua(params RunluaParams) (interface{}, error) {
 		"debug_print": luaPrint,
 
 		"random_hex":              utils.RandomHex,
+		"aes_encrypt":             utils.AESEncrypt,
+		"aes_decrypt":             utils.AESDecrypt,
 		"perform_key_auth_flow":   utils.PerformKeyAuthFlow,
 		"get_msats_per_fiat_unit": utils.GetMsatsPerFiatUnit,
 		"http_get":                utils.HTTPGet,
@@ -136,11 +138,12 @@ ret = sandbox.run(code, { quota = 300, env = injected_globals })
 
 const CUSTOM_ENV_DEF = `
 wallet = {
+  id = wallet_id,
   balance = function () return load_wallet_balance(wallet_id) end,
   payments = function () return load_wallet_payments(wallet_id) end,
   get_payment = function (checking_id_or_hash)
     return get_wallet_payment(wallet_id, checking_id_or_hash)
-  end
+  end,
   auth_key = function (domain) return auth_key(wallet_id, domain) end,
   pay_invoice = function (params)
     params.tag = app_id
@@ -157,6 +160,7 @@ wallet = {
 }
 
 app = {
+  id = app_id,
   emit_event = function (name, data)
     emit_public_event(wallet_id, app_id, name, data)
   end,
@@ -174,6 +178,8 @@ http = {
 utils = {
   http = http,
   random_hex = random_hex,
+  aes_encrypt = aes_encrypt,
+  aes_decrypt = aes_decrypt,
   perform_key_auth_flow = perform_key_auth_flow,
   get_msats_per_fiat_unit = get_msats_per_fiat_unit,
 }

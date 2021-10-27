@@ -50,6 +50,7 @@ func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment,
 		WalletID:    walletID,
 		Description: params.Description,
 		Extra:       params.Extra,
+		Tag:         params.Tag,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)

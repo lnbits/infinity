@@ -29,36 +29,41 @@ models = {
 }
 
 actions = {
-  createticket = function (params)
-    local key, err = db.ticket.add({
-      bucket = params.bucket,
-      content = params.content,
-      author = params.author,
-      is_paid = false,
-    })
-    -- if err then error(err) end
+  createticket = {
+    fields = {
+      { name = 'bucket', type = 'string', required = true },
+      { name = 'content', type = 'string', required = true },
+      { name = 'author', type = 'string' },
+    },
+    handler = function (params)
+      local key, err = db.ticket.add({
+        bucket = params.bucket,
+        content = params.content,
+        author = params.author,
+        is_paid = false,
+      })
+      -- if err then error(err) end
 
-    local bucket, err = db.bucket.get(params.bucket)
-    -- if err then error(err) end
+      local bucket, err = db.bucket.get(params.bucket)
+      -- if err then error(err) end
 
-    local payment, err = wallet.create_invoice({
-      msatoshi = bucket.price,
-      description = 'Ticket on bucket ' .. params.bucket,
-      extra = { ticket = key }
-    })
-    -- if err then error(err) end
+      local payment, err = wallet.create_invoice({
+        msatoshi = bucket.price,
+        description = 'Ticket on bucket ' .. params.bucket,
+        extra = { ticket = key }
+      })
+      -- if err then error(err) end
 
-    return {
-      bolt11 = payment.bolt11,
-      ticket = key,
-    }
-  end
+      return {
+        bolt11 = payment.bolt11,
+        ticket = key,
+      }
+    end
+  }
 }
 
 triggers = {
   payment_received = function (payment)
-    print('payment_received', payment)
-
     if payment.extra ~= nil then
       db.ticket.update(payment.extra.ticket, { is_paid = true })
       app.emit_event('ticket-paid', payment.extra.ticket)
@@ -67,5 +72,5 @@ triggers = {
 }
 
 files = {
-  ['*'] = '/index.html'
+  ['*'] = '/tickets.html'
 }

@@ -64,15 +64,17 @@ func main() {
 	}
 
 	// lightning backend
-	lightning.Connect(s.LightningBackend)
-	if info, err := lightning.LN.GetInfo(); err != nil {
-		log.Fatal().Err(err).Str("lightning", s.LightningBackend).
-			Msg("couldn't start lightning backend.")
-		return
-	} else {
-		log.Info().Int64("msat", info.Balance).Str("kind", s.LightningBackend).
-			Msg("initialized lightning backend")
-	}
+	go func() {
+		lightning.Connect(s.LightningBackend)
+		if info, err := lightning.LN.GetInfo(); err != nil {
+			log.Fatal().Err(err).Str("lightning", s.LightningBackend).
+				Msg("couldn't start lightning backend.")
+			return
+		} else {
+			log.Info().Int64("msat", info.Balance).Str("kind", s.LightningBackend).
+				Msg("initialized lightning backend")
+		}
+	}()
 
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)

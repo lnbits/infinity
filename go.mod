@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta.0.20200515232429-9f0179fd2c46
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/ln-decodepay v1.1.0
-	github.com/fiatjaf/lunatico v1.1.0
+	github.com/fiatjaf/lunatico v1.2.0
 	github.com/fiatjaf/relampago v1.0.0
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0

@@ -2,6 +2,7 @@ package apps
 
 import (
 	"net/http"
+	"regexp"
 	"sync"
 	"time"
 
@@ -20,6 +21,8 @@ var log zerolog.Logger
 
 var appStreams = sync.Map{}
 var publicAppStreams = sync.Map{}
+
+var nameValidator = regexp.MustCompile("^[a-z_0-9]+$")
 
 func init() {
 	go func() {

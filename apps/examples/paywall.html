@@ -1,0 +1,123 @@
+<title>Paywall to an URL</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aes-js/3.1.2/index.min.js"></script>
+<script src="https://unpkg.com/base64-js@1.5.1/base64js.min.js"></script>
+<script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+<script src="/static/app.js"></script>
+
+<div id="app">
+  Paywall to <b>{{item}}</b>
+  <p>
+    <blockquote>{{ description }}</blockquote>
+  </p>
+  <div v-if="url">
+    The URL is:
+    <a :href="url" target="_blank">{{ url }}</a>
+  </div>
+  <div v-else-if="invoice">
+    Pay this invoice to gain access to the URL:
+    <pre>{{invoice}}</pre>
+    Don't close this page.
+  </div>
+  <button v-else-if="price" @click="requestPay">
+    Pay {{(price/1000).toFixed(0)}} sat
+  </button>
+</div>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        key: localStorage.getItem('paywall-key'),
+        item: location.pathname.split('/').slice(-1)[0],
+        price: null,
+        description: null,
+        invoice: null,
+        url: null
+      }
+    },
+
+    async mounted() {
+      // initialize decryption key
+      if (!this.key) {
+        this.key = base64js.fromByteArray(
+          aesjs.utils.hex.toBytes(
+            [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1 // 32 bytes
+            ]
+              .map(() => Math.floor(Math.random() * 255 + 1).toString(16))
+              .join('')
+          )
+        )
+        localStorage.setItem('paywall-key', this.key)
+      }
+
+      // get item metadata
+      const {description, price} = await bitsapp.action('getinfo', {
+        item: this.item
+      })
+      this.description = description
+      this.price = price
+
+      // listen for
+      bitsapp.on('paywall-unlocked', ({encrypted_url}) => {
+        try {
+          this.url = decrypt(encrypted_url, this.key)
+        } catch (err) {
+          console.log('got an unlocked paywall url, but failed to decrypt', err)
+        }
+      })
+    },
+
+    methods: {
+      async requestPay(ev) {
+        ev.preventDefault()
+        this.invoice = await bitsapp.action('requestpay', {
+          viewer_key: this.key,
+          item: this.item
+        })
+      }
+    }
+  })
+
+  function decrypt(cyphertext, key) {
+    let [ciphertext, iv] = cyphertext.split('?').map(base64js.toByteArray)
+    const CBC = new aesjs.ModeOfOperation.cbc(base64js.toByteArray(key), iv)
+    let plaintext = CBC.decrypt(ciphertext)
+    let size = plaintext.length
+    let pad = plaintext[size - 1]
+    plaintext = plaintext.slice(0, size - pad)
+    return aesjs.utils.utf8.fromBytes(plaintext)
+  }
+</script>

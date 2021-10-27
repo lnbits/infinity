@@ -18,6 +18,12 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
 	action := mux.Vars(r)["action"]
 
+	if !nameValidator.MatchString(action) {
+		// prevents code injection by public action callers
+		apiutils.SendJSONError(w, 400, "invalid action name '%s'", action)
+		return
+	}
+
 	var params map[string]interface{}
 
 	for k, v := range r.URL.Query() {
@@ -34,14 +40,21 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := settings.Actions[action]; !ok {
-		apiutils.SendJSONError(w, 404, "action '%s' not defined on app: %s", action, err.Error())
+	def, ok := settings.Actions[action]
+	if !ok {
+		apiutils.SendJSONError(w, 404, "action '%s' not defined on app", action)
+		return
+	}
+
+	if err := def.validateParams(params); err != nil {
+		apiutils.SendJSONError(w, 400,
+			"'%s' called with invalid params: %s", action, err.Error())
 		return
 	}
 
 	returned, err := runlua(RunluaParams{
 		AppURL:          app,
-		CodeToRun:       fmt.Sprintf("actions.%s(internal.arg)", action),
+		CodeToRun:       fmt.Sprintf("actions['%s'].handler(internal.arg)", action),
 		InjectedGlobals: &map[string]interface{}{"arg": params},
 		WalletID:        walletID,
 	})
@@ -123,14 +136,14 @@ func StaticFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if specific, ok := settings.Files[subpath]; ok {
-		serveFile(w, r, urljoin(baseURL, specific))
+		serveFile(w, r, urljoin(*baseURL, specific))
 		return
 	}
 
 	if catchall, ok := settings.Files["*"]; ok {
-		serveFile(w, r, urljoin(baseURL, catchall))
+		serveFile(w, r, urljoin(*baseURL, catchall))
 		return
 	}
 
-	serveFile(w, r, urljoin(baseURL, "/index.html"))
+	serveFile(w, r, urljoin(*baseURL, "/index.html"))
 }

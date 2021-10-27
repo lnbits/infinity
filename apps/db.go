@@ -18,7 +18,7 @@ func DBGet(wallet, app, model, key string) (map[string]interface{}, error) {
 		Key:      key,
 	}
 
-	result := storage.DB.Where(&item).First(&item)
+	result := storage.DB.First(&item)
 	return item.Value, result.Error
 }
 
