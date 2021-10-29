@@ -16,6 +16,23 @@ type Settings struct {
 	Files    map[string]string                `json:"files"`
 }
 
+func (s *Settings) normalize() {
+	for m, _ := range s.Models {
+		for _, filter := range s.Models[m].DefaultFiltersLua {
+			if len(filter) == 3 {
+				s.Models[m].DefaultFiltersJS = append(s.Models[m].DefaultFiltersJS,
+					Filter{
+						filter[0].(string),
+						filter[1].(string),
+						filter[2],
+					},
+				)
+			}
+		}
+		s.Models[m].DefaultFiltersLua = nil
+	}
+}
+
 func (s Settings) getModel(modelName string) Model {
 	for _, m := range s.Models {
 		if m.Name == modelName {
@@ -47,6 +64,25 @@ func (s Settings) validate() error {
 			if err := field.validate(s.Models); err != nil {
 				return fmt.Errorf("model %s.fields[%d] validation error: %w",
 					model.Name, f, err)
+			}
+		}
+
+		for f, filter := range s.Models[m].DefaultFiltersLua {
+			if len(filter) != 3 {
+				return fmt.Errorf(
+					"model %s.default_filters[%d] doesn't have 3 elements", model.Name, f)
+			}
+
+			if _, ok := filter[0].(string); !ok {
+				return fmt.Errorf(
+					"model %s.default_filters[%d]'s first field is not a string",
+					model.Name, f)
+			}
+
+			if _, ok := filter[1].(string); !ok {
+				return fmt.Errorf(
+					"model %s.default_filters[%d]'s second field is not a string",
+					model.Name, f)
 			}
 		}
 	}
@@ -81,6 +117,9 @@ type Model struct {
 	Display string  `json:"display,omitempty"`
 	Plural  string  `json:"plural,omitempty"`
 	Fields  []Field `json:"fields"`
+
+	DefaultFiltersLua [][]interface{} `json:"default_filters,omitempty"`
+	DefaultFiltersJS  []Filter        `json:"defaultFilters,omitempty"`
 }
 
 func (m Model) validateItem(item models.AppDataItem) error {
@@ -324,4 +363,10 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 	}
 
 	return nil
+}
+
+type Filter struct {
+	Field string      `json:"field"`
+	Op    string      `json:"op"`
+	Value interface{} `json:"value"`
 }

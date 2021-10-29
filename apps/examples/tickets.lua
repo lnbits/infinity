@@ -25,6 +25,9 @@ models = {
       { name = 'author', display = 'Author', type = 'string' },
       { name = 'is_paid', display = 'Paid', type = 'boolean' },
     },
+    default_filters = {
+      {'is_paid', '=', true}
+    }
   },
 }
 
