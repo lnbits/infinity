@@ -176,9 +176,10 @@ export default {
     store.dispatch('fetchUser')
 
     watch(
-      () => [store.state.user?.id, route.params.id],
-      ([user, id], [olduser, oldid]) => {
-        if (id === oldid && user === olduser) return
+      () => [route.name, store.state.user?.id, route.params.id],
+      ([routeName, user, id], [oldrouteName, olduser, oldid]) => {
+        if (routeName === oldrouteName && id === oldid && user === olduser)
+          return
 
         if (!user) return
         if (!id) return
