@@ -77,13 +77,14 @@ func runlua(params RunluaParams) (interface{}, error) {
 			"pay_invoice":          services.PayInvoiceFromApp,
 			"create_invoice":       services.CreateInvoiceFromApp,
 			"internal_transfer":    services.Transfer,
-			"get_wallet_payment":   services.GetWalletPaymentFromApp,
+			"get_wallet_payment":   services.GetWalletPayment,
 			"load_wallet_balance":  services.LoadWalletBalance,
-			"load_wallet_payments": services.LoadWalletPaymentsFromApp,
+			"load_wallet_payments": services.LoadWalletPayments,
 
 			"db_get":    DBGet,
 			"db_set":    DBSet,
 			"db_add":    DBAdd,
+			"db_list":   DBList,
 			"db_update": DBUpdate,
 			"db_delete": DBDelete,
 		}
@@ -195,6 +196,9 @@ db = setmetatable({}, {
       end,
       add = function (value)
         return db_add(wallet_id, app_id, model_name, value)
+      end,
+      list = function ()
+        return db_list(wallet_id, app_id, model_name)
       end,
       update = function (key, updates)
         return db_update(wallet_id, app_id, model_name, key, updates)

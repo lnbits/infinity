@@ -93,7 +93,7 @@ func (s Settings) validate() error {
 		}
 
 		if def.Fields == nil {
-			return fmt.Errorf("action %s must have a .fields array, even if empty", name)
+			def.Fields = []Field{}
 		}
 
 		for f, field := range def.Fields {

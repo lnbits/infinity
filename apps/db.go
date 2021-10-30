@@ -22,6 +22,15 @@ func DBGet(wallet, app, model, key string) (map[string]interface{}, error) {
 	return item.Value, result.Error
 }
 
+func DBList(wallet, app, model string) ([]models.AppDataItem, error) {
+	var items []models.AppDataItem
+	result := storage.DB.
+		Where(&models.AppDataItem{WalletID: wallet, App: app, Model: model}).
+		Find(&items)
+
+	return items, result.Error
+}
+
 func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
 	item := models.AppDataItem{
 		WalletID: wallet,

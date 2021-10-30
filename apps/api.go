@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
 )
 
 func Info(w http.ResponseWriter, r *http.Request) {
@@ -40,13 +39,9 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var items []models.AppDataItem
-	result := storage.DB.
-		Where(&models.AppDataItem{WalletID: wallet.ID, App: app, Model: modelName}).
-		Find(&items)
-
-	if result.Error != nil {
-		apiutils.SendJSONError(w, 500, "database error: %s", result.Error.Error())
+	items, err := DBList(wallet.ID, app, modelName)
+	if err != nil {
+		apiutils.SendJSONError(w, 500, "database error: %s", err.Error())
 		return
 	}
 

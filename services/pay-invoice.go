@@ -26,11 +26,7 @@ type PayInvoiceParams struct {
 func PayInvoiceFromApp(walletID string, params map[string]interface{}) (interface{}, error) {
 	var s PayInvoiceParams
 	mapToStruct(params, &s)
-	payment, err := PayInvoice(walletID, s)
-	if err != nil {
-		return nil, err
-	}
-	return structToInterface(payment), nil
+	return PayInvoice(walletID, s)
 }
 
 func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Payment, err error) {
