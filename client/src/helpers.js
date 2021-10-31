@@ -130,6 +130,12 @@ export const copyText = (text, message, position) => {
   })
 }
 
+export const appDisplayName = url => {
+  if (url.startsWith('http') && url.endsWith('.lua'))
+    return url.split('/').slice(-1)[0].slice(0, -4)
+  return url
+}
+
 export const fieldLabel = field =>
   (field.display || field.name) + (field.required ? ' *' : '')
 

@@ -1,8 +1,8 @@
 <template>
   <div class="q-py-md" style="text-align: left">
     <div class="row justify-center q-mb-md">
-      <q-badge v-if="hasTag" color="yellow" text-color="black">
-        #{{ payment.tag }}
+      <q-badge v-if="payment.tag" color="yellow" text-color="black">
+        {{ appDisplayName(payment.tag) }}
       </q-badge>
     </div>
     <div class="row">
@@ -42,11 +42,7 @@
     </div>
     <div v-for="entry in extras" :key="entry.key" class="row">
       <div class="col-3">
-        <q-badge v-if="hasTag" color="secondary" text-color="white">
-          extra
-        </q-badge>
-        <b>{{ entry.key }}</b
-        >:
+        <q-badge color="secondary" text-color="white">{{ entry.key }}</q-badge>
       </div>
       <div class="col-9 text-wrap mono">{{ entry.value }}</div>
     </div>
@@ -63,7 +59,7 @@
 </template>
 
 <script>
-import {formatDate, formatMsatToSat} from '../helpers'
+import {formatDate, appDisplayName, formatMsatToSat} from '../helpers'
 
 export default {
   props: {
@@ -100,17 +96,15 @@ export default {
         ? this.payment.webhook_status
         : 'not sent yet'
     },
-    hasTag() {
-      return this.payment.extra && !!this.payment.extra.tag
-    },
     extras() {
       if (!this.payment.extra) return []
       return Object.keys(this.payment.extra)
-        .filter(key => key !== 'tag' && key !== 'success_action')
-        .map(key => ({key, value: this.payment.extras[key]}))
+        .filter(key => key !== 'success_action')
+        .map(key => ({key, value: this.payment.extra[key]}))
     }
   },
   methods: {
+    appDisplayName,
     formatMsatToSat,
     formatDate
   }

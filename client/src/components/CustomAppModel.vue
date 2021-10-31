@@ -28,14 +28,14 @@
               />
             </div>
             <div
-              class="col q-mx-sm"
+              class="col q-mx-md"
               :style="{
                 fontSize: '80%',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-all'
               }"
             >
-              <code> {{ filterString }}</code>
+              <code>{{ filterString }}</code>
             </div>
           </div>
         </div>
@@ -47,29 +47,18 @@
         flat
         binary-state-sort
         column-sort-order="da"
+        :columns="columns"
         :filter="filters"
         :filter-method="filterMethod"
         :rows="items[model.name]"
         row-key="key"
       >
-        <template #header="props">
-          <q-tr :props="props">
-            <q-th auto-width>Key</q-th>
-            <q-th
-              v-for="field in model.fields"
-              :key="field.name"
-              :style="{fontSize: '110%'}"
-              auto-width
-              >{{ field.display || field.name }}</q-th
-            >
-            <q-th auto-width></q-th>
-            <q-th auto-width></q-th>
-          </q-tr>
-        </template>
         <template #body="props">
           <q-tr :props="props">
             <q-td auto-width class="text-center">
-              <code>{{ props.row.key }}</code>
+              <code :title="formatDate(props.row.created_at, true)">
+                {{ props.row.key }}
+              </code>
             </q-td>
             <q-td
               v-for="field in model.fields"
@@ -232,7 +221,7 @@
       <!-- END ITEM EDITING MODAL -->
 
       <!-- FILTERS MODAL -->
-      <q-form v-if="dialog.filters" class="q-gutter-md" @submit="saveFilters">
+      <q-form v-if="dialog.filters" class="q-gutter-md">
         <div class="text-h6">Filters</div>
         <template v-for="(filter, f) in dialog.filters" :key="f">
           <div class="row">
@@ -312,10 +301,6 @@
             </div>
           </div>
         </template>
-
-        <div class="row q-mt-lg">
-          <q-btn unelevated color="primary" type="submit">Save</q-btn>
-        </div>
       </q-form>
       <!-- END FILTERS MODAL -->
     </q-card>
@@ -324,7 +309,7 @@
 
 <script>
 import {setAppItem, addAppItem, delAppItem} from '../api'
-import {formatMsatToSat, fieldLabel, notifyError} from '../helpers'
+import {formatMsatToSat, formatDate, fieldLabel, notifyError} from '../helpers'
 
 export default {
   props: {
@@ -374,6 +359,22 @@ export default {
       )
     },
 
+    columns() {
+      const headerStyle = 'text-align: center;'
+
+      return [
+        {name: 'key', label: 'Key', field() {}, sortable: true, headerStyle},
+        ...this.model.fields.map(field => ({
+          name: field.name,
+          label: fieldLabel(field),
+          field: row => row[field.name],
+          sortable: true,
+          headerStyle: 'font-size: 110%;' + headerStyle
+        })),
+        {name: '_controls', label: '', field() {}, headerStyle}
+      ]
+    },
+
     isFormSubmitDisabled() {
       return (
         this.dialog.show &&
@@ -396,6 +397,7 @@ export default {
     json: v => JSON.stringify(v, null, 2),
 
     formatMsatToSat,
+    formatDate,
     fieldLabel,
 
     goToURL: url => {
@@ -408,13 +410,6 @@ export default {
         show: true,
         item: null
       }
-    },
-
-    saveFilters() {
-      this.filters = this.dialog.filters.filter(
-        ({field, op, value}) => field && op && value
-      )
-      this.closeDialog()
     },
 
     openCreateDialog() {
@@ -445,6 +440,11 @@ export default {
     },
 
     closeDialog() {
+      if (this.dialog.filters)
+        this.filters = this.dialog.filters.filter(
+          ({field, op, value}) => field && op && value
+        )
+
       this.dialog.show = false
     },
 

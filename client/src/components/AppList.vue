@@ -29,7 +29,7 @@
       </q-item-section>
       <q-item-section>
         <q-item-label lines="1">
-          {{ app.split('/').slice(-1)[0].slice(0, -4) }}
+          {{ appDisplayName(app) }}
           <q-menu context-menu>
             <q-list dense style="min-width: 100px">
               <q-item v-close-popup clickable @click="refresh(app)">
@@ -82,7 +82,7 @@
 
 <script>
 import {addApp, removeApp, appRefresh} from '../api'
-import {notifyError} from '../helpers'
+import {appDisplayName, notifyError} from '../helpers'
 
 export default {
   data() {
@@ -93,6 +93,8 @@ export default {
   },
 
   methods: {
+    appDisplayName,
+
     isActive(app) {
       return this.$store.state.app?.url === app && this.$route.name === 'app'
     },

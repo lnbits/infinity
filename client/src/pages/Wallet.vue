@@ -84,6 +84,7 @@
               v-model:pagination="paymentsTable.pagination"
               dense
               flat
+              binary-state-sort
               :rows="$store.state.wallet.payments"
               :row-key="paymentTableRowKey"
               :columns="paymentsTable.columns"
@@ -91,17 +92,6 @@
               :filter="paymentsTable.filter"
               :filter-method="paymentsTable.filterMethod"
             >
-              <template #header="props">
-                <q-tr :props="props">
-                  <q-th auto-width></q-th>
-                  <q-th
-                    v-for="col in props.cols"
-                    :key="col.name"
-                    :props="props"
-                    >{{ col.label }}</q-th
-                  >
-                </q-tr>
-              </template>
               <template #body="props">
                 <q-tr :props="props">
                   <q-td auto-width class="text-center">
@@ -128,6 +118,13 @@
                     :props="props"
                     style="white-space: normal; word-break: break-all"
                   >
+                    <q-badge
+                      v-if="props.row.tag"
+                      color="yellow"
+                      text-color="black"
+                    >
+                      {{ appDisplayName(props.row.tag) }}
+                    </q-badge>
                     {{ props.row.description }}
                   </q-td>
                   <q-td key="date" auto-width :props="props">
@@ -137,10 +134,13 @@
                     {{ formatDate(props.row.date) }}
                   </q-td>
                   <q-td key="amount" auto-width :props="props">
-                    {{ formatMsatToSat(props.row.amount) }}
+                    {{ formatMsatToSat(props.row.amount) }} sat
                   </q-td>
                   <q-td key="fee" auto-width :props="props">
-                    {{ props.row.fee.toString() }}
+                    <span v-if="props.row.fee > 0">
+                      {{ props.row.fee.toString() }} msat
+                    </span>
+                    <span v-else>0</span>
                   </q-td>
                 </q-tr>
 
@@ -672,6 +672,7 @@ import bolt11 from 'light-bolt11-decoder'
 import {generateChart} from '../chart'
 import {
   formatMsatToSat,
+  appDisplayName,
   notifyError,
   formatDate,
   exportCSV,
@@ -726,26 +727,35 @@ export default {
       paymentsTable: {
         columns: [
           {
+            name: '_status',
+            label: ''
+          },
+          {
             name: 'description',
             align: 'left',
-            label: 'Description'
+            label: 'Description',
+            field: row => row.description
           },
           {
             name: 'date',
             align: 'left',
             label: 'Date',
-            sortable: true
+            sortable: true,
+            field: row => row.date
           },
           {
             name: 'amount',
             align: 'right',
-            label: 'Amount (sat)',
-            sortable: true
+            label: 'Amount',
+            sortable: true,
+            field: row => row.amount
           },
           {
             name: 'fee',
             align: 'right',
-            label: 'Fee (msat)'
+            label: 'Fee',
+            sortable: true,
+            field: row => row.fee
           }
         ],
         pagination: {
@@ -802,6 +812,8 @@ export default {
 
   methods: {
     log: console.log,
+
+    appDisplayName,
     formatMsatToSat,
     formatDate,
 

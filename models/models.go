@@ -63,7 +63,7 @@ type BalanceCheck struct {
 }
 
 type AppDataItem struct {
-	CreatedAt time.Time `json:"-"`
+	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"-"`
 
 	App      string `gorm:"primaryKey;index:app_user_items_idx" json:"app"`
