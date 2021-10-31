@@ -27,10 +27,6 @@
           >
         </q-badge>
         <q-btn-dropdown
-          v-if="
-            $store.state.settings.allowedThemes &&
-            $store.state.settings.allowedThemes.length > 1
-          "
           dense
           flat
           round
@@ -40,7 +36,6 @@
         >
           <div class="row no-wrap q-pa-md">
             <q-btn
-              v-if="$store.state.settings.allowedThemes.includes('classic')"
               dense
               flat
               icon="format_color_fill"
@@ -49,7 +44,6 @@
               @click="changeColor('classic')"
               ><q-tooltip>classic</q-tooltip> </q-btn
             ><q-btn
-              v-if="$store.state.settings.allowedThemes.includes('mint')"
               dense
               flat
               icon="format_color_fill"
@@ -58,7 +52,6 @@
               @click="changeColor('mint')"
               ><q-tooltip>mint</q-tooltip> </q-btn
             ><q-btn
-              v-if="$store.state.settings.allowedThemes.includes('autumn')"
               dense
               flat
               icon="format_color_fill"
@@ -68,7 +61,6 @@
               ><q-tooltip>autumn</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="$store.state.settings.allowedThemes.includes('monochrome')"
               dense
               flat
               icon="format_color_fill"
@@ -78,7 +70,6 @@
               ><q-tooltip>monochrome</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="$store.state.settings.allowedThemes.includes('salvador')"
               dense
               flat
               icon="format_color_fill"
@@ -88,8 +79,6 @@
               ><q-tooltip>elSalvador</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="$store.state.settings.allowedThemes.includes('flamingo')"
-              dense
               flat
               icon="format_color_fill"
               color="pink-3"

@@ -28,7 +28,6 @@ type Settings struct {
 	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
 	SiteTagline       string   `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
 	SiteDescription   string   `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
-	ThemeOptions      []string `envconfig:"LNBITS_THEME_OPTIONS" default:"classic, flamingo, mint, salvador, monochrome, autumn"`
 	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
 	AppCacheSize int `envconfig:"APP_CACHE_SIZE" default:"128"`

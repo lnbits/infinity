@@ -12,14 +12,12 @@ func viewSettings(w http.ResponseWriter, r *http.Request) {
 		SiteTitle       string   `json:"siteTitle"`
 		SiteTagLine     string   `json:"siteTagline"`
 		SiteDescription string   `json:"siteDescription"`
-		AllowedThemes   []string `json:"allowedThemes"`
 		SiteVersion     string   `json:"siteVersion"`
 		Currencies      []string `json:"currencies"`
 	}{
 		s.SiteTitle,
 		s.SiteTagline,
 		s.SiteDescription,
-		s.ThemeOptions,
 		commit,
 		utils.CURRENCIES,
 	})

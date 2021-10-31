@@ -1,7 +1,7 @@
 import {LocalStorage, Dark} from 'quasar'
 import {createStore} from 'vuex'
 
-import {changeColorTheme, notifyError} from './helpers'
+import {notifyError} from './helpers'
 import {loadSettings, loadWallet, loadUser, appInfo, listAppItems} from './api'
 
 export default createStore({
@@ -42,15 +42,6 @@ export default createStore({
 
       // set dark mode
       Dark.set(LocalStorage.getItem('lnbits.darkMode'))
-
-      // failsafe if admin changes themes halfway
-      if (
-        LocalStorage.getItem('lnbits.theme') &&
-        !settings.allowedThemes.includes(LocalStorage.getItem('lnbits.theme'))
-      ) {
-        console.log('allowedThemes changed by admin', settings.allowedThemes)
-        changeColorTheme(settings.allowedThemes[0])
-      }
 
       // set theme
       if (LocalStorage.getItem('lnbits.theme')) {
