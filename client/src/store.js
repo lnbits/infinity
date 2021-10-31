@@ -135,7 +135,7 @@ export default createStore({
 
       // listen for app db changes (all apps for this wallet)
       const apps = new EventSource(
-        `/api/wallet/apps/sse?api-key=${state.wallet.adminkey}`
+        `/api/wallet/app/sse?api-key=${state.wallet.adminkey}`
       )
       apps.addEventListener('item', ev => {
         const item = JSON.parse(ev.data)

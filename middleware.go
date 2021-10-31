@@ -79,15 +79,22 @@ func walletMiddleware(next http.Handler) http.Handler {
 		if walletKey == "" {
 			err = fmt.Errorf("X-Api-Key header not provided")
 		} else {
-			result := storage.DB.Where("admin_key", walletKey).First(&wallet)
-			permission = "admin"
-			if wallet.ID == "" {
-				result = storage.DB.Where("invoice_key", walletKey).First(&wallet)
+			result := storage.DB.
+				Where("admin_key", walletKey).Or("invoice_key", walletKey).
+				First(&wallet)
+			if result.Error != nil {
+				err = result.Error
+			} else if wallet.AdminKey == walletKey {
+				permission = "admin"
+			} else if wallet.InvoiceKey == walletKey {
 				permission = "invoice"
-				if wallet.ID == "" {
-					err = result.Error
-				}
 			}
+		}
+
+		// all app internal routes require 'admin'
+		if permission != "admin" && strings.HasPrefix(r.URL.Path, "/api/wallet/app/") {
+			w.WriteHeader(401)
+			return
 		}
 
 		if err != nil {
