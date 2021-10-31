@@ -1,6 +1,5 @@
 import {LocalStorage, exportFile, Notify, copyToClipboard} from 'quasar'
-
-export * from './api'
+import MarkdownIt from 'markdown-it'
 
 export const formatMsatToSat = msat => {
   const sat = msat / 1000
@@ -130,3 +129,17 @@ export const copyText = (text, message, position) => {
     })
   })
 }
+
+export const fieldLabel = field =>
+  (field.display || field.name) + (field.required ? ' *' : '')
+
+export const md = MarkdownIt({
+  linkify: true
+})
+
+md.linkify
+  .set({
+    fuzzyEmail: false,
+    fuzzyLink: false
+  })
+  .tlds('onion', true)

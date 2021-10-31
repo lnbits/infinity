@@ -13,6 +13,11 @@
           :items="($store.state.app || {}).items || []"
           :items-map="itemsMap"
         />
+
+        <CustomAppActions
+          v-if="$store.state.app?.actions"
+          :actions="$store.state.app?.actions"
+        />
       </div>
 
       <div class="col-12 col-md-5 q-gutter-y-md">
@@ -25,6 +30,30 @@
             :content-inset-level="0.5"
           >
             <q-card-section>
+              <q-item>
+                <q-item-section>
+                  <q-item-label overline>Title</q-item-label>
+                  <q-item-label>
+                    {{ $store.state.app.title }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item v-if="$store.state.app.description">
+                <q-item-section>
+                  <q-item-label overline>Description</q-item-label>
+                  <q-item-label
+                    :style="{
+                      paddingLeft: '10px',
+                      fontWeight: 'lighter',
+                      borderLeft: '6px solid'
+                    }"
+                    class="markdown"
+                    v-html="markdownDescription"
+                  ></q-item-label>
+                </q-item-section>
+              </q-item>
+
               <q-item>
                 <q-item-section>
                   <q-item-label overline>ID</q-item-label>
@@ -95,6 +124,8 @@
 </template>
 
 <script>
+import {md} from '../helpers'
+
 export default {
   name: 'App',
 
@@ -119,6 +150,17 @@ export default {
       )
 
       return map
+    },
+
+    markdownDescription() {
+      if (!this.$store.state.app?.description) return ''
+
+      return md
+        .render(this.$store.state.app.description)
+        .replace('$appBase', match =>
+          location.pathname.replace('/app/', '/').replace('/wallet/', '/app/')
+        )
+        .replace('<a href="', '<a target="_blank" href="')
     }
   },
 

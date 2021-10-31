@@ -38,6 +38,9 @@ module.exports = {
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
+    // custom
+    'vue/no-v-html': 0,
+
     'accessor-pairs': 2,
     'arrow-spacing': [2, {before: true, after: true}],
     'block-spacing': [2, 'always'],

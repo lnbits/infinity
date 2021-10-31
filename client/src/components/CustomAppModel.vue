@@ -324,7 +324,7 @@
 
 <script>
 import {setAppItem, addAppItem, delAppItem} from '../api'
-import {formatMsatToSat, notifyError} from '../helpers'
+import {formatMsatToSat, fieldLabel, notifyError} from '../helpers'
 
 export default {
   props: {
@@ -396,13 +396,10 @@ export default {
     json: v => JSON.stringify(v, null, 2),
 
     formatMsatToSat,
+    fieldLabel,
 
     goToURL: url => {
       window.open(url)
-    },
-
-    fieldLabel(field) {
-      return (field.display || field.name) + (field.required ? ' *' : '')
     },
 
     openFilterDialog() {

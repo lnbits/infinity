@@ -3,20 +3,29 @@ package apps
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/fiatjaf/lunatico"
 	models "github.com/lnbits/lnbits/models"
 )
 
 type Settings struct {
-	Code     string                           `json:"code"`
-	Models   []Model                          `json:"models"`
-	Triggers map[string]*lunatico.LuaFunction `json:"triggers"`
-	Actions  map[string]Action                `json:"actions"`
-	Files    map[string]string                `json:"files"`
+	URL         string                           `json:"url"`
+	Title       string                           `json:"title"`
+	Description string                           `json:"description,omitempty"`
+	Code        string                           `json:"code"`
+	Models      []Model                          `json:"models"`
+	Triggers    map[string]*lunatico.LuaFunction `json:"triggers"`
+	Actions     map[string]Action                `json:"actions"`
+	Files       map[string]string                `json:"files"`
 }
 
 func (s *Settings) normalize() {
+	if s.Title == "" {
+		spl := strings.Split(s.URL, "/")
+		s.Title = spl[len(spl)-1]
+	}
+
 	for m, _ := range s.Models {
 		for _, filter := range s.Models[m].DefaultFiltersLua {
 			if len(filter) == 3 {
@@ -354,6 +363,7 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 			ref, err := DBGet(
 				walletID, app, field.Ref, value.(string))
 			if err != nil || ref == nil {
+				log.Print(ref, " ", err, " ", value, " ", field.Ref)
 				return fmt.Errorf("%s=%v is not a valid ref",
 					field.Name, value)
 			}

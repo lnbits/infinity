@@ -1,3 +1,11 @@
+title = "Tickets"
+
+description = [[
+Create buckets and then allow your users to create tickets on each of these buckets.
+
+Only the tickets paid will be shown to you by default.
+]]
+
 models = {
   {
     name = 'bucket',
@@ -45,17 +53,17 @@ actions = {
         author = params.author,
         is_paid = false,
       })
-      -- if err then error(err) end
+      if err then error(err) end
 
       local bucket, err = db.bucket.get(params.bucket)
-      -- if err then error(err) end
+      if err then error(err) end
 
       local payment, err = wallet.create_invoice({
         msatoshi = bucket.price,
         description = 'Ticket on bucket ' .. params.bucket,
         extra = { ticket = key }
       })
-      -- if err then error(err) end
+      if err then error(err) end
 
       return {
         bolt11 = payment.bolt11,

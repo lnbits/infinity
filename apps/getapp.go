@@ -34,11 +34,12 @@ func GetAppSettings(url string) (*Settings, error) {
 		return nil, fmt.Errorf("app exported invalid definitions: %w", validationErr)
 	}
 
+	// also add the code and URL
+	settings.Code = code
+	settings.URL = url
+
 	// transform data
 	settings.normalize()
-
-	// also add the code
-	settings.Code = code
 
 	if AppCacheSize > 0 {
 		settingsCache.Set(url, &settings)

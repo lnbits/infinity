@@ -172,7 +172,11 @@ video {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// text-wrap
 .text-wrap {
   word-break: break-word;
+}
+
+.markdown {
+  p:last-child { margin-bottom: 0; }
+  a { color: inherit; }
 }
