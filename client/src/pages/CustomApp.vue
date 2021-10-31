@@ -4,6 +4,10 @@
     class="q-px-md q-py-lg"
     :class="{'q-px-lg': $q.screen.gt.xs}"
   >
+    <h3 style="margin: 0 0 20px">
+      {{ $store.state.app.title }}
+    </h3>
+
     <div class="row q-col-gutter-md">
       <div class="col-12 col-md-7 q-gutter-y-md">
         <CustomAppModel
