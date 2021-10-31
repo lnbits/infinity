@@ -39,6 +39,15 @@ func (s *Settings) normalize() {
 			}
 		}
 		s.Models[m].DefaultFiltersLua = nil
+
+		if s.Models[m].DefaultSortLua != "" {
+			spl := strings.Split(strings.TrimSpace(
+				strings.ToLower(s.Models[m].DefaultSortLua),
+			), " ")
+			s.Models[m].DefaultSortJS.SortBy = spl[0]
+			s.Models[m].DefaultSortJS.Descending = len(spl) == 2 && spl[1] == "desc"
+			s.Models[m].DefaultSortLua = ""
+		}
 	}
 }
 
@@ -126,6 +135,12 @@ type Model struct {
 	Display string  `json:"display,omitempty"`
 	Plural  string  `json:"plural,omitempty"`
 	Fields  []Field `json:"fields"`
+
+	DefaultSortLua string `json:"default_sort,omitempty"`
+	DefaultSortJS  struct {
+		SortBy     string `json:"sortBy,omitempty"`
+		Descending bool   `json:"descending,omitempty"`
+	} `json:"defaultSort,omitempty"`
 
 	DefaultFiltersLua [][]interface{} `json:"default_filters,omitempty"`
 	DefaultFiltersJS  []Filter        `json:"defaultFilters,omitempty"`

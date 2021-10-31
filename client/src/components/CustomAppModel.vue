@@ -42,11 +42,10 @@
       </div>
 
       <q-table
-        v-model:pagination="table.pagination"
+        v-model:pagination="pagination"
         dense
         flat
         binary-state-sort
-        column-sort-order="da"
         :columns="columns"
         :filter="filters"
         :filter-method="filterMethod"
@@ -329,18 +328,18 @@ export default {
 
   data() {
     return {
-      table: {
-        pagination: {
-          rowsPerPage: 15,
-          sortBy: 'created_at'
-        }
-      },
       dialog: {
         show: false,
         item: null, // the same dialog object is used for item adding/editing
         filter: null // and for filter adding/editing
       },
-      filters: null
+      filters: null,
+      pagination: {
+        rowsPerPage: 15,
+        sortBy: 'created_at',
+        descending: false,
+        ...this.model.defaultSort
+      }
     }
   },
 
