@@ -200,7 +200,7 @@ db = setmetatable({}, {
         return db_get(wallet_id, app_id, model_name, key)
       end,
       set = function (key, value)
-        return db_set(wallet_id, app_id, key, model_name, value)
+        return db_set(wallet_id, app_id, model_name, key, value)
       end,
       add = function (value)
         return db_add(wallet_id, app_id, model_name, value)

@@ -159,11 +159,17 @@ export default {
     markdownDescription() {
       if (!this.$store.state.app?.description) return ''
 
-      return md
-        .render(this.$store.state.app.description)
-        .replace('$appBase', match =>
+      const replaced = this.$store.state.app.description.replace(
+        '$appBase',
+        match =>
+          location.protocol +
+          '//' +
+          location.host +
           location.pathname.replace('/app/', '/').replace('/wallet/', '/app/')
-        )
+      )
+
+      return md
+        .render(replaced)
         .replace('<a href="', '<a target="_blank" href="')
     }
   },

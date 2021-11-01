@@ -146,6 +146,6 @@ export const md = MarkdownIt({
 md.linkify
   .set({
     fuzzyEmail: false,
-    fuzzyLink: false
+    fuzzyLink: true
   })
   .tlds('onion', true)
