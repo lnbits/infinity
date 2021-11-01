@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<title>Vote on an article</title>
+<script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+<script src="/static/app.js"></script>
+
+<div id="app">
+  <code v-if="bolt11"> {{ bolt11 }} </code>
+
+  <div
+    v-for="article in articles"
+    style="border: 2px solid black; padding: 10px; margin: 10px"
+  >
+    {{ article.key }} <br />
+    {{ article.value.name }}, by {{ article.value.author }}
+    <br />
+    {{ article.value.url }}
+    <br />
+    votes: {{ article.value.votes }}
+    <button @click="vote(article.key)">vote</button>
+  </div>
+</div>
+
+<script>
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        articles: [],
+        bolt11: null
+      }
+    },
+
+    async mounted() {
+      this.articles = await bitsapp.action('getarticles')
+
+      bitsapp.on('vote-ack', article_key => {
+        alert(`vote computed for article ${article_key}`)
+      })
+    },
+
+    methods: {
+      async vote(article_key) {
+        this.bolt11 = await bitsapp.action('vote', {
+          article_key,
+          votes: 1
+        })
+      }
+    }
+  })
+</script>

@@ -208,7 +208,8 @@
 </template>
 
 <script>
-import {createWallet, notifyError} from '../helpers'
+import {notifyError} from '../helpers'
+import {createWallet} from '../api'
 
 export default {
   name: 'PageIndex',

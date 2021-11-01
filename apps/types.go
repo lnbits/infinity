@@ -378,7 +378,6 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 			ref, err := DBGet(
 				walletID, app, field.Ref, value.(string))
 			if err != nil || ref == nil {
-				log.Print(ref, " ", err, " ", value, " ", field.Ref)
 				return fmt.Errorf("%s=%v is not a valid ref",
 					field.Name, value)
 			}
