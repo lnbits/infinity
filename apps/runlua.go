@@ -1,6 +1,7 @@
 package apps
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,9 @@ import (
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/utils"
 )
+
+//go:embed sandbox.lua
+var sandboxCode string
 
 type RunluaParams struct {
 	Code             string
@@ -113,7 +117,7 @@ return {
 	sandboxGlobalsInjector += "}\n"
 
 	err := L.DoString(sandboxGlobalsInjector + `
-local sandbox = require('apps.sandbox')
+local sandbox = (function () ` + sandboxCode + `end)()
 ret = sandbox.run(code, { quota = 300, env = injected_globals })
     `)
 	if err != nil {

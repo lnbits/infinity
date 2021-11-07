@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import {fieldLabel, notifyAppError} from '../helpers'
+import {fieldLabel, notifyError} from '../helpers'
 import {callAppAction} from '../api'
 
 export default {
@@ -135,7 +135,7 @@ export default {
           caption: `Response from <code>${this.selectedAction.name}</code> call.`
         })
       } catch (err) {
-        notifyAppError(err)
+        notifyError(err)
       }
     }
   }
