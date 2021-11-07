@@ -113,6 +113,8 @@ export default {
     },
 
     goToWallet(wallet) {
+      if (wallet.id === this.$store.state.wallet?.id) return
+
       this.$store.commit('setWallet', wallet)
       this.$router.push({
         path: `/wallet/${wallet.id}`,
