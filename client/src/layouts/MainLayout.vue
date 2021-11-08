@@ -136,7 +136,7 @@
           :color="$q.dark.isActive ? 'white' : 'primary'"
           icon="code"
           type="a"
-          href="https://github.com/lnbits/lnbits"
+          href="https://github.com/lnbits/lnbits-infinity"
           target="_blank"
           rel="noopener"
         >

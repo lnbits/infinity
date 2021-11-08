@@ -7,6 +7,7 @@ import (
 
 	"github.com/fiatjaf/lunatico"
 	models "github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/utils"
 )
 
 type Settings struct {
@@ -265,6 +266,7 @@ var validTypes = []string{
 	"ref",
 	"msatoshi",
 	"url",
+	"currency",
 }
 
 func (field Field) validate(models []Model) error {
@@ -298,7 +300,7 @@ func (field Field) validate(models []Model) error {
 		}
 
 		if field.As == "" {
-			return fmt.Errorf("%s's as not provided, must be the name of a property in the referred model", field.Name)
+			return fmt.Errorf("%s has type='ref', needs a field as='' with the value equal to the name of a property in the '%s' model", field.Name, field.Ref)
 		}
 
 		// check if referred model exists
@@ -315,7 +317,7 @@ func (field Field) validate(models []Model) error {
 					}
 				}
 				if asFieldExistsAsRefModelField == false {
-					return fmt.Errorf("%s's field as='%s', but model '%s' doesn't have a field '%s'", field.Name, field.As, refModel.Name, field.As)
+					return fmt.Errorf("%s has as='%s', but model '%s' doesn't have a field '%s'", field.Name, field.As, refModel.Name, field.As)
 				}
 
 				refExists = true
@@ -323,7 +325,7 @@ func (field Field) validate(models []Model) error {
 			}
 		}
 		if refExists == false {
-			return fmt.Errorf("%s's ref '%s' doesn't exist as a model",
+			return fmt.Errorf("%s has ref='%s', but that doesn't exist as a model",
 				field.Name, field.Ref)
 		}
 	}
@@ -351,16 +353,52 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 		if valueType.Name() != "float64" {
 			return fmt.Errorf("%s=%v is not a number", field.Name, value)
 		}
-		msat := int64(value.(float64))
-		if float64(msat) != value.(float64) {
+		amount := int64(value.(float64))
+		if float64(amount) != value.(float64) {
 			return fmt.Errorf(
-				"%s=%v is not an integer, msatoshi must be integer",
-				field.Name, value,
+				"%s=%v is not an integer, %d must be an integer",
+				field.Type, field.Name, value,
 			)
 		}
-		if msat > 100000000000 {
+		if amount > 100000000000 {
 			return fmt.Errorf("%s=%v is way too many satoshis",
 				field.Name, value)
+		}
+	case "currency":
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("%s=%v is not a map", field.Name, value)
+		}
+		if len(v) != 2 {
+			return fmt.Errorf("%s=%v has more than 2 fields, should have {amount, unit}",
+				field.Name, value)
+		}
+		if amt, ok := v["amount"]; !ok {
+			return fmt.Errorf("%s=%v is missing the 'amount' field", field.Name, value)
+		} else {
+			if _, ok := amt.(float64); !ok {
+				return fmt.Errorf("%s=%v amount is not a number", field.Name, value)
+			}
+		}
+
+		if un, ok := v["unit"]; !ok {
+			return fmt.Errorf("%s=%v is missing the 'unit' field", field.Name, value)
+		} else {
+			if unit, ok := un.(string); !ok {
+				return fmt.Errorf("%s=%v unit is not a string", field.Name, value)
+			} else if unit != "sat" {
+				bad := true
+				for _, curr := range utils.CURRENCIES {
+					if strings.ToUpper(unit) == curr {
+						bad = false
+						break
+					}
+				}
+				if bad {
+					return fmt.Errorf("%s=%v unit='%v', invalid currency",
+						field.Name, value, unit)
+				}
+			}
 		}
 	case "boolean":
 		if valueType.Name() != "bool" {

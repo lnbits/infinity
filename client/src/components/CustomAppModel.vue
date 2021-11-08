@@ -87,6 +87,10 @@
               <span v-else-if="field.type === 'msatoshi'">
                 {{ formatMsatToSat(props.row.value[field.name]) }} sat
               </span>
+              <span v-else-if="field.type === 'currency'">
+                {{ props.row.value[field.name].amount }}
+                {{ props.row.value[field.name].unit }}
+              </span>
               <span v-else-if="field.type === 'boolean'">
                 <q-icon
                   size="sm"
@@ -175,6 +179,31 @@
               dialog.item.value[field.name] = (parseInt($event) || 0) * 1000
             "
           />
+          <q-input
+            v-if="field.type === 'currency'"
+            filled
+            dense
+            type="text"
+            :label="fieldLabel(field)"
+            :model-value="
+              dialog.item.value[field.name].amount > 0
+                ? dialog.item.value[field.name].amount
+                : ''
+            "
+            @update:model-value="
+              dialog.item.value[field.name].amount = parseInt($event) || 0
+            "
+          >
+            <template #after>
+              <q-select
+                v-model="dialog.item.value[field.name].unit"
+                :options="$store.state.settings.currencies"
+                label="Unit"
+                filled
+                dense
+              />
+            </template>
+          </q-input>
           <q-toggle
             v-if="field.type === 'boolean'"
             v-model="dialog.item.value[field.name]"
@@ -419,6 +448,12 @@ export default {
           value: Object.fromEntries(
             this.model.fields
               .filter(field => !field.computed)
+              .map(field => {
+                if (field.type === 'currency') {
+                  field.default = field.default || {amount: 0, unit: 'sat'}
+                }
+                return field
+              })
               .map(field => [field.name, field.default])
           )
         },

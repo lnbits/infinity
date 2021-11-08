@@ -64,7 +64,7 @@
                   outline
                   color="grey"
                   type="a"
-                  href="https://github.com/lnbits/lnbits"
+                  href="https://github.com/lnbits/lnbits-infinity"
                   target="_blank"
                   rel="noopener"
                   >View project in GitHub</q-btn
@@ -73,7 +73,7 @@
                   outline
                   color="grey"
                   type="a"
-                  href="https://lnbits.com/paywall/GAqKguK5S8f6w5VNjS9DfK"
+                  href="https://legend.lnbits.com/paywall/GAqKguK5S8f6w5VNjS9DfK"
                   target="_blank"
                   rel="noopener"
                   >Donate</q-btn
