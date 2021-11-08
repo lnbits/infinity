@@ -29,7 +29,7 @@ func init() {
 		c := make(chan models.Payment)
 		events.OnPaymentReceived(c)
 		for payment := range c {
-			go TriggerEvent("payment_received", payment)
+			go TriggerPaymentEvent("payment_received", payment)
 		}
 	}()
 
@@ -37,8 +37,26 @@ func init() {
 		c := make(chan models.Payment)
 		events.OnPaymentSent(c)
 		for payment := range c {
-			go TriggerEvent("payment_sent", payment)
+			go TriggerPaymentEvent("payment_sent", payment)
 		}
+	}()
+
+	// periodically trigger apps
+	hourly := time.NewTicker(time.Hour * 1)
+	go func() {
+		for {
+			now := <-hourly.C
+
+			go TriggerGenericEvent("hourly", now.Unix())
+			if now.Hour() == 0 {
+				go TriggerGenericEvent("daily", now.Unix())
+				if now.Weekday() == time.Sunday {
+					go TriggerGenericEvent("weekly", now.Unix())
+				}
+			}
+		}
+
+		hourly.Stop()
 	}()
 }
 
