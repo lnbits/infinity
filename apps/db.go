@@ -19,7 +19,15 @@ func DBGet(wallet, app, model, key string) (map[string]interface{}, error) {
 	}
 
 	result := storage.DB.First(&item)
-	return item.Value, result.Error
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if err := fillComputedValues(item); err != nil {
+		return item.Value, fmt.Errorf("failed to compute: %w", err)
+	}
+
+	return item.Value, nil
 }
 
 func DBList(wallet, app, model string) ([]models.AppDataItem, error) {
@@ -28,7 +36,17 @@ func DBList(wallet, app, model string) ([]models.AppDataItem, error) {
 		Where(&models.AppDataItem{WalletID: wallet, App: app, Model: model}).
 		Find(&items)
 
-	return items, result.Error
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	for _, item := range items {
+		if err := fillComputedValues(item); err != nil {
+			return items, fmt.Errorf("failed to compute: %w", err)
+		}
+	}
+
+	return items, nil
 }
 
 func DBSet(wallet, app, model, key string, value map[string]interface{}) error {

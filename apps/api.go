@@ -2,7 +2,6 @@ package apps
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -33,40 +32,10 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 	modelName := mux.Vars(r)["model"]
 
-	settings, err := GetAppSettings(app)
-	if err != nil {
-		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
-		return
-	}
-
 	items, err := DBList(wallet.ID, app, modelName)
 	if err != nil {
 		apiutils.SendJSONError(w, 500, "database error: %s", err.Error())
 		return
-	}
-
-	// preprocess items
-	/// computed
-	model := settings.getModel(modelName)
-	for _, field := range model.Fields {
-		if field.Computed != nil {
-			for _, item := range items {
-				var err error
-				item.Value[field.Name], err = runlua(RunluaParams{
-					AppURL: app,
-					CodeToRun: fmt.Sprintf(
-						"internal.get_model_field('%s', '%s').computed(internal.arg)",
-						model.Name, field.Name,
-					),
-					InjectedGlobals: &map[string]interface{}{"arg": structToMap(item)},
-				})
-				if err != nil {
-					log.Debug().Err(err).Interface("item", item).
-						Str("model", model.Name).Str("field", field.Name).
-						Msg("failed to run compute")
-				}
-			}
-		}
 	}
 
 	json.NewEncoder(w).Encode(items)
