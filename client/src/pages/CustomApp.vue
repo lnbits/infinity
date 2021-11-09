@@ -20,6 +20,7 @@
 
         <CustomAppActions
           v-if="$store.state.app?.actions"
+          :items="($store.state.app || {}).items || []"
           :actions="$store.state.app?.actions"
         />
       </div>

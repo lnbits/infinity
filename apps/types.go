@@ -116,7 +116,7 @@ func (s Settings) validate() error {
 		}
 
 		for f, field := range def.Fields {
-			if err := field.validate(nil); err != nil {
+			if err := field.validate(s.Models); err != nil {
 				return fmt.Errorf("action %s.fields[%d] validation error: %w",
 					name, f, err)
 			}
@@ -136,6 +136,7 @@ type Model struct {
 	Display string  `json:"display,omitempty"`
 	Plural  string  `json:"plural,omitempty"`
 	Fields  []Field `json:"fields"`
+	Single  bool    `json:"single,omitempty"`
 
 	DefaultSortLua string `json:"default_sort,omitempty"`
 	DefaultSortJS  struct {
@@ -214,10 +215,6 @@ func (action Action) validateParams(params map[string]interface{}) error {
 				// we don't expected computed fields
 				continue
 			}
-			if field.Type == "ref" {
-				// we don't expected ref fields
-				continue
-			}
 			if field.Required {
 				if _, seenYet := missingRequired[field.Name]; !seenYet {
 					missingRequired[field.Name] = true
@@ -249,10 +246,14 @@ func (action Action) validateParams(params map[string]interface{}) error {
 }
 
 type Field struct {
-	Name     string                `json:"name"`
-	Display  string                `json:"display,omitempty"`
-	Type     string                `json:"type"`
-	Required bool                  `json:"required,omitempty"`
+	Name     string `json:"name"`
+	Display  string `json:"display,omitempty"`
+	Type     string `json:"type"`
+	Required bool   `json:"required,omitempty"`
+	Options  []struct {
+		Label string      `json:"label"`
+		Value interface{} `json:"value"`
+	} `json:"options,omitempty"`
 	Default  interface{}           `json:"default,omitempty"`
 	Ref      string                `json:"ref,omitempty"`
 	As       string                `json:"as,omitempty"`
@@ -267,6 +268,7 @@ var validTypes = []string{
 	"msatoshi",
 	"url",
 	"currency",
+	"select",
 }
 
 func (field Field) validate(models []Model) error {
@@ -290,7 +292,13 @@ func (field Field) validate(models []Model) error {
 			field.Name, field.Type, validTypes)
 	}
 
-	if field.Type == "ref" {
+	switch field.Type {
+	case "select":
+		if len(field.Options) == 0 {
+			return fmt.Errorf("%s has type='select', but no options were defined",
+				field.Name)
+		}
+	case "ref":
 		if models == nil {
 			return fmt.Errorf("%s has type='ref', but we don't accept ref types in this context", field.Name)
 		}
@@ -400,6 +408,8 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 				}
 			}
 		}
+	case "select":
+		// anything goes
 	case "boolean":
 		if valueType.Name() != "bool" {
 			return fmt.Errorf("%s=%v is not a boolean", field.Name, value)

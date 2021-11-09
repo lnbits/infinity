@@ -63,7 +63,7 @@ func TriggerPaymentEvent(trigger string, payment models.Payment) {
 			AppURL:   app,
 			WalletID: payment.WalletID,
 			CodeToRun: fmt.Sprintf(
-				"internal.get_trigger('%s')(internal.arg)",
+				"internal.get_trigger('%s')(internal.enhance_payment(internal.arg))",
 				trigger,
 			),
 			InjectedGlobals: &map[string]interface{}{"arg": structToMap(payment)},

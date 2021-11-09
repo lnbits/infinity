@@ -12,6 +12,7 @@ import (
 )
 
 var CURRENCIES = []string{
+	"sat",
 	"AED",
 	"AFN",
 	"ALL",
@@ -179,6 +180,10 @@ var CURRENCIES = []string{
 }
 
 func GetMsatsPerFiatUnit(currencyCode string) (int64, error) {
+	if currencyCode == "sat" {
+		return 1000, nil
+	}
+
 	lower := strings.ToLower(currencyCode)
 	upper := strings.ToUpper(currencyCode)
 

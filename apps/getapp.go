@@ -26,6 +26,7 @@ func GetAppSettings(url string) (*Settings, error) {
 		AppURL:           url,
 		ExtractedGlobals: &settings,
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to run lua: %w", err)
 	}

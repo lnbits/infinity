@@ -1,12 +1,23 @@
 <template>
   <q-card>
     <q-card-section>
-      <q-btn unelevated color="primary" @click="openCreateDialog"
+      <q-btn
+        v-if="!model.single"
+        unelevated
+        color="primary"
+        @click="openCreateDialog"
         >New {{ model.display || model.name }}</q-btn
+      >
+      <q-btn
+        v-else
+        unelevated
+        color="primary"
+        @click="openUpdateDialog('single')"
+        >Edit {{ model.display || model.name }}</q-btn
       >
     </q-card-section>
     <q-card-section>
-      <div class="row items-center no-wrap q-mb-md">
+      <div v-if="!model.single" class="row items-center no-wrap q-mb-md">
         <div class="col">
           <h5 class="text-subtitle1 q-my-none">
             {{
@@ -42,6 +53,7 @@
       </div>
 
       <q-table
+        v-if="!model.single"
         v-model:pagination="pagination"
         dense
         flat
@@ -65,52 +77,11 @@
               auto-width
               class="text-center"
             >
-              <q-btn
-                v-if="field.type === 'url'"
-                flat
-                dense
-                size="xs"
-                icon="link"
-                color="light-blue"
-                :title="props.row.value[field.name]"
-                @click.stop="
-                  goToURL(
-                    props.row.value[field.name].startsWith('http') ||
-                      props.row.value[field.name].startsWith('/')
-                      ? props.row.value[field.name]
-                      : `/app/${$store.state.wallet.id}/${
-                          $store.state.app.id
-                        }/${props.row.value[field.name]}`
-                  )
-                "
-              ></q-btn>
-              <span v-else-if="field.type === 'msatoshi'">
-                {{ formatMsatToSat(props.row.value[field.name]) }} sat
-              </span>
-              <span v-else-if="field.type === 'currency'">
-                {{ props.row.value[field.name].amount }}
-                {{ props.row.value[field.name].unit }}
-              </span>
-              <span v-else-if="field.type === 'boolean'">
-                <q-icon
-                  size="sm"
-                  :name="
-                    props.row.value[field.name]
-                      ? 'check_box'
-                      : 'check_box_outline_blank'
-                  "
-                />
-              </span>
-              <span v-else-if="field.type === 'ref'">
-                {{
-                  itemsMap[field.ref] &&
-                  itemsMap[field.ref][props.row.value[field.name]] &&
-                  itemsMap[field.ref][props.row.value[field.name]].value[
-                    field.as
-                  ]
-                }}
-              </span>
-              <span v-else>{{ props.row.value[field.name] }}</span>
+              <AppPropertyDisplay
+                :field="field"
+                :value="props.row.value[field.name]"
+                :items-map="itemsMap"
+              />
             </q-td>
             <q-td auto-width>
               <q-btn
@@ -133,6 +104,22 @@
           </q-tr>
         </template>
       </q-table>
+      <q-list v-else dense>
+        <q-item v-for="field in model.fields" :key="field.name">
+          <q-item-section class="col">
+            <q-item-label>{{ fieldLabel(field) }}</q-item-label>
+          </q-item-section>
+          <q-item-section class="col" style="font-size: 13px">
+            <q-item-label>
+              <AppPropertyDisplay
+                :field="field"
+                :value="singleItem.value[field.name]"
+                :items-map="itemsMap"
+              />
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
     </q-card-section>
   </q-card>
 
@@ -141,92 +128,20 @@
       <!-- ITEM EDITING MODAL -->
       <q-form v-if="dialog.item" class="q-gutter-md" @submit="saveItem">
         <div class="text-h6">
-          Editing <code>{{ dialog.item.key }}</code>
+          Editing
+          <span v-if="dialog.item.key === 'single'">
+            {{ model.display || model.name }}
+          </span>
+          <code v-else>{{ dialog.item.key }}</code>
         </div>
         <template
           v-for="field in model.fields.filter(f => !f.computed)"
           :key="field.name"
         >
-          <q-input
-            v-if="field.type === 'string' || field.type === 'url'"
-            v-model.trim="dialog.item.value[field.name]"
-            filled
-            dense
-            :type="field.type === 'url' ? 'url' : 'text'"
-            :label="fieldLabel(field)"
-          />
-          <q-input
-            v-if="field.type === 'number'"
-            v-model.number="dialog.item.value[field.name]"
-            filled
-            dense
-            type="number"
-            :label="fieldLabel(field)"
-          />
-          <q-input
-            v-if="field.type === 'msatoshi'"
-            filled
-            dense
-            type="text"
-            suffix="satoshis"
-            :label="fieldLabel(field)"
-            :model-value="
-              dialog.item.value[field.name] > 0
-                ? dialog.item.value[field.name] / 1000
-                : ''
-            "
-            @update:model-value="
-              dialog.item.value[field.name] = (parseInt($event) || 0) * 1000
-            "
-          />
-          <q-input
-            v-if="field.type === 'currency'"
-            filled
-            dense
-            type="text"
-            :label="fieldLabel(field)"
-            :model-value="
-              dialog.item.value[field.name].amount > 0
-                ? dialog.item.value[field.name].amount
-                : ''
-            "
-            @update:model-value="
-              dialog.item.value[field.name].amount = parseInt($event) || 0
-            "
-          >
-            <template #after>
-              <q-select
-                v-model="dialog.item.value[field.name].unit"
-                :options="$store.state.settings.currencies"
-                label="Unit"
-                filled
-                dense
-              />
-            </template>
-          </q-input>
-          <q-toggle
-            v-if="field.type === 'boolean'"
-            v-model="dialog.item.value[field.name]"
-            :label="fieldLabel(field)"
-            :indeterminate-value="'INDETERMINATE'"
-          />
-          <q-select
-            v-if="field.type === 'ref'"
-            v-model="dialog.item.value[field.name]"
-            filled
-            dense
-            use-input
-            emit-value
-            map-options
-            input-debounce="0"
-            behavior="dialog"
-            :options="
-              items[field.ref].map(item => ({
-                label: item.value[field.as],
-                value: item.key
-              }))
-            "
-            :label="fieldLabel(field)"
+          <AppPropertyEdit
+            v-model:value="dialog.item.value[field.name]"
+            :field="field"
+            :items="items"
           />
         </template>
         <div class="row q-mt-lg">
@@ -337,7 +252,7 @@
 
 <script>
 import {setAppItem, addAppItem, delAppItem} from '../api'
-import {formatMsatToSat, formatDate, fieldLabel, notifyError} from '../helpers'
+import {paramDefaults, formatDate, fieldLabel, notifyError} from '../helpers'
 
 export default {
   props: {
@@ -379,6 +294,17 @@ export default {
             .map(({field, op, value}) => `${field} ${op} ${value}`)
             .join('; ')
         : null
+    },
+
+    singleItem() {
+      return (
+        this.items[this.model.name].find(item => item.key === 'single') || {
+          wallet: this.$store.state.wallet.id,
+          model: this.model.name,
+          key: 'single',
+          value: paramDefaults(this.model.fields)
+        }
+      )
     },
 
     fieldsMap() {
@@ -424,13 +350,8 @@ export default {
   methods: {
     json: v => JSON.stringify(v, null, 2),
 
-    formatMsatToSat,
     formatDate,
     fieldLabel,
-
-    goToURL: url => {
-      window.open(url)
-    },
 
     openFilterDialog() {
       this.dialog = {
@@ -445,17 +366,7 @@ export default {
         item: {
           wallet: this.$store.state.wallet.id,
           model: this.model.name,
-          value: Object.fromEntries(
-            this.model.fields
-              .filter(field => !field.computed)
-              .map(field => {
-                if (field.type === 'currency') {
-                  field.default = field.default || {amount: 0, unit: 'sat'}
-                }
-                return field
-              })
-              .map(field => [field.name, field.default])
-          )
+          value: paramDefaults(this.model.fields)
         },
         show: true,
         filter: null
@@ -464,6 +375,15 @@ export default {
 
     openUpdateDialog(key) {
       var item = this.items[this.model.name].find(item => item.key === key)
+      if (!item && key === 'single') {
+        item = {
+          wallet: this.$store.state.wallet.id,
+          model: this.model.name,
+          key,
+          value: paramDefaults(this.model.fields)
+        }
+      }
+
       item = {...item, value: {...item.value}}
       this.model.fields
         .filter(field => field.computed)

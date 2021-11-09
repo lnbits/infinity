@@ -201,21 +201,45 @@ db = setmetatable({}, {
   __index = function (_, model_name)
     return {
       get = function (key)
+        if internal.get_model(model_name).single then
+          key = 'single'
+        end
+
         return db_get(wallet_id, app_id, model_name, key)
       end,
       set = function (key, value)
+        if internal.get_model(model_name).single then
+          key = 'single'
+        end
+
         return db_set(wallet_id, app_id, model_name, key, value)
       end,
       add = function (value)
+        if internal.get_model(model_name).single then
+          error("can't .add() because " .. model_name .. " is 'single'")
+        end
+
         return db_add(wallet_id, app_id, model_name, value)
       end,
       list = function ()
+        if internal.get_model(model_name).single then
+          error("can't .add() because " .. model_name .. " is 'single'")
+        end
+
         return db_list(wallet_id, app_id, model_name)
       end,
       update = function (key, updates)
+        if internal.get_model(model_name).single then
+          key = 'single'
+        end
+
         return db_update(wallet_id, app_id, model_name, key, updates)
       end,
       delete = function (key)
+        if internal.get_model(model_name).single then
+          key = 'single'
+        end
+
         return db_delete(wallet_id, app_id, model_name, key)
       end,
     }
@@ -250,6 +274,22 @@ internal = {
       return function () end
     end
     return triggers[trigger_name]
+  end,
+  enhance_payment = function (payment)
+    return setmetatable(payment, {
+      __index = function (payment, key)
+        if key == 'item' then
+          return {
+            get = function ()
+              db_get(wallet.id, app.id, "", payment.itemKey)
+            end,
+            update = function (updates)
+              db_update(wallet.id, app.id, "", payment.itemKey, updates)
+            end,
+          }
+        end
+      end,
+    })
   end,
   arg = arg
 }
