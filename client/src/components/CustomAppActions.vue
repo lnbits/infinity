@@ -18,48 +18,17 @@
     <q-card-section v-if="selectedAction">
       <q-form class="q-gutter-md" @submit="callAction">
         <div class="row wrap q-gutter-md">
-          <div
+          <template
             v-for="field in selectedAction.fields"
             :key="field.name"
             class="row"
           >
-            <q-input
-              v-if="field.type === 'string' || field.type === 'url'"
-              v-model.trim="params[field.name]"
-              filled
-              dense
-              :type="field.type === 'url' ? 'url' : 'text'"
-              :label="fieldLabel(field)"
+            <AppPropertyEdit
+              v-model:value="params[field.name]"
+              :field="field"
+              :items="items"
             />
-            <q-input
-              v-if="field.type === 'number'"
-              v-model.number="params[field.name]"
-              filled
-              dense
-              type="number"
-              :label="fieldLabel(field)"
-            />
-            <q-input
-              v-if="field.type === 'msatoshi'"
-              filled
-              dense
-              type="text"
-              suffix="satoshis"
-              :label="fieldLabel(field)"
-              :model-value="
-                params[field.name] > 0 ? params[field.name] / 1000 : ''
-              "
-              @update:model-value="
-                params[field.name] = (parseInt($event) || 0) * 1000
-              "
-            />
-            <q-toggle
-              v-if="field.type === 'boolean'"
-              v-model="params[field.name]"
-              :label="fieldLabel(field)"
-              :indeterminate-value="'INDETERMINATE'"
-            />
-          </div>
+          </template>
         </div>
         <div class="row wrap q-gutter-md">
           <div class="col">
@@ -77,10 +46,21 @@
 </template>
 
 <script>
-import {fieldLabel, notifyError} from '../helpers'
 import {callAppAction} from '../api'
+import {paramDefaults, fieldLabel, notifyError} from '../helpers'
 
 export default {
+  props: {
+    items: {
+      type: Array,
+      required: true
+    },
+    actions: {
+      type: Object,
+      required: true
+    }
+  },
+
   data() {
     return {
       selectedAction: null,
@@ -105,7 +85,7 @@ export default {
     selectAction(actionName) {
       this.selectedAction = this.$store.state.app.actions[actionName]
       this.selectedAction.name = actionName
-      this.params = {}
+      this.params = paramDefaults(this.selectedAction.fields)
     },
 
     cancelAction() {

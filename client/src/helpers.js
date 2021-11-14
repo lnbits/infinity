@@ -1,6 +1,20 @@
 import {LocalStorage, exportFile, Notify, copyToClipboard} from 'quasar'
 import MarkdownIt from 'markdown-it'
 
+export const paramDefaults = fields => {
+  return Object.fromEntries(
+    fields
+      .filter(field => !field.computed)
+      .map(field => {
+        if (field.type === 'currency') {
+          field.default = field.default || {amount: 0, unit: 'sat'}
+        }
+        return field
+      })
+      .map(field => [field.name, field.default])
+  )
+}
+
 export const formatMsatToSat = msat => {
   const sat = msat / 1000
   const satInt = parseInt(sat)

@@ -6,7 +6,9 @@ import AppList from '../components/AppList'
 import WalletList from '../components/WalletList'
 import PaymentDetails from '../components/PaymentDetails'
 import CustomAppModel from '../components/CustomAppModel'
+import AppPropertyEdit from '../components/AppPropertyEdit'
 import CustomAppActions from '../components/CustomAppActions'
+import AppPropertyDisplay from '../components/AppPropertyDisplay'
 import LnurlPaySuccessAction from '../components/LnurlPaySuccessAction'
 
 export default ({app}) => {
@@ -17,7 +19,9 @@ export default ({app}) => {
   app.component('AppList', AppList)
   app.component('WalletList', WalletList)
   app.component('CustomAppModel', CustomAppModel)
-  app.component('CustomAppActions', CustomAppActions)
   app.component('PaymentDetails', PaymentDetails)
+  app.component('AppPropertyEdit', AppPropertyEdit)
+  app.component('CustomAppActions', CustomAppActions)
+  app.component('AppPropertyDisplay', AppPropertyDisplay)
   app.component('LnurlPaySuccessAction', LnurlPaySuccessAction)
 }
