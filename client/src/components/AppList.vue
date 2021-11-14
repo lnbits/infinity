@@ -1,6 +1,6 @@
 <template>
   <q-list v-if="$store.state.user" dense class="lnbits-drawer__q-list">
-    <q-item-label header>Apps</q-item-label>
+    <q-item-label header>Modules</q-item-label>
     <q-item
       v-for="app in $store.state.user.apps"
       :key="app"
@@ -55,7 +55,7 @@
         ></q-icon>
       </q-item-section>
       <q-item-section>
-        <q-item-label lines="1" class="text-caption">Add an app</q-item-label>
+        <q-item-label lines="1" class="text-caption">Plug a module</q-item-label>
       </q-item-section>
     </q-item>
     <q-item v-if="showForm">
