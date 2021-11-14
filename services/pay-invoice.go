@@ -100,7 +100,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 		Where("amount > 0").
 		Where("pending"). // search for a pending incoming payment with this same hash
 		First(&internal)
-	if result.Error != nil {
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return payment, fmt.Errorf("failed to check internal payment: %w", result.Error)
 	}
 	if internal.CheckingID != "" {

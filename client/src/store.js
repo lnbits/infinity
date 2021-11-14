@@ -53,6 +53,9 @@ export default createStore({
 
       // commit settings
       commit('setSettings', settings)
+
+      // set title
+      document.querySelector('title').innerHTML = settings.siteTitle
     },
     async fetchUser({state, dispatch, commit}) {
       if (!new URLSearchParams(location.search).get('key')) return
