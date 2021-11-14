@@ -20,6 +20,7 @@ type PayInvoiceParams struct {
 
 	Tag     string            `json:"tag"`
 	Extra   models.JSONObject `json:"extra"`
+	ItemKey string            `json:"item_key"`
 	Webhook string            `json:"webhook"`
 }
 
@@ -59,6 +60,7 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 		Hash:        inv.PaymentHash,
 		Bolt11:      params.Invoice,
 		Tag:         params.Tag,
+		ItemKey:     params.ItemKey,
 		Extra:       params.Extra,
 		Webhook:     params.Webhook,
 		WalletID:    walletID,

@@ -275,6 +275,22 @@ internal = {
     end
     return triggers[trigger_name]
   end,
+  enhance_payment = function (payment)
+    return setmetatable(payment, {
+      __index = function (payment, key)
+        if key == 'item' then
+          return {
+            get = function ()
+              db_get(wallet.id, app.id, "", payment.itemKey)
+            end,
+            update = function (updates)
+              db_update(wallet.id, app.id, "", payment.itemKey, updates)
+            end,
+          }
+        end
+      end,
+    })
+  end,
   arg = arg
 }
 `

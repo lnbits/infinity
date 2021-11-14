@@ -15,6 +15,7 @@ type CreateInvoiceParams struct {
 
 	Tag     string            `json:"tag"`
 	Extra   models.JSONObject `json:"extra"`
+	ItemKey string            `json:"item_key"`
 	Webhook string            `json:"webhook"`
 }
 
@@ -47,6 +48,7 @@ func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment,
 		Description: params.Description,
 		Extra:       params.Extra,
 		Tag:         params.Tag,
+		ItemKey:     params.ItemKey,
 	}
 	if result := storage.DB.Create(&payment); result.Error != nil {
 		return payment, fmt.Errorf("failed to save invoice: %w", result.Error)
