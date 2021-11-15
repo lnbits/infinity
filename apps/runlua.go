@@ -69,6 +69,8 @@ return {
 		"http_patch":              utils.HTTPPatch,
 		"http_delete":             utils.HTTPDelete,
 		"http_request":            utils.HTTP,
+		"qs_parse":                utils.ParseQueryString,
+		"qs_encode":               utils.EncodeQueryString,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -188,7 +190,13 @@ http = {
   delete = http_delete,
 }
 
+qs = {
+  parse = qs_parse,
+  encode = qs_encode,
+}
+
 utils = {
+  qs = qs,
   http = http,
   random_hex = random_hex,
   aes_encrypt = aes_encrypt,

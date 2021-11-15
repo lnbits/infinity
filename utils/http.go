@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 // should only be used inside lua code
@@ -87,4 +88,28 @@ func HTTPPatch(url string, data interface{}) (interface{}, int, error) {
 }
 func HTTPDelete(url string) (interface{}, int, error) {
 	return HTTP("DELETE", url, nil, nil)
+}
+
+func ParseQueryString(query string) (map[string]string, error) {
+	parsed, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, err
+	}
+
+	qs := make(map[string]string)
+	for k, vs := range parsed {
+		qs[k] = vs[0]
+	}
+
+	return qs, nil
+}
+
+func EncodeQueryString(qs map[string]interface{}) string {
+	values := url.Values{}
+
+	for k, v := range qs {
+		values.Set(k, fmt.Sprintf("%v", v))
+	}
+
+	return values.Encode()
 }
