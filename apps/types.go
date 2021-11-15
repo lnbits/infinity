@@ -204,7 +204,11 @@ type Action struct {
 	Fields  []Field               `json:"fields"`
 }
 
-func (action Action) validateParams(params map[string]interface{}) error {
+func (action Action) validateParams(
+	params map[string]interface{},
+	walletID string,
+	app string,
+) error {
 	missingRequired := make(map[string]bool)
 
 	for fieldName, fieldValue := range params {
@@ -223,7 +227,7 @@ func (action Action) validateParams(params map[string]interface{}) error {
 
 			if field.Name == fieldName {
 				fieldExpected = true
-				if err := field.validateValue(fieldValue, "", ""); err != nil {
+				if err := field.validateValue(fieldValue, walletID, app); err != nil {
 					return err
 				}
 
@@ -419,8 +423,8 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 			return fmt.Errorf("%s=%v is not a ref string",
 				field.Name, value)
 		}
-		if walletID == "" {
-			return fmt.Errorf("%s=%v is is a ref but we don't accept refs here",
+		if walletID == "" || app == "" {
+			return fmt.Errorf("%s=%v is a ref but we don't accept refs here",
 				field.Name, value)
 		} else {
 			ref, err := DBGet(

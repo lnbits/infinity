@@ -46,7 +46,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := def.validateParams(params); err != nil {
+	if err := def.validateParams(params, walletID, app); err != nil {
 		apiutils.SendJSONError(w, 400,
 			"'%s' called with invalid params: %s", action, err.Error())
 		return

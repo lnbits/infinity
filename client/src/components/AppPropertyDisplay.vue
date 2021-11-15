@@ -1,20 +1,22 @@
 <template>
-  <q-btn
-    v-if="field.type === 'url'"
-    flat
-    dense
-    size="xs"
-    icon="link"
-    color="light-blue"
-    :title="value"
-    @click.stop="
-      goToURL(
-        value.startsWith('http') || value.startsWith('/')
-          ? value
-          : `/app/${$store.state.wallet.id}/${$store.state.app.id}/${value}`
-      )
-    "
-  ></q-btn>
+  <template v-if="field.type === 'url'">
+    <q-btn
+      flat
+      dense
+      size="xs"
+      icon="link"
+      color="light-blue"
+      :title="value"
+      @click.stop="
+        goToURL(
+          value.startsWith('http') || value.startsWith('/')
+            ? value
+            : `/app/${$store.state.wallet.id}/${$store.state.app.id}/${value}`
+        )
+      "
+    ></q-btn>
+    <span v-if="single" style="color: #aaa">{{ value }}</span>
+  </template>
   <span v-else-if="field.type === 'msatoshi'">
     {{ formatMsatToSat(value) }} sat
   </span>
@@ -44,13 +46,24 @@ export default {
       type: Object,
       required: true
     },
-    value: {
+    single: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    data: {
       type: Object,
       required: true
     },
     itemsMap: {
       type: Object,
       required: true
+    }
+  },
+
+  computed: {
+    value() {
+      return this.data[this.field.name]
     }
   },
 

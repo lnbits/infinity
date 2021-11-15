@@ -120,7 +120,7 @@ return {
 
 	err := L.DoString(sandboxGlobalsInjector + `
 local sandbox = (function () ` + sandboxCode + `end)()
-ret = sandbox.run(code, { quota = 300, env = injected_globals })
+ret = sandbox.run(code, { quota = 1000, env = injected_globals })
     `)
 	if err != nil {
 		if luaError, ok := err.(*lua.LuaError); ok {

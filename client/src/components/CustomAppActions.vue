@@ -24,7 +24,7 @@
             class="row"
           >
             <AppPropertyEdit
-              v-model:value="params[field.name]"
+              v-model:data="params"
               :field="field"
               :items="items"
             />
@@ -52,7 +52,7 @@ import {paramDefaults, fieldLabel, notifyError} from '../helpers'
 export default {
   props: {
     items: {
-      type: Array,
+      type: Object,
       required: true
     },
     actions: {

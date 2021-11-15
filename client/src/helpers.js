@@ -5,13 +5,16 @@ export const paramDefaults = fields => {
   return Object.fromEntries(
     fields
       .filter(field => !field.computed)
-      .map(field => {
-        if (field.type === 'currency') {
-          field.default = field.default || {amount: 0, unit: 'sat'}
-        }
-        return field
-      })
-      .map(field => [field.name, field.default])
+      .map(field => [
+        field.name,
+        field.default ||
+          (
+            {
+              currency: () => ({amount: 0, unit: 'sat'}),
+              boolean: () => false
+            }[field.type] || (() => {})
+          )()
+      ])
   )
 }
 

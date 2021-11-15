@@ -79,7 +79,7 @@
             >
               <AppPropertyDisplay
                 :field="field"
-                :value="props.row.value[field.name]"
+                :data="props.row.value"
                 :items-map="itemsMap"
               />
             </q-td>
@@ -112,8 +112,9 @@
           <q-item-section class="col" style="font-size: 13px">
             <q-item-label>
               <AppPropertyDisplay
+                single
                 :field="field"
-                :value="singleItem.value[field.name]"
+                :data="singleItem.value"
                 :items-map="itemsMap"
               />
             </q-item-label>
@@ -139,7 +140,7 @@
           :key="field.name"
         >
           <AppPropertyEdit
-            v-model:value="dialog.item.value[field.name]"
+            v-model:data="dialog.item.value"
             :field="field"
             :items="items"
           />
