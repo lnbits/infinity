@@ -231,7 +231,7 @@ db = setmetatable({}, {
       end,
       list = function ()
         if internal.get_model(model_name).single then
-          error("can't .add() because " .. model_name .. " is 'single'")
+          error("can't .list() because " .. model_name .. " is 'single'")
         end
 
         return db_list(wallet_id, app_id, model_name)

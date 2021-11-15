@@ -322,7 +322,7 @@ export default {
         ...this.model.fields.map(field => ({
           name: field.name,
           label: fieldLabel(field),
-          field: row => row[field.name],
+          field: row => this.getSortableFieldValue(row, field),
           sortable: true,
           headerStyle: 'font-size: 110%;' + headerStyle
         })),
@@ -457,6 +457,15 @@ export default {
             notifyError(err)
           }
         })
+    },
+
+    getSortableFieldValue(item, field) {
+      switch (field.type) {
+        case 'currency':
+          return item.value[field.name].amount
+        default:
+          return item.value[field.name]
+      }
     },
 
     filterMethod(rows, filters) {
