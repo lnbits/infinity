@@ -63,6 +63,7 @@ return {
 		"aes_decrypt":             utils.AESDecrypt,
 		"perform_key_auth_flow":   utils.PerformKeyAuthFlow,
 		"get_msats_per_fiat_unit": utils.GetMsatsPerFiatUnit,
+		"parse_date":              utils.DateStringToTimestamp,
 		"http_get":                utils.HTTPGet,
 		"http_put":                utils.HTTPPut,
 		"http_post":               utils.HTTPPost,
@@ -198,6 +199,7 @@ qs = {
 utils = {
   qs = qs,
   http = http,
+  parse_date = parse_date,
   random_hex = random_hex,
   aes_encrypt = aes_encrypt,
   aes_decrypt = aes_decrypt,

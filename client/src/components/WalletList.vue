@@ -113,7 +113,7 @@ export default {
     },
 
     goToWallet(wallet) {
-      if (wallet.id === this.$route.params.id && !this.$oute.params.appid)
+      if (wallet.id === this.$route.params.id && !this.$route.params.appid)
         return
 
       this.$store.commit('setWallet', wallet)

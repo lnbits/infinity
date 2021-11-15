@@ -40,12 +40,17 @@
   >
     <template #after>
       <q-select
-        :options="$store.state.settings.currencies"
         label="Unit"
         filled
         dense
+        options-dense
+        use-input
+        type="text"
+        :options="currencyOptions"
+        style="max-width: 200px"
         :model-value="value.unit"
         @update:model-value="handleChange({...value, unit: $event})"
+        @filter="currencyFilter"
       />
     </template>
   </q-input>
@@ -108,6 +113,12 @@ export default {
 
   emits: ['update:data'],
 
+  data() {
+    return {
+      currencyOptions: this.$store.state.settings.currencies
+    }
+  },
+
   computed: {
     value() {
       return this.data[this.field.name]
@@ -116,6 +127,20 @@ export default {
 
   methods: {
     fieldLabel,
+
+    currencyFilter(search, update) {
+      if (search === '') {
+        update(() => {
+          this.currencyOptions = this.$store.state.settings.currencies
+        })
+        return
+      }
+      update(() => {
+        this.currencyOptions = this.$store.state.settings.currencies.filter(
+          v => v.toLowerCase().indexOf(search.toLowerCase()) !== -1
+        )
+      })
+    },
 
     handleChange(value) {
       this.$emit('update:data', {...this.data, [this.field.name]: value})

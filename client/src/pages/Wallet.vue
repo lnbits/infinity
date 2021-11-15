@@ -366,25 +366,32 @@
             <b>{{ receive.lnurl.domain }}</b> is requesting an invoice:
           </p>
 
-          <q-select
-            v-model="receive.unit"
-            filled
-            dense
-            type="text"
-            label="Unit"
-            :options="['sat'].concat($store.state.settings.currencies)"
-          ></q-select>
           <q-input
             v-model.number="receive.data.amount"
             filled
             dense
             type="number"
-            :label="`Amount (${receive.unit}) *`"
-            :step="receive.unit != 'sat' ? '0.001' : '1'"
+            :label="`Amount (${receive.data.unit}) *`"
+            :step="receive.data.unit != 'sat' ? '0.01' : '1'"
             :min="receive.minMax[0]"
             :max="receive.minMax[1]"
             :readonly="receive.lnurl && receive.lnurl.fixed"
-          ></q-input>
+          >
+            <template #after>
+              <q-select
+                v-model="receive.data.unit"
+                filled
+                dense
+                options-dense
+                use-input
+                type="text"
+                label="Unit"
+                :options="currencyOptions"
+                style="max-width: 200px"
+                @filter="currencyFilter"
+              ></q-select>
+            </template>
+          </q-input>
           <q-input
             v-model.trim="receive.data.description"
             filled
@@ -701,7 +708,6 @@ export default {
         paymentHash: null,
         minMax: [0, 2100000000000000],
         lnurl: null,
-        unit: 'sat',
         data: {
           unit: 'sat',
           amount: null,
@@ -777,7 +783,8 @@ export default {
         location: window.location
       },
       balance: 0,
-      newName: ''
+      newName: '',
+      currencyOptions: this.$store.state.settings.currencies
     }
   },
 
@@ -816,6 +823,20 @@ export default {
     appDisplayName,
     formatMsatToSat,
     formatDate,
+
+    currencyFilter(search, update) {
+      if (search === '') {
+        update(() => {
+          this.currencyOptions = this.$store.state.settings.currencies
+        })
+        return
+      }
+      update(() => {
+        this.currencyOptions = this.$store.state.settings.currencies.filter(
+          v => v.toLowerCase().indexOf(search.toLowerCase()) !== -1
+        )
+      })
+    },
 
     handlePaymentReceived(payment) {
       if (this.receive.paymentHash === payment.hash) {
@@ -928,7 +949,7 @@ export default {
       this.receive.paymentHash = null
       this.receive.data.amount = null
       this.receive.data.description = null
-      this.receive.unit = 'sat'
+      this.receive.data.unit = 'sat'
       this.receive.minMax = [0, 2100000000000000]
       this.receive.lnurl = null
     },
@@ -954,7 +975,7 @@ export default {
         const response = await createInvoice({
           amount: this.receive.data.amount,
           description: this.receive.data.description,
-          unit: this.receive.unit,
+          unit: this.receive.data.unit,
           lnurlCallback: this.receive.lnurl && this.receive.lnurl.callback
         })
 
