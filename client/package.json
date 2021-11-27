@@ -5,6 +5,7 @@
     "chart.js": "^3.5.1",
     "core-js": "^3.6.5",
     "events": "^3.3.0",
+    "image-exists": "^1.1.0",
     "light-bolt11-decoder": "^1.0.0",
     "lodash.groupby": "^4.6.0",
     "markdown-it": "^12.2.0",

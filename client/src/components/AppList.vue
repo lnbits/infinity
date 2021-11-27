@@ -20,11 +20,10 @@
               : 'grey-5'
           "
         >
-          <q-icon
-            :name="app.icon"
-            :size="$q.dark.isActive ? '21px' : '20px'"
-            :color="$q.dark.isActive ? 'blue-grey-10' : 'grey-3'"
-          ></q-icon>
+          <span v-if="!hasImage[app]" :style="{color: 'white'}">
+            {{ appDisplayName(app)[0] }}
+          </span>
+          <img v-else :src="appIconURL(app)" />
         </q-avatar>
       </q-item-section>
       <q-item-section>
@@ -55,7 +54,9 @@
         ></q-icon>
       </q-item-section>
       <q-item-section>
-        <q-item-label lines="1" class="text-caption">Plug a module</q-item-label>
+        <q-item-label lines="1" class="text-caption"
+          >Plug a module</q-item-label
+        >
       </q-item-section>
     </q-item>
     <q-item v-if="showForm">
@@ -81,6 +82,8 @@
 </template>
 
 <script>
+import exists from 'image-exists'
+
 import {addApp, removeApp, appRefresh} from '../api'
 import {appDisplayName, notifyError} from '../helpers'
 
@@ -88,12 +91,25 @@ export default {
   data() {
     return {
       showForm: false,
-      appURL: ''
+      appURL: '',
+      hasImage: {}
     }
+  },
+
+  mounted() {
+    this.$store.state.user.apps.forEach(app => {
+      exists(this.appIconURL(app), result => {
+        this.hasImage[app] = result
+      })
+    })
   },
 
   methods: {
     appDisplayName,
+
+    appIconURL(url) {
+      return url.replace(/\.lua$/, '.png')
+    },
 
     isActive(app) {
       return this.$store.state.app?.url === app && this.$route.name === 'app'
