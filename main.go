@@ -25,10 +25,10 @@ type Settings struct {
 
 	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
 
-	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
-	SiteTagline       string   `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
-	SiteDescription   string   `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
-	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
+	SiteTitle         string `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
+	SiteTagline       string `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
+	SiteDescription   string `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
+	DefaultWalletName string `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
 	AppCacheSize int `envconfig:"APP_CACHE_SIZE" default:"128"`
 
@@ -74,6 +74,9 @@ func main() {
 				Msg("initialized lightning backend")
 		}
 	}()
+
+	// start routines
+	go routines()
 
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)

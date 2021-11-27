@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"time"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
 	rp "github.com/fiatjaf/relampago"
@@ -9,6 +10,8 @@ import (
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 )
+
+var DefaultInvoiceExpiry = time.Minute * 15
 
 type CreateInvoiceParams struct {
 	rp.InvoiceParams
@@ -25,6 +28,8 @@ func CreateInvoiceFromApp(walletID string, params map[string]interface{}) (inter
 }
 
 func CreateInvoice(walletID string, params CreateInvoiceParams) (models.Payment, error) {
+	params.InvoiceParams.Expiry = &DefaultInvoiceExpiry
+
 	data, err := lightning.LN.CreateInvoice(params.InvoiceParams)
 	if err != nil {
 		return models.Payment{}, fmt.Errorf("failed to create invoice: %w", err)
