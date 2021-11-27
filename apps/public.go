@@ -145,5 +145,5 @@ func StaticFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serveFile(w, r, urljoin(*baseURL, "/index.html"))
+	serveFile(w, r, urljoin(*baseURL, "index.html"))
 }

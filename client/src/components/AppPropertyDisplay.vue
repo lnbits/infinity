@@ -1,6 +1,7 @@
 <template>
   <template v-if="field.type === 'url'">
     <q-btn
+      v-if="value && value.length"
       flat
       dense
       size="xs"
