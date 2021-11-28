@@ -60,7 +60,6 @@ func NotifyInvoicePaid(status relampago.InvoiceStatus) {
 			"pending": false,
 			"amount":  status.MSatoshiReceived,
 		})
-
 	if result.Error != nil {
 		log.Warn().Err(result.Error).Interface("payment", payment).
 			Msg("failed to update payment received")

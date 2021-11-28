@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"sync"
@@ -15,6 +16,9 @@ var AppCacheSize int
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 2,
+	CheckRedirect: func(r *http.Request, via []*http.Request) error {
+		return fmt.Errorf("target '%s' has returned a redirect", r.URL)
+	},
 }
 
 var log zerolog.Logger
