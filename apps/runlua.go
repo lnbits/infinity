@@ -62,6 +62,7 @@ return {
 		"aes_encrypt":             utils.AESEncrypt,
 		"aes_decrypt":             utils.AESDecrypt,
 		"perform_key_auth_flow":   utils.PerformKeyAuthFlow,
+		"currencies":              utils.CURRENCIES,
 		"get_msats_per_fiat_unit": utils.GetMsatsPerFiatUnit,
 		"parse_date":              utils.DateStringToTimestamp,
 		"http_get":                utils.HTTPGet,
@@ -72,6 +73,10 @@ return {
 		"http_request":            utils.HTTP,
 		"qs_parse":                utils.ParseQueryString,
 		"qs_encode":               utils.EncodeQueryString,
+		"json_parse":              utils.JSONParse,
+		"json_encode":             utils.JSONEncode,
+		"snigirev_encrypt":        utils.SnigirevEncrypt,
+		"snigirev_decrypt":        utils.SnigirevDecrypt,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -199,6 +204,7 @@ qs = {
 utils = {
   qs = qs,
   http = http,
+  currencies = currencies,
   parse_date = parse_date,
   random_hex = random_hex,
   aes_encrypt = aes_encrypt,
