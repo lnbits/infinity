@@ -12,8 +12,8 @@ import (
 
 func SnigirevEncrypt(
 	key string,
-	amount int,
 	pin int,
+	amount int,
 ) (nonce string, payload string, err error) {
 	keyb, err := hex.DecodeString(key)
 	if err != nil {
@@ -37,6 +37,8 @@ func SnigirevEncrypt(
 	nonceb := make([]byte, 8)
 	rand.Read(nonceb)
 
+	checksum := sha256.Sum256(append(pinb, amountb...))
+
 	h := sha256.New()
 	h.Write(nonceb)
 	h.Write(keyb)
@@ -49,6 +51,9 @@ func SnigirevEncrypt(
 	for i := 0; i < 4; i++ {
 		payloadb[2+i] = payloadb[2+i] ^ amountb[i]
 	}
+	for i := 0; i < 2; i++ {
+		payloadb[6+i] = payloadb[6+i] ^ checksum[i]
+	}
 
 	return base64.StdEncoding.EncodeToString(nonceb),
 		base64.StdEncoding.EncodeToString(payloadb),
@@ -59,43 +64,52 @@ func SnigirevDecrypt(
 	key string,
 	nonce string,
 	payload string,
-) (amount int, pin int, err error) {
+) (pin int, amount int, err error) {
 	keyb, err := hex.DecodeString(key)
 	if err != nil {
-		return amount, pin, fmt.Errorf("key '%s' is not valid hex: %w", key, err)
+		return pin, amount, fmt.Errorf("key '%s' is not valid hex: %w", key, err)
 	}
 	nonceb, err := base64.StdEncoding.DecodeString(nonce)
 	if err != nil {
-		return amount, pin, fmt.Errorf("nonce '%s' is not valid base64: %w", nonce, err)
+		return pin, amount, fmt.Errorf("nonce '%s' is not valid base64: %w", nonce, err)
 	}
 	payloadb, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
-		return amount, pin, fmt.Errorf("payload '%s' is not valid base64: %w",
+		return pin, amount, fmt.Errorf("payload '%s' is not valid base64: %w",
 			payload, err)
 	}
 
+	// decrypt
 	h := sha256.New()
 	h.Write(nonceb)
 	h.Write(keyb)
 	s := h.Sum(nil)
-
 	for i, _ := range payloadb {
 		payloadb[i] = payloadb[i] ^ s[i]
 	}
 
+	// read integers from decrypted buffer
 	var pin16 int16
 	err = binary.Read(bytes.NewReader(payloadb[0:2]), binary.LittleEndian, &pin16)
 	if err != nil {
-		return amount, pin, fmt.Errorf("failed to decrypt pin: %w", err)
+		return pin, amount, fmt.Errorf("failed to decrypt pin: %w", err)
 	}
 	pin = int(pin16)
 
 	var amount32 int32
 	err = binary.Read(bytes.NewReader(payloadb[2:6]), binary.LittleEndian, &amount32)
 	if err != nil {
-		return amount, pin, fmt.Errorf("failed to decrypt amount: %w", err)
+		return pin, amount, fmt.Errorf("failed to decrypt amount: %w", err)
 	}
 	amount = int(amount32)
 
-	return amount, pin, nil
+	// verify checksum (sha256(pin bytes + amount bytes)[0:2] == 2 bytes at the end)
+	checksum := sha256.Sum256(payloadb[0:6])
+	for i := 0; i < 2; i++ {
+		if checksum[i] != payloadb[6+i] {
+			return pin, amount, fmt.Errorf("invalid checksum")
+		}
+	}
+
+	return pin, amount, nil
 }
