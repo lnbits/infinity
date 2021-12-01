@@ -97,3 +97,45 @@ type getStaticResourceTransporter struct{}
 func (_ getStaticResourceTransporter) RoundTrip(r *http.Request) (*http.Response, error) {
 	return httpClient.Get(r.URL.String())
 }
+
+func getOriginalURL(r *http.Request) *url.URL {
+	r.URL.Host = ServerName
+	if r.URL.Host == "" {
+		r.URL.Host = r.Header.Get("X-Forwarded-Host")
+		if r.URL.Host == "" {
+			for _, entry := range strings.Split(r.Header.Get("Forwarded"), ";") {
+				spl := strings.Split(strings.TrimSpace(entry), "=")
+				if spl[0] == "host" {
+					r.URL.Host = spl[1]
+					break
+				}
+			}
+		}
+	}
+	if r.URL.Scheme == "" {
+		r.URL.Scheme = r.Header.Get("X-Forwarded-Proto")
+		if r.URL.Scheme == "" {
+			r.URL.Scheme = r.Header.Get("X-Forwarded-Protocol")
+			if r.URL.Scheme == "" {
+				r.URL.Scheme = r.Header.Get("X-Url-Scheme")
+				if r.URL.Scheme == "" && r.Header.Get("X-Forwarded-Ssl") == "on" {
+					r.URL.Scheme = "https"
+				}
+				if r.URL.Scheme == "" {
+					for _, entry := range strings.Split(r.Header.Get("Forwarded"), ";") {
+						spl := strings.Split(strings.TrimSpace(entry), "=")
+						if spl[0] == "proto" {
+							r.URL.Scheme = spl[1]
+							break
+						}
+					}
+				}
+				if r.URL.Scheme == "" {
+					r.URL.Scheme = "https"
+				}
+			}
+		}
+	}
+
+	return r.URL
+}

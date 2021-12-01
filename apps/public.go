@@ -24,14 +24,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.URL.Host = ServerName
-	if r.URL.Host == "" {
-		r.URL.Host = r.Header.Get("X-Forwarded-Host")
-	}
-	params := map[string]interface{}{
-		"_url": r.URL.String(),
-	}
-
+	params := make(map[string]interface{})
 	for k, v := range r.URL.Query() {
 		params[k] = v[0]
 	}
@@ -57,6 +50,9 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 			"'%s' called with invalid params: %s", action, err.Error())
 		return
 	}
+
+	// add special params
+	params["_url"] = getOriginalURL(r).String()
 
 	returned, err := runlua(RunluaParams{
 		AppURL:          app,
