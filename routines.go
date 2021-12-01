@@ -33,7 +33,9 @@ func deleteExpiredInvoices() {
 	for _, payment := range payments {
 		if inv, err := decodepay.Decodepay(payment.Bolt11); err == nil {
 			if time.Unix(int64(inv.CreatedAt+inv.Expiry), 0).Before(expiredThreshold) {
-				storage.DB.Delete(&payment)
+				storage.DB.
+					Where("checking_id = ? AND hash = ?", payment.CheckingID, payment.Hash).
+					Delete(&payment)
 				log.Info().Interface("payment", payment).Msg("deleted")
 			}
 		}
