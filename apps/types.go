@@ -250,14 +250,11 @@ func (action Action) validateParams(
 }
 
 type Field struct {
-	Name     string `json:"name"`
-	Display  string `json:"display,omitempty"`
-	Type     string `json:"type"`
-	Required bool   `json:"required,omitempty"`
-	Options  []struct {
-		Label string      `json:"label"`
-		Value interface{} `json:"value"`
-	} `json:"options,omitempty"`
+	Name     string                `json:"name"`
+	Display  string                `json:"display,omitempty"`
+	Type     string                `json:"type"`
+	Required bool                  `json:"required,omitempty"`
+	Options  []interface{}         `json:"options,omitempty"`
 	Default  interface{}           `json:"default,omitempty"`
 	Ref      string                `json:"ref,omitempty"`
 	As       string                `json:"as,omitempty"`

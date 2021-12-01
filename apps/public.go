@@ -24,7 +24,13 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var params map[string]interface{}
+	r.URL.Host = ServerName
+	if r.URL.Host == "" {
+		r.URL.Host = r.Header.Get("X-Forwarded-Host")
+	}
+	params := map[string]interface{}{
+		"_url": r.URL.String(),
+	}
 
 	for k, v := range r.URL.Query() {
 		params[k] = v[0]

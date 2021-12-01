@@ -22,6 +22,7 @@ type Settings struct {
 	Host            string   `envconfig:"HOST" default:"0.0.0.0"`
 	Port            string   `envconfig:"PORT" default:"5000"`
 	QuasarDevServer *url.URL `envconfig:"QUASAR_DEV_SERVER"`
+	ServerName      string   `envconfig:"SERVER_NAME"`
 
 	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
 
@@ -49,6 +50,7 @@ func main() {
 		return
 	}
 	apps.AppCacheSize = s.AppCacheSize
+	apps.ServerName = s.ServerName
 	api.SiteTitle = s.SiteTitle
 
 	// setup logger

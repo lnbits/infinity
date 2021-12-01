@@ -4,7 +4,7 @@
       <div class="text-h6">Public Actions</div>
     </q-card-section>
 
-    <q-card-actions>
+    <q-card-actions class="q-mx-xs q-pb-md">
       <q-btn-toggle
         :model-value="selectedAction?.name"
         :options="actionOptions"
@@ -14,6 +14,22 @@
         @clear="cancelAction"
       />
     </q-card-actions>
+
+    <q-card-section v-if="selectedAction" class="q-px-xl">
+      <div class="row items-center">
+        <div class="col-2 text-bold">API Call:</div>
+        <div class="col">
+          <code style="word-break: break-all">
+            curl '{{ appPublic }}/action/{{ selectedAction.name }}' -s
+            <span v-if="hasParams"
+              >-H 'Content-Type: application/json' -s -d '{{
+                paramsPrettyJSON
+              }}'</span
+            >
+          </code>
+        </div>
+      </div>
+    </q-card-section>
 
     <q-card-section v-if="selectedAction">
       <q-form class="q-gutter-md" @submit="callAction">
@@ -30,7 +46,7 @@
             />
           </template>
         </div>
-        <div class="row wrap q-gutter-md">
+        <div class="row wrap q-gutter-md q-pb-md">
           <div class="col">
             <q-btn unelevated color="primary" type="submit">Call</q-btn>
           </div>
@@ -76,6 +92,23 @@ export default {
           value: name
         })
       )
+    },
+
+    appPublic() {
+      return (
+        location.protocol +
+        '//' +
+        location.host +
+        location.pathname.replace('/app/', '/').replace('/wallet/', '/app/')
+      )
+    },
+
+    hasParams() {
+      return this.paramsPrettyJSON !== '{}'
+    },
+
+    paramsPrettyJSON() {
+      return JSON.stringify(this.params, null, 2)
     }
   },
 

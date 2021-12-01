@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/aarzilli/golua/lua"
+	"github.com/fiatjaf/go-lnurl"
 	"github.com/fiatjaf/lunatico"
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/utils"
@@ -37,7 +38,7 @@ func runlua(params RunluaParams) (interface{}, error) {
 		params.Code = appCode
 	}
 
-	code := params.Code + "\n" + CUSTOM_ENV_DEF + "\n"
+	code := CUSTOM_ENV_DEF + "\n" + params.Code + "\n"
 	if params.CodeToRun != "" {
 		code += "return " + params.CodeToRun
 	} else {
@@ -53,6 +54,8 @@ return {
 	}
 
 	globalsToInject := map[string]interface{}{
+		"server_name": ServerName,
+
 		"app_id": params.AppURL,
 		"code":   code,
 
@@ -77,6 +80,9 @@ return {
 		"json_encode":             utils.JSONEncode,
 		"snigirev_encrypt":        utils.SnigirevEncrypt,
 		"snigirev_decrypt":        utils.SnigirevDecrypt,
+		"lnurl_bech32_encode":     lnurl.LNURLEncode,
+		"lnurl_bech32_decode":     lnurl.LNURLDecode,
+		"lnurl_successaction_aes": utils.AESSuccessAction,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -158,6 +164,10 @@ ret = sandbox.run(code, { quota = 1000, env = injected_globals })
 }
 
 const CUSTOM_ENV_DEF = `
+settings = {
+  server_name = server_name,
+}
+
 wallet = {
   id = wallet_id,
   balance = function () return load_wallet_balance(wallet_id) end,
@@ -201,14 +211,28 @@ qs = {
   encode = qs_encode,
 }
 
+json = {
+  parse = json_parse,
+  encode = json_encode,
+}
+
+lnurl = {
+  bech32_encode = lnurl_bech32_encode,
+  bech32_decode = lnurl_bech32_decode,
+  successaction_aes = lnurl_successaction_aes,
+}
+
 utils = {
   qs = qs,
+  json = json,
   http = http,
   currencies = currencies,
   parse_date = parse_date,
   random_hex = random_hex,
   aes_encrypt = aes_encrypt,
   aes_decrypt = aes_decrypt,
+  snigirev_encrypt = snigirev_encrypt,
+  snigirev_decrypt = snigirev_decrypt,
   perform_key_auth_flow = perform_key_auth_flow,
   get_msats_per_fiat_unit = get_msats_per_fiat_unit,
 }
