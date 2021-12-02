@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"os"
@@ -107,34 +106,9 @@ func main() {
 	router.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)
 	router.Path("/api/wallet/app/{appid}/add/{model}").HandlerFunc(apps.AddItem)
 	router.Path("/api/wallet/app/{appid}/del/{model}/{key}").HandlerFunc(apps.DeleteItem)
-	router.Path("/app/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
-	router.Path("/app/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
-	router.PathPrefix("/app/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
-
-	// lnbits compatibility routes (for lnbits libraries and lnbits wallets)
-	router.Path("/api/v1/wallet").HandlerFunc(api.Wallet)
-	router.Path("/api/v1/wallet/{new-name}").HandlerFunc(api.RenameWallet)
-	router.Path("/api/v1/payments").MatcherFunc(
-		func(r *http.Request, rm *mux.RouteMatch) bool {
-			var outer struct {
-				Out bool `json:"out"`
-			}
-			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
-			return !outer.Out
-		},
-	).HandlerFunc(api.CreateInvoice)
-	router.Path("/api/v1/payments").MatcherFunc(
-		func(r *http.Request, rm *mux.RouteMatch) bool {
-			var outer struct {
-				Out bool `json:"out"`
-			}
-			json.NewDecoder(r.Clone(r.Context()).Body).Decode(&outer)
-			return outer.Out
-		},
-	).HandlerFunc(api.PayInvoice)
-	router.Path("/api/v1/payments/lnurl").HandlerFunc(api.PayLnurl)
-	router.Path("/api/v1/payments/{id}").HandlerFunc(api.GetPayment)
-	router.Path("/api/v1/payments/sse").HandlerFunc(api.SSE)
+	router.Path("/ext/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
+	router.Path("/ext/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
+	router.PathPrefix("/ext/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
 
 	// middleware
 	router.Use(handlers.ProxyHeaders)

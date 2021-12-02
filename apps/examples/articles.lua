@@ -1,3 +1,5 @@
+description = "[page]($extBase/)"
+
 models = {
   {
     name = 'article',
@@ -5,7 +7,7 @@ models = {
       { name = 'url', required = true, type = 'url' },
       { name = 'name', required = true, type = 'string' },
       { name = 'author', required = true, type = 'string' },
-      { name = 'votes', required = true, type = 'number' },
+      { name = 'votes', required = true, default = 0, type = 'number' },
     },
     default_sort = 'votes desc'
   }

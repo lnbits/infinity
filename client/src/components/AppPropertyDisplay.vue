@@ -12,7 +12,7 @@
         goToURL(
           value.startsWith('http') || value.startsWith('/')
             ? value
-            : `/app/${$store.state.wallet.id}/${$store.state.app.id}/${value}`
+            : `/ext/${$store.state.wallet.id}/${$store.state.app.id}/${value}`
         )
       "
     ></q-btn>

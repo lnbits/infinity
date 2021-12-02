@@ -90,7 +90,7 @@
                         goToURL(
                           file.startsWith('http') || file.startsWith('/')
                             ? file
-                            : `/app/${$store.state.wallet.id}/${$store.state.app.id}/${file}`
+                            : `/ext/${$store.state.wallet.id}/${$store.state.app.id}/${file}`
                         )
                       "
                     >
@@ -161,12 +161,12 @@ export default {
       if (!this.$store.state.app?.description) return ''
 
       const replaced = this.$store.state.app.description.replace(
-        '$appBase',
+        '$extBase',
         match =>
           location.protocol +
           '//' +
           location.host +
-          location.pathname.replace('/app/', '/').replace('/wallet/', '/app/')
+          location.pathname.replace('/app/', '/').replace('/wallet/', '/ext/')
       )
 
       return md

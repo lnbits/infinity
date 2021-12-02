@@ -127,7 +127,7 @@ export const delAppItem = async (appURL, model, key) =>
   await request(`/api/wallet/app/${appURLToId(appURL)}/del/${model}/${key}`)
 
 export const callAppAction = async (wallet, appid, action, params) =>
-  await request(`/app/${wallet}/${appid}/action/${action}`, {
+  await request(`/ext/${wallet}/${appid}/action/${action}`, {
     method: 'POST',
     body: JSON.stringify(params)
   })

@@ -120,14 +120,13 @@ func RemoveApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAppsList := make([]string, 0, len(user.Apps))
-	for _, app := range user.Apps {
-		if app != params.URL {
-			newAppsList = append(newAppsList, app)
-		}
+	result := storage.DB.Where("url = ? AND user_id = ?", params.URL, user.ID).
+		Delete(&models.UserApp{})
+
+	if result.Error != nil {
+		apiutils.SendJSONError(w, 500, "failed to delete app: %s", result.Error.Error())
+		return
 	}
-	user.Apps = newAppsList
-	storage.DB.Save(user)
 
 	w.WriteHeader(200)
 }

@@ -99,7 +99,7 @@ export default {
         location.protocol +
         '//' +
         location.host +
-        location.pathname.replace('/app/', '/').replace('/wallet/', '/app/')
+        location.pathname.replace('/app/', '/').replace('/wallet/', '/ext/')
       )
     },
 
