@@ -83,5 +83,5 @@ triggers = {
 }
 
 files = {
-  ['*'] = '/tickets.html'
+  ['*'] = 'tickets.html'
 }

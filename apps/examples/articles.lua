@@ -49,5 +49,5 @@ triggers = {
 }
 
 files = {
-  ['*'] = '/articles.html'
+  ['*'] = 'articles.html'
 }
