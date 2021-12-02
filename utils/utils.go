@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -19,4 +20,9 @@ func RandomHex(nbytes int) string {
 	b := make([]byte, nbytes)
 	rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+func Sha256String(preimage string) string {
+	hash := sha256.Sum256([]byte(preimage))
+	return hex.EncodeToString(hash[:])
 }

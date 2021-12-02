@@ -150,6 +150,9 @@ export const appDisplayName = url => {
   return url
 }
 
+export const appURLToId = url =>
+  btoa(url).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+
 export const fieldLabel = field =>
   (field.display || field.name) + (field.required ? ' *' : '')
 

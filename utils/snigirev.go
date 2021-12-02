@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"strings"
 )
 
 func SnigirevEncrypt(
@@ -55,8 +56,8 @@ func SnigirevEncrypt(
 		payloadb[6+i] = payloadb[6+i] ^ checksum[i]
 	}
 
-	return base64.StdEncoding.EncodeToString(nonceb),
-		base64.StdEncoding.EncodeToString(payloadb),
+	return base64.RawURLEncoding.EncodeToString(nonceb),
+		base64.RawURLEncoding.EncodeToString(payloadb),
 		nil
 }
 
@@ -69,11 +70,13 @@ func SnigirevDecrypt(
 	if err != nil {
 		return pin, amount, fmt.Errorf("key '%s' is not valid hex: %w", key, err)
 	}
-	nonceb, err := base64.StdEncoding.DecodeString(nonce)
+	nonceb, err := base64.RawURLEncoding.DecodeString(
+		strings.ReplaceAll(nonce, "=", ""))
 	if err != nil {
 		return pin, amount, fmt.Errorf("nonce '%s' is not valid base64: %w", nonce, err)
 	}
-	payloadb, err := base64.StdEncoding.DecodeString(payload)
+	payloadb, err := base64.RawURLEncoding.DecodeString(
+		strings.ReplaceAll(payload, "=", ""))
 	if err != nil {
 		return pin, amount, fmt.Errorf("payload '%s' is not valid base64: %w",
 			payload, err)

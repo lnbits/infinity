@@ -61,6 +61,7 @@ return {
 
 		"debug_print": luaPrint,
 
+		"sha256":                  utils.Sha256String,
 		"random_hex":              utils.RandomHex,
 		"aes_encrypt":             utils.AESEncrypt,
 		"aes_decrypt":             utils.AESDecrypt,
@@ -226,6 +227,7 @@ utils = {
   qs = qs,
   json = json,
   http = http,
+  sha256 = sha256,
   currencies = currencies,
   parse_date = parse_date,
   random_hex = random_hex,
@@ -288,6 +290,10 @@ db = setmetatable({}, {
 
 print = function (...)
   debug_print(wallet_id, ...)
+end
+
+emptyarray = function ()
+  return { __emptyarray = 1 }
 end
 
 internal = {

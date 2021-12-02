@@ -1,4 +1,5 @@
 import store from './store'
+import {appURLToId} from './helpers'
 
 const request = async (path, opts = {}) => {
   opts.headers = opts.headers || {}
@@ -105,25 +106,25 @@ export const appRefresh = async appid =>
   await request(`/api/wallet/app/${appid}/refresh`)
 
 export const listAppItems = async (appURL, model) =>
-  await request(`/api/wallet/app/${btoa(appURL)}/list/${model}`)
+  await request(`/api/wallet/app/${appURLToId(appURL)}/list/${model}`)
 
 export const getAppItem = async (appURL, model, key) =>
-  await request(`/api/wallet/app/${btoa(appURL)}/set/${model}/${key}`)
+  await request(`/api/wallet/app/${appURLToId(appURL)}/set/${model}/${key}`)
 
 export const setAppItem = async (appURL, model, key, value) =>
-  await request(`/api/wallet/app/${btoa(appURL)}/set/${model}/${key}`, {
+  await request(`/api/wallet/app/${appURLToId(appURL)}/set/${model}/${key}`, {
     method: 'POST',
     body: JSON.stringify(value)
   })
 
 export const addAppItem = async (appURL, model, value) =>
-  await request(`/api/wallet/app/${btoa(appURL)}/add/${model}`, {
+  await request(`/api/wallet/app/${appURLToId(appURL)}/add/${model}`, {
     method: 'POST',
     body: JSON.stringify(value)
   })
 
 export const delAppItem = async (appURL, model, key) =>
-  await request(`/api/wallet/app/${btoa(appURL)}/del/${model}/${key}`)
+  await request(`/api/wallet/app/${appURLToId(appURL)}/del/${model}/${key}`)
 
 export const callAppAction = async (wallet, appid, action, params) =>
   await request(`/app/${wallet}/${appid}/action/${action}`, {

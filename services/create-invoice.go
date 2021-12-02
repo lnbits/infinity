@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -24,6 +25,9 @@ type CreateInvoiceParams struct {
 func CreateInvoiceFromApp(walletID string, params map[string]interface{}) (interface{}, error) {
 	var s CreateInvoiceParams
 	mapToStruct(params, &s)
+	if h, ok := params["description_hash"]; ok {
+		s.DescriptionHash, _ = hex.DecodeString(h.(string))
+	}
 	return CreateInvoice(walletID, s)
 }
 

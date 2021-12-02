@@ -8,7 +8,7 @@ import (
 	"github.com/fiatjaf/go-lnurl"
 )
 
-func AESSuccessAction(plaintext string, preimage string) (string, string, error) {
+func AESSuccessAction(preimage string, plaintext string) (string, string, error) {
 	key, err := hex.DecodeString(preimage)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid hex preimage '%s': %w", preimage, err)

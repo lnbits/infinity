@@ -26,12 +26,15 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := make(map[string]interface{})
-	for k, v := range r.URL.Query() {
-		params[k] = v[0]
-	}
-
 	if r.Body != nil {
 		json.NewDecoder(r.Body).Decode(&params)
+	}
+	querystringFields := make(map[string]struct{})
+	for k, v := range r.URL.Query() {
+		if _, ok := params[k]; !ok {
+			params[k] = v[0]
+			querystringFields[k] = struct{}{}
+		}
 	}
 
 	settings, err := GetAppSettings(app)
@@ -46,7 +49,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := def.validateParams(params, walletID, app); err != nil {
+	if err := def.validateParams(params, querystringFields, walletID, app); err != nil {
 		apiutils.SendJSONError(w, 400,
 			"'%s' called with invalid params: %s", action, err.Error())
 		return

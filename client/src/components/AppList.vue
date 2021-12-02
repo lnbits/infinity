@@ -85,7 +85,7 @@
 import exists from 'image-exists'
 
 import {addApp, removeApp, appRefresh} from '../api'
-import {appDisplayName, notifyError} from '../helpers'
+import {appDisplayName, appURLToId, notifyError} from '../helpers'
 
 export default {
   data() {
@@ -117,7 +117,9 @@ export default {
 
     clickApp(appURL) {
       this.$router.push({
-        path: `/wallet/${this.$store.state.wallet.id}/app/${btoa(appURL)}`,
+        path: `/wallet/${this.$store.state.wallet.id}/app/${appURLToId(
+          appURL
+        )}`,
         query: this.$route.query
       })
     },
@@ -127,7 +129,7 @@ export default {
         await addApp(this.appURL)
         this.$store.dispatch('fetchUser')
         this.$router.push({
-          path: `/wallet/${this.$store.state.wallet.id}/app/${btoa(
+          path: `/wallet/${this.$store.state.wallet.id}/app/${appURLToId(
             this.appURL
           )}`,
           query: this.$route.query
@@ -153,7 +155,7 @@ export default {
 
     async refresh(appURL) {
       try {
-        await appRefresh(btoa(appURL))
+        await appRefresh(appURLToId(appURL))
         if (
           this.$route.pathname.indexOf('/app/') !== -1 &&
           this.$store.state.app?.url === appURL

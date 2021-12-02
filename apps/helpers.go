@@ -24,7 +24,8 @@ var (
 )
 
 func appidToURL(appid string) string {
-	if url, err := base64.StdEncoding.DecodeString(appid); err == nil {
+	appid = strings.ReplaceAll(appid, "=", "")
+	if url, err := base64.RawURLEncoding.DecodeString(appid); err == nil {
 		return string(url)
 	} else {
 		log.Warn().Err(err).Str("appid", appid).Msg("got invalid app id")

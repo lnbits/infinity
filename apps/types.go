@@ -206,6 +206,7 @@ type Action struct {
 
 func (action Action) validateParams(
 	params map[string]interface{},
+	querystringFields map[string]struct{},
 	walletID string,
 	app string,
 ) error {
@@ -235,7 +236,9 @@ func (action Action) validateParams(
 				break
 			}
 		}
-		if fieldExpected == false {
+
+		// we disallow unexpected body params, but querystrings can contain extra stuff
+		if _, isQSField := querystringFields[fieldName]; !fieldExpected && !isQSField {
 			return fmt.Errorf("unexpected field '%s'", fieldName)
 		}
 	}
