@@ -1,11 +1,11 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/utils"
 	"gopkg.in/antage/eventsource.v1"
 )
 
@@ -53,7 +53,7 @@ func SSE(w http.ResponseWriter, r *http.Request) {
 }
 
 func SendWalletSSE(walletID string, typ string, data interface{}) {
-	jpayload, _ := json.Marshal(data)
+	jpayload, _ := utils.JSONMarshal(data)
 	payload := string(jpayload)
 
 	if ies, ok := walletStreams.Load(walletID); ok {

@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/aarzilli/golua/lua"
+	"github.com/lnbits/lnbits/utils"
 )
 
 var (
@@ -43,7 +44,7 @@ func stacktrace(luaError *lua.LuaError) string {
 
 // convert struct to map[string]interface{}
 func structToMap(v interface{}) map[string]interface{} {
-	j, _ := json.Marshal(v)
+	j, _ := utils.JSONMarshal(v)
 	var m map[string]interface{}
 	json.Unmarshal(j, &m)
 	return m

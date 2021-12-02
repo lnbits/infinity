@@ -27,7 +27,7 @@ func User(w http.ResponseWriter, r *http.Request) {
       WHERE w.user_id = ?
     `, user.ID).Scan(&user.Wallets)
 
-	json.NewEncoder(w).Encode(user)
+	apiutils.SendJSON(w, user)
 }
 
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +67,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(struct {
+	apiutils.SendJSON(w, struct {
 		UserMasterKey string        `json:"userMasterKey"`
 		Wallet        models.Wallet `json:"wallet"`
 	}{

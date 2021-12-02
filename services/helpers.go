@@ -1,8 +1,12 @@
 package services
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/lnbits/lnbits/utils"
+)
 
 func mapToStruct(given map[string]interface{}, desiredStruct interface{}) {
-	j, _ := json.Marshal(given)
+	j, _ := utils.JSONMarshal(given)
 	json.Unmarshal(j, &desiredStruct)
 }

@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+
+	"github.com/lnbits/lnbits/utils"
 )
 
 type StringList []string
@@ -17,7 +19,7 @@ func (sl *StringList) Scan(src interface{}) error {
 }
 
 func (sl StringList) Value() (driver.Value, error) {
-	if j, err := json.Marshal(sl); err == nil {
+	if j, err := utils.JSONMarshal(sl); err == nil {
 		return string(j), nil
 	} else {
 		return nil, err
@@ -35,7 +37,7 @@ func (jo *JSONObject) Scan(src interface{}) error {
 }
 
 func (jo JSONObject) Value() (driver.Value, error) {
-	if j, err := json.Marshal(jo); err == nil {
+	if j, err := utils.JSONMarshal(jo); err == nil {
 		return string(j), nil
 	} else {
 		return nil, err

@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta.0.20200515232429-9f0179fd2c46
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/ln-decodepay v1.1.0
-	github.com/fiatjaf/lunatico v1.3.0
+	github.com/fiatjaf/lunatico v1.3.1
 	github.com/fiatjaf/relampago v1.0.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -18,6 +18,7 @@ require (
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.25.0
 	github.com/tidwall/gjson v1.9.0
+	github.com/wI2L/jettison v0.7.3 // indirect
 	gopkg.in/antage/eventsource.v1 v1.0.0-20150318155416-803f4c5af225
 	gorm.io/driver/postgres v1.1.1
 	gorm.io/driver/sqlite v1.1.4

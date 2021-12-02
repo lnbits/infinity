@@ -1,9 +1,10 @@
 package apiutils
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/lnbits/lnbits/utils"
 )
 
 type JSONError struct {
@@ -12,6 +13,6 @@ type JSONError struct {
 }
 
 func SendJSONError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
-	b, _ := json.Marshal(JSONError{false, fmt.Sprintf(msg, args...)})
+	b, _ := utils.JSONMarshal(JSONError{false, fmt.Sprintf(msg, args...)})
 	http.Error(w, string(b), code)
 }

@@ -1,11 +1,11 @@
 package apps
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/lnbits/utils"
 	"github.com/lucsky/cuid"
 	"gorm.io/gorm/clause"
 )
@@ -63,7 +63,7 @@ func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
 		return fmt.Errorf("failed to get app on model.set: %w", err)
 	}
 	if err := settings.getModel(model).validateItem(item); err != nil {
-		j, _ := json.Marshal(value)
+		j, _ := utils.JSONMarshal(value)
 		return fmt.Errorf("invalid value %s for model %s: %w", string(j), model, err)
 	}
 

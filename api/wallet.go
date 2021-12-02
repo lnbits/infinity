@@ -34,7 +34,7 @@ func Wallet(w http.ResponseWriter, r *http.Request) {
 	wallet.LNURLDrain, _ = lnurl.LNURLEncode(
 		r.URL.Scheme + "://" + r.Host + "/lnurl/wallet/drain?api-key=" + wallet.AdminKey)
 
-	json.NewEncoder(w).Encode(wallet)
+	apiutils.SendJSON(w, wallet)
 }
 
 func RenameWallet(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(&payment)
+	apiutils.SendJSON(w, &payment)
 }
 
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +155,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(payment)
+	apiutils.SendJSON(w, payment)
 }
 
 func LnurlAuth(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +245,7 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(struct {
+	apiutils.SendJSON(w, struct {
 		SuccessAction *lnurl.SuccessAction `json:"success_action"`
 		PaymentHash   string               `json:"payment_hash"`
 		CheckingID    string               `json:"checking_id"`
@@ -263,7 +263,7 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 	payment := models.Payment{CheckingID: id, WalletID: wallet.ID}
 	storage.DB.Where(&payment).First(&payment)
 
-	json.NewEncoder(w).Encode(payment)
+	apiutils.SendJSON(w, payment)
 }
 
 func LnurlScan(w http.ResponseWriter, r *http.Request) {
@@ -274,7 +274,7 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if lnurlError, ok := err.(lnurl.LNURLErrorResponse); ok {
 			w.Header().Set("Content-Type", "application/json")
-			b, _ := json.Marshal(struct {
+			b, _ := utils.JSONMarshal(struct {
 				Message string `json:"message"`
 				Domain  string `json:"domain"`
 			}{lnurlError.Reason, lnurlError.URL.Host})
@@ -344,5 +344,5 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(response)
+	apiutils.SendJSON(w, response)
 }

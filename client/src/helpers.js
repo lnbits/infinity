@@ -25,23 +25,20 @@ export const formatMsatToSat = msat => {
   else return satInt.toString()
 }
 
-export const formatDate = (date, full) => {
-  const timestampMilli = Date.parse(date)
-
+export const formatDate = (timestamp, full) => {
   if (full)
-    return new Date(timestampMilli)
+    return new Date(timestamp * 1000)
       .toISOString()
       .split('.')[0]
       .replace('T', ' ')
 
-  const timestamp = timestampMilli / 1000
   const now = Date.now() / 1000
   const delta = now - timestamp
   if (delta < 60 * 100) return parseInt((now - timestamp) / 60) + ' minutes ago'
   if (delta < 48 * 60 * 60)
     return parseInt((now - timestamp) / (60 * 60)) + ' hours ago'
 
-  return new Date(timestampMilli).toISOString().split('T')[0]
+  return new Date(timestamp * 1000).toISOString().split('T')[0]
 }
 
 export const decryptLnurlPayAES = (success_action, preimage) => {

@@ -18,7 +18,7 @@ func Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(settings)
+	apiutils.SendJSON(w, settings)
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(items)
+	apiutils.SendJSON(w, items)
 }
 
 func GetItem(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func GetItem(w http.ResponseWriter, r *http.Request) {
 		apiutils.SendJSONError(w, 500, "failed to get item: %s", err.Error())
 		return
 	} else {
-		json.NewEncoder(w).Encode(value)
+		apiutils.SendJSON(w, value)
 	}
 }
 
@@ -88,7 +88,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		apiutils.SendJSONError(w, 500, "failed to add item: %s", err.Error())
 		return
 	} else {
-		json.NewEncoder(w).Encode(key)
+		apiutils.SendJSON(w, key)
 	}
 }
 

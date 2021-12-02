@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/lnbits/lnbits/api/apiutils"
+	"github.com/lnbits/lnbits/utils"
 	"gopkg.in/antage/eventsource.v1"
 )
 
@@ -65,7 +66,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(returned)
+	apiutils.SendJSON(w, returned)
 }
 
 func PublicSSE(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +114,7 @@ func PublicSSE(w http.ResponseWriter, r *http.Request) {
 }
 
 func emitPublicEvent(walletID string, app string, typ string, data interface{}) {
-	jpayload, _ := json.Marshal(data)
+	jpayload, _ := utils.JSONMarshal(data)
 	payload := string(jpayload)
 
 	if ies, ok := publicAppStreams.Load(walletID + ":" + app); ok {

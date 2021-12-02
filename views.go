@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/utils"
 )
 
 func viewSettings(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(struct {
+	apiutils.SendJSON(w, struct {
 		SiteTitle       string   `json:"siteTitle"`
 		SiteTagLine     string   `json:"siteTagline"`
 		SiteDescription string   `json:"siteDescription"`

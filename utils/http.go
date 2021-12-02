@@ -29,7 +29,7 @@ func HTTP(
 			body = bytes.NewBuffer([]byte(fmt.Sprint(v)))
 			baseHeaders["Content-Type"] = "text/plain"
 		default:
-			j, err := json.Marshal(data)
+			j, err := JSONMarshal(data)
 			if err != nil {
 				return nil, 0,
 					fmt.Errorf("given data (%v) is not json serializable: %w",

@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -11,6 +10,7 @@ import (
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/lnbits/utils"
 )
 
 var walletStreams = sync.Map{}
@@ -34,7 +34,7 @@ func init() {
 
 			// webhook
 			if payment.Webhook != "" && payment.WebhookStatus == 0 {
-				j, _ := json.Marshal(payment)
+				j, _ := utils.JSONMarshal(payment)
 				b := bytes.NewBuffer(j)
 				resp, err := webhookClient.Post(payment.Webhook, "application/json", b)
 				var status int
@@ -70,7 +70,7 @@ func init() {
 
 			// webhook
 			if payment.Webhook != "" && payment.WebhookStatus == 0 {
-				j, _ := json.Marshal(payment)
+				j, _ := utils.JSONMarshal(payment)
 				b := bytes.NewBuffer(j)
 				resp, err := webhookClient.Post(payment.Webhook, "application/json", b)
 				var status int

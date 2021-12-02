@@ -1,12 +1,12 @@
 package apps
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/utils"
 	"gopkg.in/antage/eventsource.v1"
 )
 
@@ -54,7 +54,7 @@ func SSE(w http.ResponseWriter, r *http.Request) {
 }
 
 func SendItemSSE(item models.AppDataItem) {
-	jpayload, _ := json.Marshal(item)
+	jpayload, _ := utils.JSONMarshal(item)
 	payload := string(jpayload)
 
 	if ies, ok := appStreams.Load(item.WalletID); ok {

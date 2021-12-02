@@ -147,7 +147,7 @@ ret = sandbox.run(code, { quota = 1000, env = injected_globals })
 	if params.CodeToRun != "" {
 		return ret, nil
 	} else if params.ExtractedGlobals != nil {
-		j, err := json.Marshal(ret)
+		j, err := utils.JSONMarshal(ret)
 		if err != nil {
 			return nil, fmt.Errorf("failed to json-encode globals: %w", err)
 		}
@@ -322,7 +322,7 @@ internal = {
 func luaPrint(walletID string, args ...interface{}) {
 	prints := []interface{}{"lua print: "}
 	for _, arg := range args {
-		if j, err := json.Marshal(arg); err != nil {
+		if j, err := utils.JSONMarshal(arg); err != nil {
 			prints = append(prints, arg)
 		} else {
 			prints = append(prints, string(j))

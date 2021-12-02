@@ -1,12 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
 	lnurl "github.com/fiatjaf/go-lnurl"
 	rp "github.com/fiatjaf/relampago"
+	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/storage"
@@ -19,7 +19,7 @@ func DrainFunds(w http.ResponseWriter, r *http.Request) {
 	var wallet *models.Wallet
 	result := storage.DB.Where("admin_key", walletKey).First(&wallet)
 	if result.Error != nil {
-		json.NewEncoder(w).Encode(lnurl.LNURLErrorResponse{
+		apiutils.SendJSON(w, lnurl.LNURLErrorResponse{
 			Status: "ERROR",
 			Reason: "Can't withdraw. Invalid API key.",
 		})
@@ -41,7 +41,7 @@ func DrainFunds(w http.ResponseWriter, r *http.Request) {
 			Tag:           "drain",
 		})
 		if err != nil {
-			json.NewEncoder(w).Encode(lnurl.LNURLResponse{
+			apiutils.SendJSON(w, lnurl.LNURLResponse{
 				Status: "OK",
 			})
 			return
@@ -68,6 +68,6 @@ func DrainFunds(w http.ResponseWriter, r *http.Request) {
 			response.MaxWithdrawable = 0
 		}
 
-		json.NewEncoder(w).Encode(response)
+		apiutils.SendJSON(w, response)
 	}
 }
