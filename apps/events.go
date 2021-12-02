@@ -7,61 +7,65 @@ import (
 	"github.com/lnbits/lnbits/storage"
 )
 
+type AppWalletCombination struct {
+	WalletID string
+	URL      string
+}
+
 func TriggerGenericEvent(trigger string, data interface{}) {
-	// get all apps from from all users
-	var users []models.User
-	result := storage.DB.Model(&models.User{}).Select("id", "apps").Find(&users)
+	// get all apps/wallets from from all users
+	var appWalletCombinations []AppWalletCombination
+	result := storage.DB.Raw(`
+      SELECT wallets.id AS wallet_id, url
+      FROM user_apps
+      LEFT OUTER JOIN users ON user_apps.user_id = users.id
+      LEFT OUTER JOIN wallets ON wallets.user_id = users.id
+    `).Scan(&appWalletCombinations)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Msg("failed to load apps for all users")
 		return
 	}
 
-	for _, user := range users {
-		// get all wallets from all users
-		var wallets []string
-		storage.DB.Model(&models.Wallet{}).Select("id").Where("user_id", user.ID).
-			Find(&wallets)
-
-		for _, walletID := range wallets {
-			for _, app := range user.Apps {
-				_, err := runlua(RunluaParams{
-					AppURL:   app,
-					WalletID: walletID,
-					CodeToRun: fmt.Sprintf(
-						"internal.get_trigger('%s')(internal.arg)",
-						trigger,
-					),
-					InjectedGlobals: &map[string]interface{}{"arg": structToMap(data)},
-				})
-				if err != nil {
-					log.Warn().Err(err).Str("app", app).
-						Str("trigger", trigger).
-						Interface("data", data).
-						Msg("failed to call trigger")
-				}
-			}
+	for _, appWallet := range appWalletCombinations {
+		_, err := runlua(RunluaParams{
+			AppURL:   appWallet.URL,
+			WalletID: appWallet.WalletID,
+			CodeToRun: fmt.Sprintf(
+				"internal.get_trigger('%s')(internal.arg)",
+				trigger,
+			),
+			InjectedGlobals: &map[string]interface{}{"arg": structToMap(data)},
+		})
+		if err != nil {
+			log.Warn().Err(err).
+				Str("wallet", appWallet.WalletID).
+				Str("app", appWallet.URL).
+				Str("trigger", trigger).
+				Interface("data", data).
+				Msg("failed to call trigger")
 		}
 	}
 }
 
 func TriggerPaymentEvent(trigger string, payment models.Payment) {
-	// get all apps from this user
-	var user models.User
-	result := storage.DB.Model(&models.User{}).
-		Select("apps").
-		Joins("INNER JOIN wallets ON users.id = wallets.user_id").
-		Where("wallets.id = ?", payment.WalletID).
-		First(&user)
+	// get all apps/wallets from from the user that owns this payment's wallet
+	var appWalletCombinations []AppWalletCombination
+	result := storage.DB.Raw(`
+      SELECT wallets.id AS wallet_id, url
+      FROM user_apps
+      LEFT OUTER JOIN users ON user_apps.user_id = users.id
+      LEFT OUTER JOIN wallets ON wallets.user_id = users.id
+      WHERE users.id = (SELECT user_id FROM wallets WHERE id = ?)
+    `, payment.WalletID).Scan(&appWalletCombinations)
 	if result.Error != nil {
-		log.Error().Err(result.Error).Interface("payment", payment).
-			Msg("failed to load apps for payment")
+		log.Error().Err(result.Error).Msg("failed to load apps for payment user")
 		return
 	}
 
-	for _, app := range user.Apps {
+	for _, appWallet := range appWalletCombinations {
 		_, err := runlua(RunluaParams{
-			AppURL:   app,
-			WalletID: payment.WalletID,
+			AppURL:   appWallet.URL,
+			WalletID: appWallet.WalletID,
 			CodeToRun: fmt.Sprintf(
 				"internal.get_trigger('%s')(internal.arg)",
 				trigger,
@@ -69,7 +73,9 @@ func TriggerPaymentEvent(trigger string, payment models.Payment) {
 			InjectedGlobals: &map[string]interface{}{"arg": structToMap(payment)},
 		})
 		if err != nil {
-			log.Warn().Err(err).Str("app", app).
+			log.Warn().Err(err).
+				Str("wallet", appWallet.WalletID).
+				Str("app", appWallet.URL).
 				Str("trigger", trigger).
 				Interface("payment", payment).
 				Msg("failed to call trigger")
