@@ -62,7 +62,7 @@
     <q-item v-if="showForm">
       <q-item-section>
         <q-form @submit="add">
-          <q-input v-model="appURL" filled dense label="App URL *">
+          <q-input v-model="appURL" filled dense label="Module URL *">
             <template #append>
               <q-btn
                 round

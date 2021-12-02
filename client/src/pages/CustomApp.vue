@@ -76,7 +76,7 @@
                       clickable
                       @click="goToURL($store.state.app.url)"
                     >
-                      <q-item-section>Open App URL</q-item-section>
+                      <q-item-section>Open Module URL</q-item-section>
                     </q-item>
                   </q-list>
                   <q-list v-if="$store.state.app.files">
