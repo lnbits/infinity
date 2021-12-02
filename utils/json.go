@@ -21,5 +21,10 @@ func JSONEncode(jsonvalue interface{}) (string, error) {
 }
 
 func JSONMarshal(value interface{}) ([]byte, error) {
-	return jettison.MarshalOpts(value, jettison.NoHTMLEscaping(), jettison.UnixTime())
+	return jettison.MarshalOpts(value,
+		jettison.NoHTMLEscaping(),
+		jettison.UnixTime(),
+		jettison.NilSliceEmpty(),
+		jettison.NilMapEmpty(),
+	)
 }

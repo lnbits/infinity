@@ -27,6 +27,10 @@ func User(w http.ResponseWriter, r *http.Request) {
       WHERE w.user_id = ?
     `, user.ID).Scan(&user.Wallets)
 
+	// load apps
+	storage.DB.Raw("SELECT url FROM user_apps WHERE user_id = ?", user.ID).
+		Scan(&user.Apps)
+
 	apiutils.SendJSON(w, user)
 }
 
@@ -94,14 +98,13 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add it to the list of apps for this user
-	for _, app := range user.Apps {
-		if app == params.URL {
-			w.WriteHeader(200)
-			return
-		}
+	if resp := storage.DB.Create(&models.UserApp{
+		UserID: user.ID,
+		URL:    params.URL,
+	}); resp.Error != nil {
+		apiutils.SendJSONError(w, 500, "failed to save app: %s", resp.Error.Error())
+		return
 	}
-	user.Apps = append(user.Apps, params.URL)
-	storage.DB.Save(user)
 
 	w.WriteHeader(201)
 }

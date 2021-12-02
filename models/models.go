@@ -9,11 +9,16 @@ type User struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 
-	MasterKey string     `gorm:"not null;uniqueIndex" json:"-"`
-	Apps      StringList `gorm:"not null" json:"apps"`
+	MasterKey string `gorm:"not null;uniqueIndex" json:"-"`
 
 	// associations
-	Wallets []Wallet `json:"wallets,omitempty"`
+	Wallets []Wallet   `json:"wallets,omitempty"`
+	Apps    StringList `gorm:"-" json:"apps"`
+}
+
+type UserApp struct {
+	UserID string `gorm:"uniqueIndex:userapp;not null"`
+	URL    string `gorm:"uniqueIndex:userapp;not null"`
 }
 
 type Wallet struct {

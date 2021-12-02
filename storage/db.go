@@ -35,6 +35,7 @@ func Connect(databaseConnectionString string) error {
 	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.Wallet{},
+		&models.UserApp{},
 		&models.Payment{},
 		&models.BalanceCheck{},
 		&models.AppDataItem{},
