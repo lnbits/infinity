@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"strings"
 )
@@ -16,10 +15,7 @@ func SnigirevEncrypt(
 	pin int,
 	amount int,
 ) (nonce string, payload string, err error) {
-	keyb, err := hex.DecodeString(key)
-	if err != nil {
-		return nonce, payload, fmt.Errorf("key '%s' is not valid hex: %w", key, err)
-	}
+	keyb := []byte(key)
 
 	var pinw = &bytes.Buffer{}
 	err = binary.Write(pinw, binary.LittleEndian, int16(pin))
@@ -66,10 +62,8 @@ func SnigirevDecrypt(
 	nonce string,
 	payload string,
 ) (pin int, amount int, err error) {
-	keyb, err := hex.DecodeString(key)
-	if err != nil {
-		return pin, amount, fmt.Errorf("key '%s' is not valid hex: %w", key, err)
-	}
+	keyb := []byte(key)
+
 	nonceb, err := base64.RawURLEncoding.DecodeString(
 		strings.ReplaceAll(nonce, "=", ""))
 	if err != nil {
