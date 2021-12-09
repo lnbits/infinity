@@ -28,6 +28,11 @@ func CreateInvoiceFromApp(walletID string, params map[string]interface{}) (inter
 	if h, ok := params["description_hash"]; ok {
 		s.DescriptionHash, _ = hex.DecodeString(h.(string))
 	}
+	if m, ok := params["msatoshi"]; ok {
+		if f, ok := m.(float64); ok {
+			s.Msatoshi = int64(f)
+		}
+	}
 	return CreateInvoice(walletID, s)
 }
 
