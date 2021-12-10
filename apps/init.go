@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gregjones/httpcache"
+	"github.com/gregjones/httpcache/diskcache"
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/models"
 	"github.com/rs/zerolog"
@@ -17,6 +19,9 @@ var ServerName string
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 2,
+	Transport: httpcache.NewTransport(
+		diskcache.New("/tmp/lnbits-infinity-cache/"),
+	),
 	CheckRedirect: func(r *http.Request, via []*http.Request) error {
 		return fmt.Errorf("target '%s' has returned a redirect", r.URL)
 	},

@@ -21,6 +21,8 @@ import (
 var (
 	float64type = reflect.TypeOf(0.0)
 	booltype    = reflect.TypeOf(true)
+
+	staticresourcetransport = &staticResourceTransport{}
 )
 
 func appidToURL(appid string) string {
@@ -71,12 +73,12 @@ func urljoin(baseURL url.URL, elems ...string) *url.URL {
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fileURL *url.URL) {
-	(&httputil.ReverseProxy{
+	proxy := &httputil.ReverseProxy{
 		Director: func(r *http.Request) {
 			r.URL = fileURL
 			r.Host = fileURL.Host
 		},
-		Transport: getStaticResourceTransporter{},
+		Transport: staticresourcetransport,
 		ModifyResponse: func(w *http.Response) error {
 			if w.StatusCode >= 400 {
 				response, _ := ioutil.ReadAll(w.Body)
@@ -87,16 +89,18 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileURL *url.URL) {
 			}
 			return nil
 		},
-	}).ServeHTTP(w, r)
+	}
+
+	proxy.ServeHTTP(w, r)
 }
 
 // this is an http.RoundTripper that only uses the URL and ignores the rest of the request
 // used only to proxy the static files for the apps on serverFile above.
-// this is needed because the default transporter was causing Caddy to return a 400
+// this is needed because the default transport was causing Caddy to return a 400
 // for mysterious reasons that would be too painful and useless to investigate.
-type getStaticResourceTransporter struct{}
+type staticResourceTransport struct{}
 
-func (_ getStaticResourceTransporter) RoundTrip(r *http.Request) (*http.Response, error) {
+func (_ *staticResourceTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	return httpClient.Get(r.URL.String())
 }
 

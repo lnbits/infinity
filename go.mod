@@ -9,11 +9,14 @@ require (
 	github.com/fiatjaf/ln-decodepay v1.1.0
 	github.com/fiatjaf/lunatico v1.4.0
 	github.com/fiatjaf/relampago v1.0.0
+	github.com/google/btree v1.0.1 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
+	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/rif/cache2go v1.0.0
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.25.0
