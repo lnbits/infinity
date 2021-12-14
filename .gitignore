@@ -1,5 +1,5 @@
 *.env
 *.sqlite
 lnbits
-lnglitches
+lnbits-dev
 tmp

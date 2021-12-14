@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "lnbits"
+  bin = "lnbits-dev"
   cmd = "make build-dev"
   delay = 1000
   exclude_dir = ["client"]
