@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"strings"
 )
@@ -67,13 +68,20 @@ func SnigirevDecrypt(
 	nonceb, err := base64.RawURLEncoding.DecodeString(
 		strings.ReplaceAll(nonce, "=", ""))
 	if err != nil {
-		return pin, amount, fmt.Errorf("nonce '%s' is not valid base64: %w", nonce, err)
+		nonceb, err = hex.DecodeString(payload)
+		if err != nil {
+			return pin, amount,
+				fmt.Errorf("nonce '%s' is not valid base64url or hex: %w", nonce, err)
+		}
 	}
 	payloadb, err := base64.RawURLEncoding.DecodeString(
 		strings.ReplaceAll(payload, "=", ""))
 	if err != nil {
-		return pin, amount, fmt.Errorf("payload '%s' is not valid base64: %w",
-			payload, err)
+		payloadb, err = hex.DecodeString(payload)
+		if err != nil {
+			return pin, amount,
+				fmt.Errorf("payload '%s' is not valid base64url or hex: %w", payload, err)
+		}
 	}
 
 	// decrypt
