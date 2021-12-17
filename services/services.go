@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var Secret string
+
 var httpClient = &http.Client{
 	Timeout: time.Second * 7,
 	CheckRedirect: func(r *http.Request, via []*http.Request) error {

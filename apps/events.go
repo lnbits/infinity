@@ -27,6 +27,12 @@ func TriggerGenericEvent(trigger string, data interface{}) {
 	}
 
 	for _, appWallet := range appWalletCombinations {
+		if settings := getCachedAppSettings(appWallet.URL); settings != nil {
+			if _, exists := settings.Triggers[trigger]; !exists {
+				continue
+			}
+		}
+
 		_, err := runlua(RunluaParams{
 			AppURL:   appWallet.URL,
 			WalletID: appWallet.WalletID,
@@ -63,6 +69,12 @@ func TriggerPaymentEvent(trigger string, payment models.Payment) {
 	}
 
 	for _, appWallet := range appWalletCombinations {
+		if settings := getCachedAppSettings(appWallet.URL); settings != nil {
+			if _, exists := settings.Triggers[trigger]; !exists {
+				continue
+			}
+		}
+
 		_, err := runlua(RunluaParams{
 			AppURL:   appWallet.URL,
 			WalletID: appWallet.WalletID,

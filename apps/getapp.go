@@ -10,6 +10,13 @@ import (
 
 var settingsCache = cache2go.New(AppCacheSize, time.Minute*45)
 
+func getCachedAppSettings(url string) *Settings {
+	if settings, ok := settingsCache.Get(url); ok {
+		return settings.(*Settings)
+	}
+	return nil
+}
+
 func GetAppSettings(url string) (*Settings, error) {
 	if settings, ok := settingsCache.Get(url); ok {
 		return settings.(*Settings), nil
@@ -49,7 +56,7 @@ func GetAppSettings(url string) (*Settings, error) {
 	return &settings, nil
 }
 
-var codeCache = cache2go.New(AppCacheSize/2, time.Minute*45)
+var codeCache = cache2go.New(AppCacheSize/3, time.Minute*45)
 
 func getAppCode(url string) (string, error) {
 	if code, ok := codeCache.Get(url); ok {

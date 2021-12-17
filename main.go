@@ -12,6 +12,8 @@ import (
 	"github.com/lnbits/lnbits/api"
 	"github.com/lnbits/lnbits/apps"
 	"github.com/lnbits/lnbits/lightning"
+	"github.com/lnbits/lnbits/nostr"
+	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
@@ -24,13 +26,15 @@ type Settings struct {
 	ServerName      string   `envconfig:"SERVER_NAME"`
 
 	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
+	Secret   string `envconfig:"SECRET" required`
 
 	SiteTitle         string `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
 	SiteTagline       string `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
 	SiteDescription   string `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
 	DefaultWalletName string `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 
-	AppCacheSize int `envconfig:"APP_CACHE_SIZE" default:"128"`
+	AppCacheSize int      `envconfig:"APP_CACHE_SIZE" default:"200"`
+	NostrRelays  []string `envconfig:"NOSTR_RELAYS"`
 
 	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
 	// -- other env vars are defined in the 'lightning' package
@@ -51,6 +55,9 @@ func main() {
 	apps.AppCacheSize = s.AppCacheSize
 	apps.ServerName = s.ServerName
 	api.SiteTitle = s.SiteTitle
+	services.Secret = s.Secret
+	nostr.Relays = s.NostrRelays
+	nostr.Secret = s.Secret
 
 	// setup logger
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -75,6 +82,9 @@ func main() {
 				Msg("initialized lightning backend")
 		}
 	}()
+
+	// start nostr
+	nostr.Start()
 
 	// start routines
 	go routines()

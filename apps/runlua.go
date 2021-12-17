@@ -9,6 +9,7 @@ import (
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
 	"github.com/fiatjaf/lunatico"
+	"github.com/lnbits/lnbits/nostr"
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/utils"
 )
@@ -107,6 +108,7 @@ return {
 			"get_wallet_payment":   services.GetWalletPayment,
 			"load_wallet_balance":  services.LoadWalletBalance,
 			"load_wallet_payments": services.LoadWalletPayments,
+			"nostr_publish":        nostr.Publish,
 
 			"db_get":    DBGet,
 			"db_set":    DBSet,
