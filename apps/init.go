@@ -51,17 +51,33 @@ func init() {
 		}
 	}()
 
+	go func() {
+		c := make(chan events.GenericEvent)
+		events.OnGenericEvent(c)
+		for genericEvent := range c {
+			if genericEvent.App != "" && genericEvent.Wallet != "" {
+				go TriggerEventOnSpecificAppWallet(
+					AppWallet{genericEvent.Wallet, genericEvent.App},
+					genericEvent.Name,
+					genericEvent.Data,
+				)
+			} else {
+				go TriggerGlobalEvent(genericEvent.Name, genericEvent.Data)
+			}
+		}
+	}()
+
 	// periodically trigger apps
 	hourly := time.NewTicker(time.Hour * 1)
 	go func() {
 		for {
 			now := <-hourly.C
 
-			go TriggerGenericEvent("hourly", now.Unix())
+			go TriggerGlobalEvent("hourly", now.Unix())
 			if now.Hour() == 0 {
-				go TriggerGenericEvent("daily", now.Unix())
+				go TriggerGlobalEvent("daily", now.Unix())
 				if now.Weekday() == time.Sunday {
-					go TriggerGenericEvent("weekly", now.Unix())
+					go TriggerGlobalEvent("weekly", now.Unix())
 				}
 			}
 		}

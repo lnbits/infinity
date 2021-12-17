@@ -9,6 +9,11 @@ import (
 	"github.com/lnbits/lnbits/models"
 )
 
+type KeyValue struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+}
+
 func Info(w http.ResponseWriter, r *http.Request) {
 	app := appidToURL(mux.Vars(r)["appid"])
 
@@ -71,6 +76,12 @@ func SetItem(w http.ResponseWriter, r *http.Request) {
 		apiutils.SendJSONError(w, 500, "failed to set item: %s", err.Error())
 		return
 	}
+
+	go TriggerEventOnSpecificAppWallet(
+		AppWallet{wallet.ID, app},
+		"api_db_set",
+		KeyValue{key, value},
+	)
 }
 
 func AddItem(w http.ResponseWriter, r *http.Request) {
@@ -84,12 +95,18 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if key, err := DBAdd(wallet.ID, app, model, value); err != nil {
+	key, err := DBAdd(wallet.ID, app, model, value)
+	if err != nil {
 		apiutils.SendJSONError(w, 500, "failed to add item: %s", err.Error())
 		return
-	} else {
-		apiutils.SendJSON(w, key)
 	}
+
+	apiutils.SendJSON(w, key)
+	go TriggerEventOnSpecificAppWallet(
+		AppWallet{wallet.ID, app},
+		"api_db_set", // because set and add are the same, let's simplify
+		KeyValue{key, value},
+	)
 }
 
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
@@ -102,4 +119,10 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 		apiutils.SendJSONError(w, 500, "failed to delete item: %s", err.Error())
 		return
 	}
+
+	go TriggerEventOnSpecificAppWallet(
+		AppWallet{wallet.ID, app},
+		"api_db_delete",
+		KeyValue{key, nil},
+	)
 }

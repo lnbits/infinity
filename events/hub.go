@@ -9,6 +9,13 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type GenericEvent struct {
+	App    string
+	Wallet string
+	Name   string
+	Data   interface{}
+}
+
 var log = zerolog.
 	New(os.Stderr).
 	Output(zerolog.ConsoleWriter{Out: os.Stdout}).
@@ -20,6 +27,7 @@ var subs = struct {
 	paymentReceived []chan models.Payment
 	paymentSent     []chan models.Payment
 	paymentFailed   []chan models.Payment
+	genericEvent    []chan GenericEvent
 }{}
 
 func OnPaymentReceived(c chan models.Payment) {
@@ -32,6 +40,10 @@ func OnPaymentSent(c chan models.Payment) {
 
 func OnPaymentFailed(c chan models.Payment) {
 	subs.paymentFailed = append(subs.paymentFailed, c)
+}
+
+func OnGenericEvent(c chan GenericEvent) {
+	subs.genericEvent = append(subs.genericEvent, c)
 }
 
 func NotifyInvoicePaid(status relampago.InvoiceStatus) {
@@ -139,5 +151,25 @@ func EmitPaymentReceived(payment models.Payment) {
 func EmitPaymentFailed(payment models.Payment) {
 	for _, c := range subs.paymentFailed {
 		c <- payment
+	}
+}
+
+func EmitGenericEvent(name string, data interface{}) {
+	for _, c := range subs.genericEvent {
+		c <- GenericEvent{
+			Name: name,
+			Data: data,
+		}
+	}
+}
+
+func EmitGenericAppWalletEvent(app, wallet, name string, data interface{}) {
+	for _, c := range subs.genericEvent {
+		c <- GenericEvent{
+			App:    app,
+			Wallet: wallet,
+			Name:   name,
+			Data:   data,
+		}
 	}
 }
