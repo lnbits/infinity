@@ -3,9 +3,9 @@ package events
 import (
 	"os"
 
-	"github.com/fiatjaf/relampago"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/relampago"
 	"github.com/rs/zerolog"
 )
 

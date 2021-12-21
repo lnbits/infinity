@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	lnurl "github.com/fiatjaf/go-lnurl"
-	rp "github.com/fiatjaf/relampago"
+	rp "github.com/lnbits/relampago"
 	mux "github.com/gorilla/mux"
 
 	"github.com/lnbits/lnbits/api/apiutils"

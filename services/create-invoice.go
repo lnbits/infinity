@@ -6,7 +6,7 @@ import (
 	"time"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
-	rp "github.com/fiatjaf/relampago"
+	rp "github.com/lnbits/relampago"
 	"github.com/lnbits/lnbits/lightning"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"

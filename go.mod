@@ -4,18 +4,17 @@ go 1.16
 
 require (
 	github.com/aarzilli/golua v0.0.0-20210507130708-11106aa57765
-	github.com/btcsuite/btcd v0.20.1-beta.0.20200515232429-9f0179fd2c46
+	github.com/btcsuite/btcd v0.22.0-beta.0.20211005184431-e3449998be39
 	github.com/fiatjaf/bip340 v1.1.0
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/go-nostr v0.2.0
 	github.com/fiatjaf/ln-decodepay v1.1.0
 	github.com/fiatjaf/lunatico v1.4.0
-	github.com/fiatjaf/relampago v1.0.0
-	github.com/google/btree v1.0.1 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lnbits/relampago v1.0.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -30,4 +29,4 @@ require (
 	gorm.io/gorm v1.21.15
 )
 
-replace github.com/fiatjaf/relampago => /home/fiatjaf/comp/relampago
+replace github.com/lnbits/relampago => /home/fiatjaf/comp/relampago

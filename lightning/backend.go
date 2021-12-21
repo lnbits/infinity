@@ -3,9 +3,9 @@ package lightning
 import (
 	"log"
 
-	"github.com/fiatjaf/relampago"
-	"github.com/fiatjaf/relampago/sparko"
-	"github.com/fiatjaf/relampago/void"
+	"github.com/lnbits/relampago"
+	"github.com/lnbits/relampago/sparko"
+	"github.com/lnbits/relampago/void"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/events"
 )

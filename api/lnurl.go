@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	lnurl "github.com/fiatjaf/go-lnurl"
-	rp "github.com/fiatjaf/relampago"
+	rp "github.com/lnbits/relampago"
 	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/services"
