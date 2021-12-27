@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	decodepay "github.com/fiatjaf/ln-decodepay"
-	rp "github.com/lnbits/relampago"
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/lnbits/lightning"
 	"github.com/lnbits/lnbits/models"
 	"github.com/lnbits/lnbits/storage"
 	"github.com/lnbits/lnbits/utils"
+	rp "github.com/lnbits/relampago"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
@@ -80,16 +80,9 @@ func PayInvoice(walletID string, params PayInvoiceParams) (payment models.Paymen
 	}()
 
 	// check balance
-	var balance int64
-	if result := storage.DB.Model(&models.Payment{}).
-		Select("sum(amount)").
-		Where("amount < 0 OR (amount > 0 AND NOT pending)").
-		Where("wallet_id = ?", walletID).
-		First(&balance); result.Error != nil {
-		return payment, fmt.Errorf("failed to check balance: %w", result.Error)
-	}
-
-	if balance <= 0 {
+	if balance, err := LoadWalletBalance(walletID); err != nil {
+		return payment, fmt.Errorf("failed to check balance: %w", err)
+	} else if balance <= 0 {
 		return payment, fmt.Errorf("insufficient balance: needs %d more msat", -balance)
 	}
 
