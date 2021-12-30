@@ -15,6 +15,13 @@ Checkout [Awesome-LNbits](https://github.com/cryptoteun/awesome-lnbits), a curra
 
 Checkout the LNbits [YouTube](https://www.youtube.com/playlist?list=PLPj3KCksGbSYG0ciIQUWJru1dWstPHshe) video series.
 
+### Required dependencies
+
+```
+sudo apt-get install lua5.3
+go install github.com/joho/godotenv/cmd/godotenv@latest
+```
+
 ### Running LNbits in development mode
 
 Install [Air](https://github.com/cosmtrek/air).
