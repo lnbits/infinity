@@ -6,6 +6,8 @@ import (
 	"embed"
 	"io/fs"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 //go:embed client/dist/spa
@@ -14,7 +16,7 @@ var client embed.FS
 //go:embed static
 var static embed.FS
 
-func serveStaticClient() {
+func serveStaticClient(router *mux.Router) {
 	// serve js library and other assets
 	router.PathPrefix("/static/").Handler(http.FileServer(http.FS(static)))
 

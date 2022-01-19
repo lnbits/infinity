@@ -97,40 +97,35 @@ func main() {
 	}
 
 	// serve http routes
-	mainroute := router.NewRoute()
-	if s.ServerName != "" {
-		mainroute = mainroute.Host(s.ServerName)
-	}
-
-	mainroute.Path("/v/settings").HandlerFunc(viewSettings)
-	mainroute.Path("/api/user").HandlerFunc(api.User)
-	mainroute.Path("/api/user/create-wallet").HandlerFunc(api.CreateWallet)
-	mainroute.Path("/api/user/add-app").HandlerFunc(api.AddApp)
-	mainroute.Path("/api/user/remove-app").HandlerFunc(api.RemoveApp)
-	mainroute.Path("/api/wallet").HandlerFunc(api.Wallet)
-	mainroute.Path("/api/wallet/delete").HandlerFunc(api.DeleteWallet)
-	mainroute.Path("/api/wallet/rename/{new-name}").HandlerFunc(api.RenameWallet)
-	mainroute.Path("/api/wallet/create-invoice").HandlerFunc(api.CreateInvoice)
-	mainroute.Path("/api/wallet/pay-invoice").HandlerFunc(api.PayInvoice)
-	mainroute.Path("/api/wallet/lnurlauth").HandlerFunc(api.LnurlAuth)
-	mainroute.Path("/api/wallet/pay-lnurl").HandlerFunc(api.PayLnurl)
-	mainroute.Path("/api/wallet/payment/{id}").HandlerFunc(api.GetPayment)
-	mainroute.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
-	mainroute.Path("/api/wallet/sse").HandlerFunc(api.SSE)
-	mainroute.Path("/lnurl/wallet/drain").HandlerFunc(api.DrainFunds)
+	router.Path("/v/settings").HandlerFunc(viewSettings)
+	router.Path("/api/user").HandlerFunc(api.User)
+	router.Path("/api/user/create-wallet").HandlerFunc(api.CreateWallet)
+	router.Path("/api/user/add-app").HandlerFunc(api.AddApp)
+	router.Path("/api/user/remove-app").HandlerFunc(api.RemoveApp)
+	router.Path("/api/wallet").HandlerFunc(api.Wallet)
+	router.Path("/api/wallet/delete").HandlerFunc(api.DeleteWallet)
+	router.Path("/api/wallet/rename/{new-name}").HandlerFunc(api.RenameWallet)
+	router.Path("/api/wallet/create-invoice").HandlerFunc(api.CreateInvoice)
+	router.Path("/api/wallet/pay-invoice").HandlerFunc(api.PayInvoice)
+	router.Path("/api/wallet/lnurlauth").HandlerFunc(api.LnurlAuth)
+	router.Path("/api/wallet/pay-lnurl").HandlerFunc(api.PayLnurl)
+	router.Path("/api/wallet/payment/{id}").HandlerFunc(api.GetPayment)
+	router.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
+	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
+	router.Path("/lnurl/wallet/drain").HandlerFunc(api.DrainFunds)
 
 	// app endpoints
-	mainroute.Path("/api/wallet/app/sse").HandlerFunc(apps.SSE)
-	mainroute.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
-	mainroute.Path("/api/wallet/app/{appid}/refresh").HandlerFunc(apps.Refresh)
-	mainroute.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
-	mainroute.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)
-	mainroute.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)
-	mainroute.Path("/api/wallet/app/{appid}/add/{model}").HandlerFunc(apps.AddItem)
-	mainroute.Path("/api/wallet/app/{appid}/del/{model}/{key}").HandlerFunc(apps.DeleteItem)
-	mainroute.Path("/ext/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
-	mainroute.Path("/ext/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
-	mainroute.PathPrefix("/ext/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
+	router.Path("/api/wallet/app/sse").HandlerFunc(apps.SSE)
+	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
+	router.Path("/api/wallet/app/{appid}/refresh").HandlerFunc(apps.Refresh)
+	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
+	router.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)
+	router.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)
+	router.Path("/api/wallet/app/{appid}/add/{model}").HandlerFunc(apps.AddItem)
+	router.Path("/api/wallet/app/{appid}/del/{model}/{key}").HandlerFunc(apps.DeleteItem)
+	router.Path("/ext/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
+	router.Path("/ext/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
+	router.PathPrefix("/ext/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
 
 	// middleware
 	router.Use(handlers.ProxyHeaders)
@@ -139,7 +134,7 @@ func main() {
 	router.Use(walletMiddleware)
 	router.Use(cors.AllowAll().Handler)
 
-	serveStaticClient()
+	serveStaticClient(router)
 
 	// start http server
 	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")
