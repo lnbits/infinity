@@ -67,6 +67,12 @@ func init() {
 		}
 	}()
 
+	// trigger an event when lnbits starts
+	go func() {
+		time.Sleep(3 * time.Second)
+		TriggerGlobalEvent("init", nil)
+	}()
+
 	// periodically trigger apps
 	hourly := time.NewTicker(time.Hour * 1)
 	go func() {

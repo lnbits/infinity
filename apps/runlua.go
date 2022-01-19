@@ -85,6 +85,10 @@ return {
 		"lnurl_bech32_encode":     lnurl.LNURLEncode,
 		"lnurl_bech32_decode":     lnurl.LNURLDecode,
 		"lnurl_successaction_aes": utils.AESSuccessAction,
+		"start_tunnel_service":    services.StartTunnelService,
+		"add_tunnel_client":       services.AddTunnelClient,
+		"remove_tunnel_client":    services.RemoveTunnelClient,
+		"open_tunnel":             services.OpenTunnel,
 	}
 
 	if params.InjectedGlobals != nil {

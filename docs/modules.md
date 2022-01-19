@@ -22,6 +22,7 @@ These are the things you can or must define in the Lua code when creating a modu
     * `options: array of strings or numbers (optional)` - Specify this when you have chosen `type: "select"`.
     * `as: string (optional)` - Specify this as the name of the field from the model specified in `ref` you want to display.
     * `default: string (optional)` - The default value for this field.
+    * `required: boolean (optional)` - If this field is required.
   `single: bool (optional)` - This is for when you want your collection to be actually just a single item. It changes the way models are displayed in the UI (instead of a table, it will be just a form with the fields). Useful for when you want the module user to specify settings, for example.
   * `default_filters: object (optional)` - Collections can be filtered manually through on the LNbits UI. This is a way to specify the default filters for better UX.
   * `default_sort: string (optional)` - Collections can be sortered manually on the LNbits UI. This is a way to specify the default sort criteria for better UX. A sort definition string is the name of the field plus `asc` or `desc`, like `kind desc`. By default items will be sorted by creation date.
