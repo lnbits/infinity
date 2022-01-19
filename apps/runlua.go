@@ -245,6 +245,13 @@ utils = {
   get_msats_per_fiat_unit = get_msats_per_fiat_unit,
 }
 
+tunnel = {
+  start_service = start_tunnel_service,
+  remove_client = remove_tunnel_client,
+  add_client = add_tunnel_client,
+  open = open_tunnel,
+}
+
 db = setmetatable({}, {
   __index = function (_, model_name)
     return {
