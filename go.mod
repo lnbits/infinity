@@ -14,7 +14,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/lnbits/relampago v1.0.0
+	github.com/lnbits/relampago v0.1.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -28,5 +28,3 @@ require (
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.15
 )
-
-replace github.com/lnbits/relampago => /home/fiatjaf/comp/relampago

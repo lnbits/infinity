@@ -3,11 +3,12 @@ package lightning
 import (
 	"log"
 
-	"github.com/lnbits/relampago"
-	"github.com/lnbits/relampago/sparko"
-	"github.com/lnbits/relampago/void"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/events"
+	"github.com/lnbits/relampago"
+	"github.com/lnbits/relampago/lnd"
+	"github.com/lnbits/relampago/sparko"
+	"github.com/lnbits/relampago/void"
 )
 
 var LN relampago.Wallet
@@ -15,6 +16,10 @@ var LN relampago.Wallet
 type LightningBackendSettings struct {
 	SparkoURL   string `envconfig:"SPARKO_URL"`
 	SparkoToken string `envconfig:"SPARKO_TOKEN"`
+
+	LNDHost         string `envconfig:"LND_HOST"`
+	LNDCertPath     string `envconfig:"LND_CERT_PATH"`
+	LNDMacaroonPath string `envconfig:"LND_MACAROON_PATH"`
 }
 
 func Connect(backendType string) {
@@ -22,13 +27,19 @@ func Connect(backendType string) {
 	envconfig.Process("", &lbs)
 
 	// start lightning backend
+	var err error
 	switch backendType {
 	case "lndrest":
 	case "lndgrpc":
+		LN, err = lnd.Start(lnd.Params{
+			Host:         lbs.LNDHost,
+			CertPath:     lbs.LNDCertPath,
+			MacaroonPath: lbs.LNDMacaroonPath,
+		})
 	case "eclair":
 	case "clightning":
 	case "sparko":
-		LN = sparko.Start(sparko.Params{
+		LN, err = sparko.Start(sparko.Params{
 			Host:               lbs.SparkoURL,
 			Key:                lbs.SparkoToken,
 			InvoiceLabelPrefix: "lbs",
@@ -36,7 +47,10 @@ func Connect(backendType string) {
 	case "lnbits":
 	default:
 		// use void wallet that does nothing
-		LN = void.Start()
+		LN, err = void.Start()
+	}
+	if err != nil {
+		log.Fatalf("failed to initialize %s backend with %v: %s", backendType, lbs, err)
 	}
 
 	paymentsStream, err := LN.PaymentsStream()
