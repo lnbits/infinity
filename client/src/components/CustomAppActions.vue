@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card v-if="actionOptions.length">
     <q-card-section>
       <div class="text-h6">Public Actions</div>
     </q-card-section>

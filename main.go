@@ -35,6 +35,7 @@ type Settings struct {
 	AppCacheSize      int      `envconfig:"APP_CACHE_SIZE" default:"200"`
 	NostrRelays       []string `envconfig:"NOSTR_RELAYS"`
 	TunnelDomain      string   `envconfig:"TUNNEL_DOMAIN"`
+	TunnelPort        string   `envconfig:"TUNNEL_PORT"`
 
 	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
 	// -- other env vars are defined in the 'lightning' package
@@ -89,13 +90,6 @@ func main() {
 	// start routines
 	go routines()
 
-	// serve tunnel clients
-	if s.TunnelDomain != "" {
-		services.TunnelDomain = s.TunnelDomain
-		router.Host("{subdomain:[a-z0-9]+}." + s.TunnelDomain).
-			Handler(services.TunnelHandler)
-	}
-
 	// serve http routes
 	router.Path("/v/settings").HandlerFunc(viewSettings)
 	router.Path("/api/user").HandlerFunc(api.User)
@@ -135,6 +129,17 @@ func main() {
 	router.Use(cors.AllowAll().Handler)
 
 	serveStaticClient(router)
+
+	// serve tunnel clients
+	if s.TunnelDomain != "" && s.TunnelPort != "" {
+		log.Info().Str("domain", s.TunnelDomain).Str("port", s.TunnelPort).
+			Msg("found tunnel settings, will run tunnel server")
+
+		services.TunnelDomain = s.TunnelDomain
+		services.StartTunnelService()
+
+		go http.ListenAndServe("0.0.0.0:"+s.TunnelPort, services.TunnelHandler)
+	}
 
 	// start http server
 	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")

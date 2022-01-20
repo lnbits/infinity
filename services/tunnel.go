@@ -78,7 +78,7 @@ func OpenTunnel(host string, identifier string) error {
 		ServerAddr: host,
 		Proxy: func(remote net.Conn, msg *proto.ControlMessage) {
 			if err := MainServer.Serve(tunnellistener{remote}); err != nil {
-				log.Error().Err(err).Msg("error serving http")
+				log.Error().Err(err).Msg("error serving tunnel http")
 			}
 		},
 	})
@@ -87,5 +87,7 @@ func OpenTunnel(host string, identifier string) error {
 	}
 
 	go client.Start()
+	ok := client.StartNotify()
+	<-ok
 	return nil
 }
