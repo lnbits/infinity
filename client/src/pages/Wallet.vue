@@ -1076,10 +1076,7 @@ export default {
           msat: invoice.millisatoshis,
           hash: invoice.payment_hash,
           description: invoice.description,
-          expireDate: formatDate(
-            new Date(invoice.timeExpireDate * 1000),
-            'full'
-          )
+          expireDate: formatDate(invoice.timeExpireDate, 'full')
         }
       } catch (error) {
         notifyError(error, 'Failed to parse invoice')

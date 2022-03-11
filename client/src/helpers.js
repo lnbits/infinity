@@ -26,11 +26,12 @@ export const formatMsatToSat = msat => {
 }
 
 export const formatDate = (timestamp, full) => {
-  if (full)
+  if (full) {
     return new Date(timestamp * 1000)
       .toISOString()
       .split('.')[0]
       .replace('T', ' ')
+  }
 
   const now = Date.now() / 1000
   const delta = now - timestamp
