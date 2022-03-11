@@ -79,7 +79,7 @@ func main() {
 				Msg("couldn't start lightning backend.")
 			return
 		} else {
-			log.Info().Int64("msat", info.Balance).Str("kind", s.LightningBackend).
+			log.Info().Int64("msat", info.Balance).Str("kind", lightning.LN.Kind()).
 				Msg("initialized lightning backend")
 		}
 	}()

@@ -2,6 +2,7 @@ package lightning
 
 import (
 	"log"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/events"
@@ -32,9 +33,10 @@ func Connect(backendType string) {
 	case "lndrest":
 	case "lndgrpc":
 		LN, err = lnd.Start(lnd.Params{
-			Host:         lbs.LNDHost,
-			CertPath:     lbs.LNDCertPath,
-			MacaroonPath: lbs.LNDMacaroonPath,
+			Host:           lbs.LNDHost,
+			CertPath:       lbs.LNDCertPath,
+			MacaroonPath:   lbs.LNDMacaroonPath,
+			ConnectTimeout: 5 * time.Second,
 		})
 	case "eclair":
 	case "clightning":
