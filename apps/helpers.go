@@ -95,7 +95,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileURL *url.URL) {
 }
 
 // this is an http.RoundTripper that only uses the URL and ignores the rest of the request
-// used only to proxy the static files for the apps on serverFile above.
+// used only to proxy the static files for the apps on serveFile above.
 // this is needed because the default transport was causing Caddy to return a 400
 // for mysterious reasons that would be too painful and useless to investigate.
 type staticResourceTransport struct{}
@@ -105,7 +105,15 @@ func (_ *staticResourceTransport) RoundTrip(r *http.Request) (*http.Response, er
 }
 
 func getOriginalURL(r *http.Request) *url.URL {
-	r.URL.Host = ServerName
+	if ServiceURL != "" {
+		if serviceURL, err := url.Parse(ServiceURL); err == nil {
+			return serviceURL
+		} else {
+			log.Warn().Err(err).Str("ServiceURL", ServiceURL).
+				Msg("SERVICE_URL is invalid")
+		}
+	}
+
 	if r.URL.Host == "" {
 		r.URL.Host = r.Header.Get("X-Forwarded-Host")
 		if r.URL.Host == "" {

@@ -15,7 +15,7 @@ import (
 )
 
 var AppCacheSize int
-var ServerName string
+var ServiceURL string
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 2,

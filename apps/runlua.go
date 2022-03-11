@@ -55,7 +55,7 @@ return {
 	}
 
 	globalsToInject := map[string]interface{}{
-		"server_name": ServerName,
+		"service_url": ServiceURL,
 
 		"app_id": params.AppURL,
 		"code":   code,
@@ -171,7 +171,7 @@ ret = sandbox.run(code, { quota = 1000, env = injected_globals })
 
 const CUSTOM_ENV_DEF = `
 settings = {
-  server_name = server_name,
+  service_url = service_url,
 }
 
 wallet = {

@@ -23,21 +23,21 @@ type Settings struct {
 	Host            string   `envconfig:"HOST" default:"0.0.0.0"`
 	Port            string   `envconfig:"PORT" default:"5000"`
 	QuasarDevServer *url.URL `envconfig:"QUASAR_DEV_SERVER"`
-	ServerName      string   `envconfig:"SERVER_NAME"`
+	ServiceURL      string   `envconfig:"SERVICE_URL"`
 
 	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
 	Secret   string `envconfig:"SECRET" required`
 
-	SiteTitle         string   `envconfig:"LNBITS_SITE_TITLE" default:"LNBitsLocal"`
-	SiteTagline       string   `envconfig:"LNBITS_SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
-	SiteDescription   string   `envconfig:"LNBITS_SITE_DESCRIPTION" default:""`
-	DefaultWalletName string   `envconfig:"LNBITS_DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
+	SiteTitle         string   `envconfig:"SITE_TITLE" default:"LNBitsLocal"`
+	SiteTagline       string   `envconfig:"SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
+	SiteDescription   string   `envconfig:"SITE_DESCRIPTION" default:""`
+	DefaultWalletName string   `envconfig:"DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 	AppCacheSize      int      `envconfig:"APP_CACHE_SIZE" default:"200"`
 	NostrRelays       []string `envconfig:"NOSTR_RELAYS"`
 	TunnelDomain      string   `envconfig:"TUNNEL_DOMAIN"`
 	TunnelPort        string   `envconfig:"TUNNEL_PORT"`
 
-	LightningBackend string `envconfig:"LNBITS_LIGHTNING_BACKEND" default:"void"`
+	LightningBackend string `envconfig:"LIGHTNING_BACKEND" default:"void"`
 	// -- other env vars are defined in the 'lightning' package
 }
 
@@ -54,7 +54,7 @@ func main() {
 		return
 	}
 	apps.AppCacheSize = s.AppCacheSize
-	apps.ServerName = s.ServerName
+	apps.ServiceURL = s.ServiceURL
 	api.SiteTitle = s.SiteTitle
 	services.Secret = s.Secret
 	nostr.Relays = s.NostrRelays
