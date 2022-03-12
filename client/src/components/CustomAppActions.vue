@@ -137,14 +137,21 @@ export default {
           this.params
         )
 
-        const jsonResp = JSON.stringify(resp, null, 2)
+        var text
+        try {
+          text = JSON.stringify(resp, null, 2)
+        } catch (err) {
+          text = resp
+        }
 
         this.$q.notify({
           position: 'center',
           timeout: 0,
           closeBtn: true,
           html: true,
-          message: `<pre style="white-space: pre-wrap; word-wrap: break-word; word-break: break-all;"><code>${jsonResp}</code></pre>`,
+          message: `<pre style="white-space: pre-wrap; word-wrap: break-word; word-break: break-all;"><code>${text
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')}</code></pre>`,
           caption: `Response from <code>${this.selectedAction.name}</code> call.`
         })
       } catch (err) {

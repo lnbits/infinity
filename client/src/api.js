@@ -30,7 +30,11 @@ const request = async (path, opts = {}) => {
   }
 
   if (text && text.length) {
-    return JSON.parse(text)
+    try {
+      return JSON.parse(text)
+    } catch (err) {
+      return text
+    }
   } else {
     return
   }

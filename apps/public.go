@@ -69,6 +69,35 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if the action returns a table with these values we'll interpret it in a special way
+	if complexResponse, ok := returned.(map[string]interface{}); ok {
+		ibody, ok1 := complexResponse["body"]
+		istatus, ok2 := complexResponse["status"]
+		iheaders, ok3 := complexResponse["headers"]
+		if ok1 && ok2 && ok3 {
+			body, ok1 := ibody.(string)
+			status, ok2 := istatus.(float64)
+			headers, ok3 := iheaders.(map[string]interface{})
+			if !ok1 || !ok2 || !ok3 {
+				apiutils.SendJSONError(w, 471,
+					"action returned an invalid complex response.")
+				return
+			}
+
+			w.WriteHeader(int(status))
+
+			for key, ival := range headers {
+				if val, ok := ival.(string); ok {
+					w.Header().Set(key, val)
+				}
+			}
+
+			fmt.Fprint(w, body)
+
+			return
+		}
+	}
+
 	apiutils.SendJSON(w, returned)
 }
 
