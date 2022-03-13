@@ -31,7 +31,7 @@ func Connect(backendType string) {
 	var err error
 	switch backendType {
 	case "lndrest":
-	case "lndgrpc":
+	case "lnd", "lndgrpc":
 		LN, err = lnd.Start(lnd.Params{
 			Host:           lbs.LNDHost,
 			CertPath:       lbs.LNDCertPath,

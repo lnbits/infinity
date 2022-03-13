@@ -26,7 +26,7 @@ type Settings struct {
 	ServiceURL      string   `envconfig:"SERVICE_URL"`
 
 	Database string `envconfig:"DATABASE" default:"dev.sqlite"`
-	Secret   string `envconfig:"SECRET" required`
+	Secret   string `envconfig:"SECRET" required:"true"`
 
 	SiteTitle         string   `envconfig:"SITE_TITLE" default:"LNBitsLocal"`
 	SiteTagline       string   `envconfig:"SITE_TAGLINE" default:"Locally-hosted lightning wallet"`
