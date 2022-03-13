@@ -71,7 +71,7 @@ math.frexp math.huge math.ldexp math.log  math.log10 math.max
 math.min   math.modf math.pi    math.pow  math.rad   math.random
 math.sin   math.sinh math.sqrt  math.tan  math.tanh
 
-os.clock os.difftime os.time
+os.clock os.difftime os.time os.date
 
 string.byte string.char  string.find  string.format string.gmatch
 string.gsub string.len   string.lower string.match  string.reverse
