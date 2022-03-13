@@ -18,6 +18,7 @@ These are the things you can or must define in the Lua code when creating a modu
       * `"msatoshi"` - Similar to `number`, but with special features.
       * `"url"` - Similar to `string`, but with special features.
       * `"currency"` - A `select` with a predefined list of currencies.
+      * `"datetime"` - A date and time picker.
       * `"ref"` - The name of another model in this module to be cross-linked.
     * `options: array of strings or numbers (optional)` - Specify this when you have chosen `type: "select"`.
     * `as: string (optional)` - Specify this as the name of the field from the model specified in `ref` you want to display.

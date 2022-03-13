@@ -11,7 +11,7 @@
     "markdown-it": "^12.2.0",
     "qrcode": "^1.4.4",
     "qrious": "^4.0.2",
-    "quasar": "^2.0.0",
+    "quasar": "2.5.5",
     "stream": "^0.0.2",
     "vue-qrcode-reader": "^3.0.3",
     "vue-qrious": "^2.0.0",

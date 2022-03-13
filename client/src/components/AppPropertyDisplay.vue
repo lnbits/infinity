@@ -25,6 +25,9 @@
     {{ value.amount }}
     {{ value.unit }}
   </span>
+  <span v-else-if="field.type === 'datetime'">
+    {{ formatDate(value, true) }}
+  </span>
   <span v-else-if="field.type === 'boolean'">
     <q-icon size="sm" :name="value ? 'check_box' : 'check_box_outline_blank'" />
   </span>
@@ -39,7 +42,7 @@
 </template>
 
 <script>
-import {formatMsatToSat} from '../helpers'
+import {formatDate, formatMsatToSat} from '../helpers'
 
 export default {
   props: {
@@ -69,6 +72,7 @@ export default {
   },
 
   methods: {
+    formatDate,
     formatMsatToSat,
 
     goToURL: url => {

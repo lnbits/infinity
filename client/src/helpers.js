@@ -1,4 +1,4 @@
-import {LocalStorage, exportFile, Notify, copyToClipboard} from 'quasar'
+import {date, LocalStorage, exportFile, Notify, copyToClipboard} from 'quasar'
 import MarkdownIt from 'markdown-it'
 
 export const paramDefaults = fields => {
@@ -11,7 +11,8 @@ export const paramDefaults = fields => {
           (
             {
               currency: () => ({amount: 0, unit: 'sat'}),
-              boolean: () => false
+              boolean: () => false,
+              datetime: () => Math.round(Date.now() / 1000)
             }[field.type] || (() => {})
           )()
       ])
@@ -27,10 +28,9 @@ export const formatMsatToSat = msat => {
 
 export const formatDate = (timestamp, full) => {
   if (full) {
-    return new Date(timestamp * 1000)
-      .toISOString()
-      .split('.')[0]
-      .replace('T', ' ')
+    let d = date.formatDate(new Date(timestamp * 1000), 'DD MMM YYYY HH:mm:ss')
+    if (d.endsWith('00:00:00')) return d.slice(0, -9)
+    return d
   }
 
   const now = Date.now() / 1000

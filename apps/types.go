@@ -27,7 +27,7 @@ func (s *Settings) normalize() {
 		s.Title = spl[len(spl)-1]
 	}
 
-	for m, _ := range s.Models {
+	for m := range s.Models {
 		for _, filter := range s.Models[m].DefaultFiltersLua {
 			if len(filter) == 3 {
 				s.Models[m].DefaultFiltersJS = append(s.Models[m].DefaultFiltersJS,
@@ -273,6 +273,7 @@ var validTypes = []string{
 	"url",
 	"currency",
 	"select",
+	"datetime",
 }
 
 func (field Field) validate(models []Model) error {
@@ -354,15 +355,15 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 
 	switch field.Type {
 	case "string", "url":
-		if valueType.Name() != "string" {
+		if valueType.Kind() != reflect.String {
 			return fmt.Errorf("%s=%v is not a string", field.Name, value)
 		}
 	case "number":
-		if valueType.Name() != "float64" {
+		if valueType.Kind() != reflect.Float64 {
 			return fmt.Errorf("%s=%v is not a number", field.Name, value)
 		}
 	case "msatoshi":
-		if valueType.Name() != "float64" {
+		if valueType.Kind() != reflect.Float64 {
 			return fmt.Errorf("%s=%v is not a number", field.Name, value)
 		}
 		amount := int64(value.(float64))
@@ -412,14 +413,18 @@ func (field Field) validateValue(value interface{}, walletID, app string) error 
 				}
 			}
 		}
+	case "datetime":
+		if valueType.Kind() != reflect.Float64 {
+			return fmt.Errorf("%s=%v is not a number (we need a unix timestamp)", field.Name, value)
+		}
 	case "select":
 		// anything goes
 	case "boolean":
-		if valueType.Name() != "bool" {
+		if valueType.Kind() != reflect.Bool {
 			return fmt.Errorf("%s=%v is not a boolean", field.Name, value)
 		}
 	case "ref":
-		if valueType.Name() != "string" {
+		if valueType.Kind() != reflect.String {
 			return fmt.Errorf("%s=%v is not a ref string",
 				field.Name, value)
 		}

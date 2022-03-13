@@ -71,6 +71,45 @@
     :model-value="value"
     @update:model-value="handleChange($event)"
   />
+  <q-input
+    v-if="field.type === 'datetime'"
+    readonly
+    filled
+    dense
+    :model-value="formatDate(value, true)"
+    :label="fieldLabel(field)"
+  >
+    <template #append>
+      <q-icon name="event" class="cursor-pointer">
+        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+          <q-date
+            mask="datetimeMask"
+            :model-value="formatTimestampMask(value)"
+            @update:model-value="handleChangeDateTime"
+          >
+            <div class="row items-center justify-end">
+              <q-btn v-close-popup label="Done" color="primary" flat />
+            </div>
+          </q-date>
+        </q-popup-proxy>
+      </q-icon>
+
+      <q-icon name="access_time" class="cursor-pointer">
+        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+          <q-time
+            mask="datetimeMask"
+            format24h
+            :model-value="formatTimestampMask(value)"
+            @update:model-value="handleChangeDateTime"
+          >
+            <div class="row items-center justify-end">
+              <q-btn v-close-popup label="Done" color="primary" flat />
+            </div>
+          </q-time>
+        </q-popup-proxy>
+      </q-icon>
+    </template>
+  </q-input>
   <q-select
     v-if="field.type === 'ref'"
     filled
@@ -93,7 +132,11 @@
 </template>
 
 <script>
-import {fieldLabel} from '../helpers'
+import {date} from 'quasar'
+
+import {formatDate, fieldLabel} from '../helpers'
+
+const datetimeMask = 'ddd DD MMM YYYY HH:mm:ss'
 
 export default {
   props: {
@@ -115,6 +158,7 @@ export default {
 
   data() {
     return {
+      datetimeMask,
       currencyOptions: this.$store.state.settings.currencies
     }
   },
@@ -126,6 +170,7 @@ export default {
   },
 
   methods: {
+    formatDate,
     fieldLabel,
 
     currencyFilter(search, update) {
@@ -143,7 +188,23 @@ export default {
     },
 
     handleChange(value) {
-      this.$emit('update:data', {...this.data, [this.field.name]: value})
+      if (value)
+        this.$emit('update:data', {...this.data, [this.field.name]: value})
+    },
+
+    handleChangeDateTime(...args) {
+      var current = new Date(this.value * 1000)
+      let change = args[args.length - 1]
+      delete change.timezoneOffset
+      delete change.dateHash
+      delete change.timeHash
+      delete change.changed
+      let updated = date.adjustDate(current, change)
+      this.handleChange(Math.round(updated.getTime() / 1000))
+    },
+
+    formatTimestampMask(ts) {
+      return date.formatDate(new Date(ts * 1000), datetimeMask)
     }
   }
 }
