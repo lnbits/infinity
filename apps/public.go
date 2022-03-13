@@ -16,7 +16,7 @@ import (
 
 func CustomAction(w http.ResponseWriter, r *http.Request) {
 	walletID := mux.Vars(r)["wallet"]
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	action := mux.Vars(r)["action"]
 
 	if !nameValidator.MatchString(action) {
@@ -103,7 +103,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 
 func PublicSSE(w http.ResponseWriter, r *http.Request) {
 	walletID := mux.Vars(r)["wallet"]
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 
 	var es eventsource.EventSource
 	ies, ok := publicAppStreams.Load(walletID + ":" + app)
@@ -155,7 +155,7 @@ func emitPublicEvent(walletID string, app string, typ string, data interface{}) 
 }
 
 func StaticFile(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	subpath := "/" + strings.Join(strings.Split(r.URL.Path, "/")[4:], "/")
 
 	settings, err := GetAppSettings(app)

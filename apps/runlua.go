@@ -55,10 +55,9 @@ return {
 	}
 
 	globalsToInject := map[string]interface{}{
-		"service_url": ServiceURL,
-
-		"app_id": params.AppURL,
-		"code":   code,
+		"app_id":         params.AppURL,
+		"app_encoded_id": appURLToID(params.AppURL),
+		"code":           code,
 
 		"debug_print": luaPrint,
 
@@ -131,7 +130,7 @@ return {
 
 	// expose them to sandbox
 	sandboxGlobalsInjector := "injected_globals = {\n"
-	for k, _ := range globalsToInject {
+	for k := range globalsToInject {
 		sandboxGlobalsInjector += "  " + k + " = " + k + ",\n"
 	}
 	sandboxGlobalsInjector += "}\n"
@@ -170,10 +169,6 @@ ret = sandbox.run(code, { quota = 1000, env = injected_globals })
 }
 
 const CUSTOM_ENV_DEF = `
-settings = {
-  service_url = service_url,
-}
-
 wallet = {
   id = wallet_id,
   balance = function () return load_wallet_balance(wallet_id) end,
@@ -198,6 +193,7 @@ wallet = {
 
 app = {
   id = app_id,
+  encoded_id = app_encoded_id,
   emit_event = function (name, data)
     emit_public_event(wallet_id, app_id, name, data)
   end,

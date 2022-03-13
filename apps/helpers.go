@@ -25,14 +25,18 @@ var (
 	staticresourcetransport = &staticResourceTransport{}
 )
 
-func appidToURL(appid string) string {
-	appid = strings.ReplaceAll(appid, "=", "")
-	if url, err := base64.RawURLEncoding.DecodeString(appid); err == nil {
+func appIDToURL(appID string) string {
+	appID = strings.ReplaceAll(appID, "=", "")
+	if url, err := base64.RawURLEncoding.DecodeString(appID); err == nil {
 		return string(url)
 	} else {
-		log.Warn().Err(err).Str("appid", appid).Msg("got invalid app id")
+		log.Warn().Err(err).Str("appid", appID).Msg("got invalid app id")
 		return ""
 	}
+}
+
+func appURLToID(appURL string) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(appURL))
 }
 
 func stacktrace(luaError *lua.LuaError) string {
@@ -107,7 +111,8 @@ func (_ *staticResourceTransport) RoundTrip(r *http.Request) (*http.Response, er
 func getOriginalURL(r *http.Request) *url.URL {
 	if ServiceURL != "" {
 		if serviceURL, err := url.Parse(ServiceURL); err == nil {
-			return serviceURL
+			r.URL.Host = serviceURL.Host
+			r.URL.Scheme = serviceURL.Scheme
 		} else {
 			log.Warn().Err(err).Str("ServiceURL", ServiceURL).
 				Msg("SERVICE_URL is invalid")

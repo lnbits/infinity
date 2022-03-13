@@ -15,7 +15,7 @@ type KeyValue struct {
 }
 
 func Info(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 
 	settings, err := GetAppSettings(app)
 	if err != nil {
@@ -27,13 +27,13 @@ func Info(w http.ResponseWriter, r *http.Request) {
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	codeCache.Delete(app)
 	settingsCache.Delete(app)
 }
 
 func ListItems(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 	modelName := mux.Vars(r)["model"]
 
@@ -47,7 +47,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetItem(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	model := mux.Vars(r)["model"]
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
@@ -61,7 +61,7 @@ func GetItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetItem(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	model := mux.Vars(r)["model"]
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
@@ -85,7 +85,7 @@ func SetItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddItem(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	model := mux.Vars(r)["model"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 
@@ -110,7 +110,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
-	app := appidToURL(mux.Vars(r)["appid"])
+	app := appIDToURL(mux.Vars(r)["appid"])
 	model := mux.Vars(r)["model"]
 	key := mux.Vars(r)["key"]
 	wallet := r.Context().Value("wallet").(*models.Wallet)
