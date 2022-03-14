@@ -220,6 +220,7 @@ github.com/fergusstrange/embedded-postgres v1.10.0 h1:YnwF6xAQYmKLAXXrrRx4rHDLih
 github.com/fergusstrange/embedded-postgres v1.10.0/go.mod h1:a008U8/Rws5FtIOTGYDYa7beVWsT3qVKyqExqYYjL+c=
 github.com/fiatjaf/bip340 v1.1.0 h1:W+CnUU3RyqgMKS2S9t/r2l3L4D+sSkRtU4la7MlVBR8=
 github.com/fiatjaf/bip340 v1.1.0/go.mod h1:MxAz+5FQUTW4OT2gnCBC6Our486wmqf72ykZIrh7+is=
+github.com/fiatjaf/eclair-go v0.2.3 h1:hJLlIo0QWWIGaM/qwhs2XiyBordu/N+jqktWAond6uY=
 github.com/fiatjaf/eclair-go v0.2.3/go.mod h1:GVwvLpx9QwIcVnhJDn1r+LAS3B1jX++ARXahxpU6RZc=
 github.com/fiatjaf/go-lnurl v1.0.0/go.mod h1:BqA8WXAOzntF7Z3EkVO7DfP4y5rhWUmJ/Bu9KBke+rs=
 github.com/fiatjaf/go-lnurl v1.7.2 h1:O/r1o8RSbBF0FIn8jRI41N+4kpuwlVb6nJPuMFH3cPc=
@@ -567,8 +568,8 @@ github.com/lightningnetwork/lnd/queue v1.1.0/go.mod h1:YTkTVZCxz8tAYreH27EO3s857
 github.com/lightningnetwork/lnd/ticker v1.0.0/go.mod h1:iaLXJiVgI1sPANIF2qYYUJXjoksPNvGNYowB8aRbpX0=
 github.com/lightningnetwork/lnd/ticker v1.1.0 h1:ShoBiRP3pIxZHaETndfQ5kEe+S4NdAY1hiX7YbZ4QE4=
 github.com/lightningnetwork/lnd/ticker v1.1.0/go.mod h1:ubqbSVCn6RlE0LazXuBr7/Zi6QT0uQo++OgIRBxQUrk=
-github.com/lnbits/relampago v0.2.0 h1:+Tbv4EP8L7/c2nvd+2QIMvVe+bdP3yj9NdNgJXZkr40=
-github.com/lnbits/relampago v0.2.0/go.mod h1:Kb3Glh7WilsTr9ELkQse9MjGdcfEt4m5cJaAH5JzerM=
+github.com/lnbits/relampago v0.3.0 h1:wVvOnFGgbRZMRxANsylS0w5b5e6+Xc/elS5WAAk41Zs=
+github.com/lnbits/relampago v0.3.0/go.mod h1:Kb3Glh7WilsTr9ELkQse9MjGdcfEt4m5cJaAH5JzerM=
 github.com/ltcsuite/ltcd v0.0.0-20190101042124-f37f8bf35796 h1:sjOGyegMIhvgfq5oaue6Td+hxZuf3tDC8lAPrFldqFw=
 github.com/ltcsuite/ltcd v0.0.0-20190101042124-f37f8bf35796/go.mod h1:3p7ZTf9V1sNPI5H8P3NkTFF4LuwMdPl2DodF60qAKqY=
 github.com/ltcsuite/ltcutil v0.0.0-20181217130922-17f3b04680b6/go.mod h1:8Vg/LTOO0KYa/vlHWJ6XZAevPQThGH5sufO0Hrou/lA=

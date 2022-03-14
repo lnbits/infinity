@@ -18,7 +18,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/koding/logging v0.0.0-20160720134017-8b5a689ed69b // indirect
 	github.com/koding/tunnel v0.0.0-20170601195443-35a8b95662bf
-	github.com/lnbits/relampago v0.2.0
+	github.com/lnbits/relampago v0.3.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect

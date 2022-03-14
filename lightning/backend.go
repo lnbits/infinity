@@ -7,6 +7,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/lnbits/events"
 	"github.com/lnbits/relampago"
+	"github.com/lnbits/relampago/eclair"
 	"github.com/lnbits/relampago/lnd"
 	"github.com/lnbits/relampago/sparko"
 	"github.com/lnbits/relampago/void"
@@ -21,6 +22,9 @@ type LightningBackendSettings struct {
 	LNDHost         string `envconfig:"LND_HOST"`
 	LNDCertPath     string `envconfig:"LND_CERT_PATH"`
 	LNDMacaroonPath string `envconfig:"LND_MACAROON_PATH"`
+
+	EclairHost     string `envconfig:"ECLAIR_HOST"`
+	EclairPassword string `envconfig:"ECLAIR_PASSWORD"`
 }
 
 func Connect(backendType string) {
@@ -39,6 +43,10 @@ func Connect(backendType string) {
 			ConnectTimeout: 5 * time.Second,
 		})
 	case "eclair":
+		LN, err = eclair.Start(eclair.Params{
+			Host:     lbs.EclairHost,
+			Password: lbs.EclairPassword,
+		})
 	case "clightning":
 	case "sparko":
 		LN, err = sparko.Start(sparko.Params{
