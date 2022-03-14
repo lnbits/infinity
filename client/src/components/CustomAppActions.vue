@@ -95,10 +95,13 @@ export default {
     },
 
     appPublic() {
+      var base = location.protocol + '//' + location.host
+      if (this.$store.state.settings.serviceURL?.length) {
+        base = this.$store.state.settings.serviceURL
+      }
+
       return (
-        location.protocol +
-        '//' +
-        location.host +
+        base +
         location.pathname.replace('/app/', '/').replace('/wallet/', '/ext/')
       )
     },
