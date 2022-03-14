@@ -71,9 +71,9 @@ type AppDataItem struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"-"`
 
-	App      string `gorm:"primaryKey;index:app_user_items_idx" json:"app"`
-	WalletID string `gorm:"primaryKey;index:app_user_items_idx" json:"walletID"`
-	Model    string `gorm:"primaryKey;index:app_user_items_idx" json:"model"`
+	App      string `gorm:"primaryKey" json:"app"`
+	WalletID string `gorm:"primaryKey" json:"walletID"`
+	Model    string `gorm:"primaryKey" json:"model"`
 	Key      string `gorm:"primaryKey" json:"key"`
 
 	Value JSONObject `gorm:"not null" json:"value"`

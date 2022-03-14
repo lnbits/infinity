@@ -30,11 +30,19 @@ func DBGet(wallet, app, model, key string) (map[string]interface{}, error) {
 	return item.Value, nil
 }
 
-func DBList(wallet, app, model string) ([]models.AppDataItem, error) {
+func DBList(wallet, app, model, startkey, endkey string) ([]models.AppDataItem, error) {
+	q := storage.DB.
+		Where(&models.AppDataItem{WalletID: wallet, App: app, Model: model})
+
+	if startkey != "" {
+		q = q.Where("key > ?", startkey)
+	}
+	if endkey != "" {
+		q = q.Where("key < ?", endkey)
+	}
+
 	var items []models.AppDataItem
-	result := storage.DB.
-		Where(&models.AppDataItem{WalletID: wallet, App: app, Model: model}).
-		Find(&items)
+	result := q.Find(&items)
 
 	if result.Error != nil {
 		return nil, result.Error

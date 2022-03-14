@@ -33,11 +33,12 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListItems(w http.ResponseWriter, r *http.Request) {
+	qs := r.URL.Query()
 	app := appIDToURL(mux.Vars(r)["appid"])
 	wallet := r.Context().Value("wallet").(*models.Wallet)
 	modelName := mux.Vars(r)["model"]
 
-	items, err := DBList(wallet.ID, app, modelName)
+	items, err := DBList(wallet.ID, app, modelName, qs.Get("startkey"), qs.Get("endkey"))
 	if err != nil {
 		apiutils.SendJSONError(w, 500, "database error: %s", err.Error())
 		return
