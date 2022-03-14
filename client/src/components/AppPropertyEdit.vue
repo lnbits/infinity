@@ -188,8 +188,7 @@ export default {
     },
 
     handleChange(value) {
-      if (value)
-        this.$emit('update:data', {...this.data, [this.field.name]: value})
+      this.$emit('update:data', {...this.data, [this.field.name]: value})
     },
 
     handleChangeDateTime(...args) {
