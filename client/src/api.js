@@ -109,6 +109,9 @@ export const appInfo = async appid => {
 export const appRefresh = async appid =>
   await request(`/api/wallet/app/${appid}/refresh`)
 
+export const appClearData = async appid =>
+  await request(`/api/wallet/app/${appid}/clear-data`)
+
 export const listAppItems = async (appURL, model) =>
   await request(`/api/wallet/app/${appURLToId(appURL)}/list/${model}`)
 

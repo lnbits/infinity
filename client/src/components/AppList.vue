@@ -37,6 +37,9 @@
               <q-item v-close-popup clickable @click="remove(app)">
                 <q-item-section>Remove</q-item-section>
               </q-item>
+              <q-item v-close-popup clickable @click="clearData(app)">
+                <q-item-section>Clear Data</q-item-section>
+              </q-item>
             </q-list>
           </q-menu>
         </q-item-label>
@@ -84,7 +87,7 @@
 <script>
 import exists from 'image-exists'
 
-import {addApp, removeApp, appRefresh} from '../api'
+import {addApp, removeApp, appRefresh, appClearData} from '../api'
 import {appDisplayName, appURLToId, notifyError} from '../helpers'
 
 export default {
@@ -156,15 +159,46 @@ export default {
     async refresh(appURL) {
       try {
         await appRefresh(appURLToId(appURL))
-        if (
-          this.$route.pathname.indexOf('/app/') !== -1 &&
-          this.$store.state.app?.url === appURL
-        ) {
-          this.$store.dispatch('fetchApp', this.$store.state.app.id)
-        }
       } catch (err) {
         notifyError(err)
       }
+
+      if (
+        this.$route.path.indexOf('/app/') !== -1 &&
+        this.$store.state.app?.url === appURL
+      ) {
+        this.$store.dispatch('fetchApp', this.$store.state.app.id)
+      }
+    },
+
+    async clearData(appURL) {
+      this.$q
+        .dialog({
+          message:
+            'This will delete all items and data related to this module in this wallet. Are you sure?',
+          ok: {
+            flat: true,
+            color: 'red'
+          },
+          cancel: {
+            flat: true,
+            color: 'grey'
+          }
+        })
+        .onOk(async () => {
+          try {
+            await appClearData(appURLToId(appURL))
+          } catch (err) {
+            notifyError(err)
+          }
+
+          if (
+            this.$route.path.indexOf('/app/') !== -1 &&
+            this.$store.state.app?.url === appURL
+          ) {
+            this.$store.dispatch('fetchApp', this.$store.state.app.id)
+          }
+        })
     }
   }
 }

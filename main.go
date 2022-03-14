@@ -112,6 +112,7 @@ func main() {
 	router.Path("/api/wallet/app/sse").HandlerFunc(apps.SSE)
 	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
 	router.Path("/api/wallet/app/{appid}/refresh").HandlerFunc(apps.Refresh)
+	router.Path("/api/wallet/app/{appid}/clear-data").HandlerFunc(apps.ClearData)
 	router.Path("/api/wallet/app/{appid}/list/{model}").HandlerFunc(apps.ListItems)
 	router.Path("/api/wallet/app/{appid}/get/{model}/{key}").HandlerFunc(apps.GetItem)
 	router.Path("/api/wallet/app/{appid}/set/{model}/{key}").HandlerFunc(apps.SetItem)

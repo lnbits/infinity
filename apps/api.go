@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lnbits/lnbits/api/apiutils"
 	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/lnbits/storage"
 )
 
 type KeyValue struct {
@@ -30,6 +31,23 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	app := appIDToURL(mux.Vars(r)["appid"])
 	codeCache.Delete(app)
 	settingsCache.Delete(app)
+}
+
+func ClearData(w http.ResponseWriter, r *http.Request) {
+	app := appIDToURL(mux.Vars(r)["appid"])
+	wallet := r.Context().Value("wallet").(*models.Wallet)
+
+	result := storage.DB.
+		Where(&models.AppDataItem{
+			App:      app,
+			WalletID: wallet.ID,
+		}).
+		Delete(&models.AppDataItem{})
+
+	if result.Error != nil {
+		apiutils.SendJSONError(w, 500, "database error: %s", result.Error.Error())
+		return
+	}
 }
 
 func ListItems(w http.ResponseWriter, r *http.Request) {
