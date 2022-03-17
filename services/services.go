@@ -7,8 +7,6 @@ import (
 )
 
 var Secret string
-var MainServer *http.Server
-var TunnelDomain string
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 7,

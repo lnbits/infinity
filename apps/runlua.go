@@ -84,9 +84,6 @@ return {
 		"lnurl_bech32_encode":     lnurl.LNURLEncode,
 		"lnurl_bech32_decode":     lnurl.LNURLDecode,
 		"lnurl_successaction_aes": utils.AESSuccessAction,
-		"add_tunnel_client":       services.AddTunnelClient,
-		"remove_tunnel_client":    services.RemoveTunnelClient,
-		"open_tunnel":             services.OpenTunnel,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -238,12 +235,6 @@ utils = {
   snigirev_decrypt = snigirev_decrypt,
   perform_key_auth_flow = perform_key_auth_flow,
   get_msats_per_fiat_unit = get_msats_per_fiat_unit,
-}
-
-tunnel = {
-  remove_client = remove_tunnel_client,
-  add_client = add_tunnel_client,
-  open = open_tunnel,
 }
 
 db = setmetatable({}, {

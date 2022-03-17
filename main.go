@@ -34,8 +34,6 @@ type Settings struct {
 	DefaultWalletName string   `envconfig:"DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 	AppCacheSize      int      `envconfig:"APP_CACHE_SIZE" default:"200"`
 	NostrRelays       []string `envconfig:"NOSTR_RELAYS"`
-	TunnelDomain      string   `envconfig:"TUNNEL_DOMAIN"`
-	TunnelPort        string   `envconfig:"TUNNEL_PORT"`
 
 	LightningBackend string `envconfig:"LIGHTNING_BACKEND" default:"void"`
 	// -- other env vars are defined in the 'lightning' package
@@ -131,17 +129,6 @@ func main() {
 
 	serveStaticClient(router)
 
-	// serve tunnel clients
-	if s.TunnelDomain != "" && s.TunnelPort != "" {
-		log.Info().Str("domain", s.TunnelDomain).Str("port", s.TunnelPort).
-			Msg("found tunnel settings, will run tunnel server")
-
-		services.TunnelDomain = s.TunnelDomain
-		services.StartTunnelService()
-
-		go http.ListenAndServe("0.0.0.0:"+s.TunnelPort, services.TunnelHandler)
-	}
-
 	// start http server
 	log.Info().Str("host", s.Host+":"+s.Port).Msg("http listening")
 	srv := &http.Server{
@@ -150,7 +137,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	services.MainServer = srv
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error().Err(err).Msg("error serving http")
 	}
