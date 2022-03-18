@@ -9,9 +9,9 @@ import (
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
 	"github.com/fiatjaf/lunatico"
-	"github.com/lnbits/lnbits/nostr"
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/lnbits/utils/nostr_utils"
 )
 
 //go:embed sandbox.lua
@@ -107,7 +107,7 @@ return {
 			"get_wallet_payment":   services.GetWalletPayment,
 			"load_wallet_balance":  services.LoadWalletBalance,
 			"load_wallet_payments": services.LoadWalletPayments,
-			"nostr_publish":        nostr.Publish,
+			"nostr_publish":        nostr_utils.Publish,
 
 			"db_get":    DBGet,
 			"db_set":    DBSet,

@@ -1,12 +1,11 @@
-package nostr
+package nostr_utils
 
 import (
 	"crypto/sha256"
 	"fmt"
 
 	"github.com/fiatjaf/bip340"
-	"github.com/fiatjaf/go-nostr/filter"
-	"github.com/fiatjaf/go-nostr/relaypool"
+	nostr "github.com/fiatjaf/go-nostr"
 	"github.com/lnbits/lnbits/events"
 )
 
@@ -23,14 +22,14 @@ func Start() {
 	pool.SecretKey = &privateKeyHex
 
 	for _, url := range Relays {
-		pool.Add(url, &relaypool.Policy{
-			SimplePolicy: relaypool.SimplePolicy{Read: true, Write: true},
-		})
+		pool.Add(url, &nostr.SimplePolicy{Read: true, Write: true})
 	}
 
-	sub := pool.Sub(filter.EventFilters{
-		{
-			TagProfile: fmt.Sprintf("%x", publicKey),
+	sub := pool.Sub(nostr.Filters{
+		nostr.Filter{
+			Tags: map[string]nostr.StringList{
+				"#p": {fmt.Sprintf("%x", publicKey)},
+			},
 		},
 	})
 

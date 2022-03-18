@@ -12,9 +12,9 @@ import (
 	"github.com/lnbits/lnbits/api"
 	"github.com/lnbits/lnbits/apps"
 	"github.com/lnbits/lnbits/lightning"
-	"github.com/lnbits/lnbits/nostr"
 	"github.com/lnbits/lnbits/services"
 	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/lnbits/utils/nostr_utils"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 )
@@ -55,8 +55,8 @@ func main() {
 	apps.ServiceURL = s.ServiceURL
 	api.SiteTitle = s.SiteTitle
 	services.Secret = s.Secret
-	nostr.Relays = s.NostrRelays
-	nostr.Secret = s.Secret
+	nostr_utils.Relays = s.NostrRelays
+	nostr_utils.Secret = s.Secret
 
 	// setup logger
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -83,7 +83,7 @@ func main() {
 	}()
 
 	// start nostr
-	nostr.Start()
+	nostr_utils.Start()
 
 	// start routines
 	go routines()

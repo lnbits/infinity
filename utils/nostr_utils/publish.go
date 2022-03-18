@@ -1,24 +1,23 @@
-package nostr
+package nostr_utils
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/fiatjaf/go-nostr/event"
-	"github.com/fiatjaf/go-nostr/relaypool"
+	nostr "github.com/fiatjaf/go-nostr"
 	"github.com/lnbits/lnbits/events"
 )
 
 type EventRelay struct {
-	Event *event.Event `json:"event"`
+	Event *nostr.Event `json:"event"`
 	Relay string       `json:"relay"`
 }
 
 func Publish(app, wallet string, eventData map[string]interface{}) (string, error) {
-	evt := &event.Event{
-		CreatedAt: uint32(time.Now().Unix()),
+	evt := &nostr.Event{
+		CreatedAt: time.Now(),
 		Kind:      1,
-		Tags:      make(event.Tags, 0),
+		Tags:      make(nostr.Tags, 0),
 		Content:   "",
 	}
 
@@ -33,7 +32,7 @@ func Publish(app, wallet string, eventData map[string]interface{}) (string, erro
 	if itags, ok := eventData["tags"]; ok {
 		if tags, ok := itags.([]interface{}); ok {
 			for i, itag := range tags {
-				if tag, ok := itag.(event.Tag); ok {
+				if tag, ok := itag.(nostr.StringList); ok {
 					evt.Tags = append(evt.Tags, tag)
 				} else {
 					return "", fmt.Errorf("invalid tag at %d: %v", i, itag)
@@ -60,19 +59,19 @@ func Publish(app, wallet string, eventData map[string]interface{}) (string, erro
 	go func() {
 		for status := range statuses {
 			switch status.Status {
-			case relaypool.PublishStatusSent:
+			case nostr.PublishStatusSent:
 				events.EmitGenericAppWalletEvent(
 					app, wallet,
 					"nostr_event_sent",
 					EventRelay{evt, status.Relay},
 				)
-			case relaypool.PublishStatusFailed:
+			case nostr.PublishStatusFailed:
 				events.EmitGenericAppWalletEvent(
 					app, wallet,
 					"nostr_event_failed",
 					EventRelay{evt, status.Relay},
 				)
-			case relaypool.PublishStatusSucceeded:
+			case nostr.PublishStatusSucceeded:
 				events.EmitGenericAppWalletEvent(
 					app, wallet,
 					"nostr_event_confirmed",
