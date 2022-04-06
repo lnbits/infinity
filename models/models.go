@@ -69,7 +69,7 @@ type BalanceCheck struct {
 
 type AppDataItem struct {
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"updated_at"`
 
 	App      string `gorm:"primaryKey" json:"app"`
 	WalletID string `gorm:"primaryKey" json:"walletID"`
