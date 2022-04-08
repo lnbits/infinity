@@ -33,6 +33,7 @@ type Settings struct {
 	SiteDescription   string   `envconfig:"SITE_DESCRIPTION" default:""`
 	DefaultWalletName string   `envconfig:"DEFAULT_WALLET_NAME" default:"LNbits Wallet"`
 	AppCacheSize      int      `envconfig:"APP_CACHE_SIZE" default:"200"`
+	LuaQuota          int      `envconfig:"LUA_QUOTA" default:"2000"`
 	NostrRelays       []string `envconfig:"NOSTR_RELAYS"`
 
 	LightningBackend string `envconfig:"LIGHTNING_BACKEND" default:"void"`

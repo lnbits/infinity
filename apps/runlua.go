@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
+	"strconv"
 
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
@@ -84,6 +86,9 @@ return {
 		"lnurl_bech32_encode":     lnurl.LNURLEncode,
 		"lnurl_bech32_decode":     lnurl.LNURLDecode,
 		"lnurl_successaction_aes": utils.AESSuccessAction,
+		"feed_parse":              utils.ParseFeed,
+		"html_escape":             html.EscapeString,
+		"html_unescape":           html.UnescapeString,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -134,7 +139,7 @@ return {
 
 	err := L.DoString(sandboxGlobalsInjector + `
 local sandbox = (function () ` + sandboxCode + `end)()
-ret = sandbox.run(code, { quota = 1000, env = injected_globals })
+ret = sandbox.run(code, { quota = ` + strconv.Itoa(LuaQuota) + `, env = injected_globals })
     `)
 	if err != nil {
 		if luaError, ok := err.(*lua.LuaError); ok {
@@ -226,11 +231,14 @@ utils = {
   json = json,
   http = http,
   sha256 = sha256,
+  feed_parse = feed_parse,
   currencies = currencies,
   parse_date = parse_date,
   random_hex = random_hex,
   aes_encrypt = aes_encrypt,
   aes_decrypt = aes_decrypt,
+  html_escape = html_escape,
+  html_unescape = html_unescape,
   snigirev_encrypt = snigirev_encrypt,
   snigirev_decrypt = snigirev_decrypt,
   perform_key_auth_flow = perform_key_auth_flow,

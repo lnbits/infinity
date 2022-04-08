@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/aarzilli/golua v0.0.0-20210507130708-11106aa57765
 	github.com/btcsuite/btcd v0.22.0-beta.0.20211005184431-e3449998be39
+	github.com/codegangsta/cli v1.20.0 // indirect
 	github.com/fiatjaf/bip340 v1.1.1
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/go-nostr v0.6.3
@@ -17,6 +18,7 @@ require (
 	github.com/lnbits/relampago v0.3.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
+	github.com/mmcdole/gofeed v1.1.3 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/rif/cache2go v1.0.0
 	github.com/rs/cors v1.8.0

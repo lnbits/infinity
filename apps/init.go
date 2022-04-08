@@ -15,6 +15,7 @@ import (
 )
 
 var AppCacheSize int
+var LuaQuota int
 var ServiceURL string
 
 var httpClient = &http.Client{
