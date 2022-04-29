@@ -19,7 +19,7 @@ func HTTP(
 	var baseHeaders = map[string]string{
 		"Accept": "application/json",
 	}
-	var body *bytes.Buffer
+	var body = &bytes.Buffer{}
 	if data != nil {
 		switch v := data.(type) {
 		case string:
