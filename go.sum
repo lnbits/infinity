@@ -246,6 +246,10 @@ github.com/fiatjaf/ln-decodepay v1.1.0 h1:HigjqNH+ApiO6gm7RV23jXNFuvwq+zgsWl4BJA
 github.com/fiatjaf/ln-decodepay v1.1.0/go.mod h1:2qdTT95b8Z4dfuxiZxXuJ1M7bQ9CrLieEA1DKC50q6s=
 github.com/fiatjaf/lunatico v1.4.0 h1:aIJ/m3MQnP2MvOTi3GIyLz99YOz8uUkVMJoB+ATGcRg=
 github.com/fiatjaf/lunatico v1.4.0/go.mod h1:dwBFpzqlNH0kKwMHofhlnD6/Sjl5eUf6ADdHe7XBeIk=
+github.com/fiatjaf/lunatico v1.5.0 h1:U7j9U/mY6XgDA6B7wj8+meBcCSqe7iXkKuokFnGVLg0=
+github.com/fiatjaf/lunatico v1.5.0/go.mod h1:dwBFpzqlNH0kKwMHofhlnD6/Sjl5eUf6ADdHe7XBeIk=
+github.com/fiatjaf/lunatico v1.5.1 h1:+GITY3Sb/PUMJpFpBUCUm+C8e4imh53KFvcrDtEj4R8=
+github.com/fiatjaf/lunatico v1.5.1/go.mod h1:dwBFpzqlNH0kKwMHofhlnD6/Sjl5eUf6ADdHe7XBeIk=
 github.com/form3tech-oss/jwt-go v3.2.3+incompatible h1:7ZaBxOI7TMoYBfyA3cQHErNNyAWIKUMIwqxEtgHOs5c=
 github.com/form3tech-oss/jwt-go v3.2.3+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
 github.com/frankban/quicktest v1.2.2 h1:xfmOhhoH5fGPgbEAlhLpJH9p0z/0Qizio9osmvn9IUY=

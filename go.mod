@@ -10,7 +10,7 @@ require (
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/go-nostr v0.6.3
 	github.com/fiatjaf/ln-decodepay v1.1.0
-	github.com/fiatjaf/lunatico v1.4.0
+	github.com/fiatjaf/lunatico v1.5.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
