@@ -1,40 +1,54 @@
 LNbits Infinity (BETA)
 ======
 
-![Lightning network wallet](https://i.imgur.com/EHvK6Lq.png)
-
-# Free Open-Source Lightning Accounts System with Extensions
-
-For the Python version of LNbits checkout <a href="https://github.com/lnbits/lnbits-legend/">Legend</a>. Demo servers available on [lnbits.com](https://lnbits.com).
-
-Join us on [https://t.me/lnbits](https://t.me/lnbits).
-
-LNbits can run on top of any lightning-network funding source, currently there is support for LND, c-lightning, Spark, LNpay, OpenNode, lntxbot, with more being added regularly.
-
-Checkout [Awesome-LNbits](https://github.com/cryptoteun/awesome-lnbits), a currated list of projects made using LNbits.
-
-Checkout the LNbits [YouTube](https://www.youtube.com/playlist?list=PLPj3KCksGbSYG0ciIQUWJru1dWstPHshe) video series.
-
 ### Installation
 
 ```sh
-git clone https://github.com/lnbits/lnbits-infinity.git
+git clone https://github.com/lnbits/infinity.git
 
-# Install dependencies 
-sudo apt-get install lua5.3
-go install github.com/joho/godotenv/cmd/godotenv@latest
+# install dependencies
+sudo apt-get install lua5.3-dev
 ```
+
+Move into the Infinity directory:
+
+```sh
+cd infinity
+```
+
+Setup environment variables:
+
+```sh
+PORT=6000
+QUASAR_DEV_SERVER=http://localhost:6001
+
+DATABASE=dev.sqlite
+
+LIGHTNING_BACKEND=void # adjust accordingly
+# depending on the lightning backend chosen you'll need different environment variables
+# check https://github.com/lnbits/infinity/blob/77dafa306b0ea79cdf5ffa9bf39c13cd04ffdfa6/lightning/backend.go#L18-L28 file for more information
+
+SITE_TITLE=My Infinity
+SITE_TAGLINE=An infinitude of wallets and apps
+SITE_DESCRIPTION=Local server of LNbits Infinity
+DEFAULT_WALLET_NAME=Wallet
+
+SECRET=typesomethingrandomthisisnotsuperimportantjustalittle
+```
+
 Install [Air](https://github.com/cosmtrek/air).
 
-Open two terminals. In one, do
+Finally, open two terminals. In one, do
 
 ```sh
 cd client
-quasar dev
+quasar dev -p 6001
 ```
 
 on the other, do
 
 ```sh
-QUASAR_DEV_SERVER=http://localhost:8080 make dev
+make dev
 ```
+
+Then access your LNbits Infinity at http://localhost:6000/ (not :6001).
