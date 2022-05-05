@@ -16,10 +16,10 @@ func HTTP(
 	data interface{},
 	headers map[string]string,
 ) (interface{}, int, error) {
-	var baseHeaders = map[string]string{
+	baseHeaders := map[string]string{
 		"Accept": "application/json",
 	}
-	var body = &bytes.Buffer{}
+	body := &bytes.Buffer{}
 	if data != nil {
 		switch v := data.(type) {
 		case string:
@@ -77,15 +77,19 @@ func HTTP(
 func HTTPGet(url string) (interface{}, int, error) {
 	return HTTP("GET", url, nil, nil)
 }
+
 func HTTPPost(url string, data interface{}) (interface{}, int, error) {
 	return HTTP("POST", url, data, nil)
 }
+
 func HTTPPut(url string, data interface{}) (interface{}, int, error) {
 	return HTTP("PUT", url, data, nil)
 }
+
 func HTTPPatch(url string, data interface{}) (interface{}, int, error) {
 	return HTTP("PATCH", url, data, nil)
 }
+
 func HTTPDelete(url string) (interface{}, int, error) {
 	return HTTP("DELETE", url, nil, nil)
 }

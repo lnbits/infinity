@@ -14,9 +14,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var AppCacheSize int
-var LuaQuota int
-var ServiceURL string
+var (
+	AppCacheSize int
+	LuaQuota     int
+	ServiceURL   string
+)
 
 var httpClient = &http.Client{
 	Timeout: time.Second * 2,
@@ -30,8 +32,10 @@ var httpClient = &http.Client{
 
 var log zerolog.Logger
 
-var appStreams = sync.Map{}
-var publicAppStreams = sync.Map{}
+var (
+	appStreams       = sync.Map{}
+	publicAppStreams = sync.Map{}
+)
 
 var nameValidator = regexp.MustCompile("^[a-z_0-9]+$")
 

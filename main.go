@@ -40,10 +40,12 @@ type Settings struct {
 	// -- other env vars are defined in the 'lightning' package
 }
 
-var s Settings
-var log = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: os.Stdout})
-var router = mux.NewRouter()
-var commit string // will be set at compile time
+var (
+	s      Settings
+	log    = zerolog.New(os.Stderr).Output(zerolog.ConsoleWriter{Out: os.Stdout})
+	router = mux.NewRouter()
+	commit string // will be set at compile time
+)
 
 func main() {
 	// environment variables
