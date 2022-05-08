@@ -122,6 +122,27 @@
               <pre><code>{{ $store.state.app.code }}</code></pre>
             </q-card-section>
           </q-expansion-item>
+
+          <q-separator />
+
+          <q-expansion-item
+            group="extras"
+            icon="terminal"
+            label="Debug messages"
+            :content-inset-level="0.5"
+          >
+            <q-card>
+              <div class="overflow-auto" style="max-height: 500px">
+                <pre
+                  v-for="message in debugMessages"
+                  :key="message">{{ message.time }} {{
+                  message.text
+                }}
+                <q-separator />
+                </pre>
+              </div>
+            </q-card>
+          </q-expansion-item>
         </q-list>
       </div>
     </div>
@@ -155,6 +176,9 @@ export default {
       )
 
       return map
+    },
+    debugMessages() {
+      return this.$store.getters.getDebugMessages
     },
 
     markdownDescription() {
