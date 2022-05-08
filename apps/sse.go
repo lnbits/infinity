@@ -1,7 +1,6 @@
 package apps
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -62,13 +61,8 @@ func SendItemSSE(item models.AppDataItem) {
 	}
 }
 
-func SendPrintSSE(walletID string, prints []interface{}) {
-	var message string
-	for _, pr := range prints {
-		message += " " + fmt.Sprint(pr)
-	}
-
+func SendPrintSSE(walletID string, prints []byte) {
 	if ies, ok := appStreams.Load(walletID); ok {
-		ies.(eventsource.EventSource).SendEventMessage(message, "print", "")
+		ies.(eventsource.EventSource).SendEventMessage(string(prints[:]), "print", "")
 	}
 }

@@ -11,7 +11,13 @@ export default createStore({
       user: null,
       wallet: null,
       app: null,
-      hasListeners: {} // { [walletID]: true },
+      hasListeners: {}, // { [walletID]: true },
+      debugMessages: []
+    }
+  },
+  getters: {
+    getDebugMessages (state) {
+      return state.debugMessages
     }
   },
   mutations: {
@@ -34,6 +40,10 @@ export default createStore({
     },
     ackListeners(state, walletID) {
       state.hasListeners[walletID] = true
+    },
+    addDebugMessage(state, message) {
+      const date = new Date(message.time)
+      state.debugMessages.push({text: message.text, time: date.toLocaleString()})
     }
   },
   actions: {
@@ -131,6 +141,19 @@ export default createStore({
       const apps = new EventSource(
         `/api/wallet/app/sse?api-key=${state.wallet.adminkey}`
       )
+      apps.addEventListener('print', ev => {
+        const item = JSON.parse(ev.data)
+
+        if (
+          !state.app ||
+          item.wallet_id !== state.wallet.id ||
+          item.app !== state.app.url
+        ) {
+          return
+        }
+        commit('addDebugMessage', {text: item.values, time: item.time})
+      })
+
       apps.addEventListener('item', ev => {
         const item = JSON.parse(ev.data)
 

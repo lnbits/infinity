@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"strconv"
+	"time"
 
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
@@ -296,7 +297,7 @@ db = setmetatable({}, {
 })
 
 print = function (...)
-  debug_print(wallet_id, ...)
+  debug_print(wallet_id, app_id, ...)
 end
 
 emptyarray = function ()
@@ -332,18 +333,30 @@ internal = {
 }
 `
 
-func luaPrint(walletID string, args ...interface{}) {
-	prints := []interface{}{"lua print: "}
-	for _, arg := range args {
-		if j, err := utils.JSONMarshal(arg); err != nil {
-			prints = append(prints, arg)
-		} else {
-			prints = append(prints, string(j))
-		}
+type LuaPrintDTO struct {
+	WalletID string        `json:"wallet_id"`
+	App      string        `json:"app"`
+	Time     time.Time     `json:"time"`
+	Values   []interface{} `json:"values"`
+}
+
+func luaPrint(walletID string, app string, args ...interface{}) {
+	prints := LuaPrintDTO{
+		WalletID: walletID,
+		App:      app,
+		Time:     time.Now(),
+		Values:   args,
 	}
-	fmt.Println(prints...)
+
+	toSSE, err := json.Marshal(prints)
+	if err != nil {
+		log.Error().Err(err).Msg("lua print unmarshaling error")
+		return
+	}
+
+	log.Debug().RawJSON("lua_print", toSSE).Send()
 
 	if walletID != "" {
-		SendPrintSSE(walletID, prints)
+		SendPrintSSE(walletID, toSSE)
 	}
 }
