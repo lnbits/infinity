@@ -1,4 +1,4 @@
-module github.com/lnbits/lnbits
+module github.com/lnbits/infinity
 
 go 1.16
 

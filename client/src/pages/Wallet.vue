@@ -638,38 +638,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <div ref="disclaimer"></div>
-    <q-dialog v-model="disclaimerDialog.show">
-      <q-card class="q-pa-lg">
-        <h6 class="q-my-md text-deep-purple">Warning</h6>
-        <p>
-          Login functionality to be released in v0.2, for now,
-          <strong
-            >make sure you bookmark this page for future access to your
-            wallet</strong
-          >!
-        </p>
-        <p>
-          This service is in BETA, and we hold no responsibility for people
-          losing access to funds. To encourage you to run your own LNbits
-          installation, any balance on {{ disclaimerDialog.location.host }} will
-          incur a charge of <strong>{{ service_fee }}% service fee</strong> per
-          week.
-        </p>
-        <div class="row q-mt-lg">
-          <q-btn
-            outline
-            color="grey"
-            @click="copyText(disclaimerDialog.location.href)"
-            >Copy wallet URL</q-btn
-          >
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >I understand</q-btn
-          >
-        </div>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
@@ -778,10 +746,6 @@ export default {
       paymentsChart: {
         show: false
       },
-      disclaimerDialog: {
-        show: false,
-        location: window.location
-      },
       balance: 0,
       newName: '',
       currencyOptions: this.$store.state.settings.currencies
@@ -796,15 +760,6 @@ export default {
   },
 
   mounted() {
-    // show disclaimer
-    if (
-      this.$refs.disclaimer &&
-      !this.$q.localStorage.getItem('lnbits.disclaimerShown')
-    ) {
-      this.disclaimerDialog.show = true
-      this.$q.localStorage.set('lnbits.disclaimerShown', true)
-    }
-
     // listen to events
     window.events.on('payment-received', this.handlePaymentReceived)
     window.events.on('payment-sent', this.handlePaymentSent)
