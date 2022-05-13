@@ -14,7 +14,7 @@ var CachedFailure = errors.New("cached-failure")
 var settingsCache = cache2go.New(AppCacheSize, time.Minute*45)
 
 func getCachedAppSettings(url string) *Settings {
-	if settings, ok := settingsCache.Get(url); ok {
+	if settings, ok := settingsCache.Get(url); ok && settings != nil {
 		return settings.(*Settings)
 	}
 	return nil
@@ -70,7 +70,11 @@ var codeCache = cache2go.New(AppCacheSize/3, time.Minute*45)
 
 func getAppCode(url string) (string, error) {
 	if code, ok := codeCache.Get(url); ok {
-		return code.(string), nil
+		if code == nil {
+			return "", CachedFailure
+		} else {
+			return code.(string), nil
+		}
 	}
 
 	resp, err := httpClient.Get(url)
