@@ -43,7 +43,7 @@ func TriggerPaymentEvent(trigger string, payment models.Payment) {
 			),
 			InjectedGlobals: &map[string]interface{}{"arg": structToMap(payment)},
 		})
-		if err != nil {
+		if err != nil && err != CachedFailure {
 			log.Warn().Err(err).
 				Str("wallet", appWallet.WalletID).
 				Str("app", appWallet.URL).
@@ -93,7 +93,7 @@ func TriggerEventOnSpecificAppWallet(
 		),
 		InjectedGlobals: &map[string]interface{}{"arg": structToMap(data)},
 	})
-	if err != nil {
+	if err != nil && err != CachedFailure {
 		log.Warn().Err(err).
 			Str("wallet", appWallet.WalletID).
 			Str("app", appWallet.URL).
