@@ -97,7 +97,7 @@ export const deleteWallet = async () =>
   })
 
 export const scanLnurl = async lnurl =>
-  await request(`/api/wallet/scan/${lnurl}`, {})
+  await request(`/api/wallet/lnurlscan/${lnurl}`, {})
 
 export const appInfo = async appid => {
   const appSettings = await request(`/api/wallet/app/${appid}`)
