@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lnbits/relampago v0.3.1
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
@@ -23,7 +24,7 @@ require (
 	github.com/rs/cors v1.8.0
 	github.com/rs/zerolog v1.25.0
 	github.com/tidwall/gjson v1.9.0
-	github.com/wI2L/jettison v0.7.3
+	github.com/wI2L/jettison v0.7.4
 	gopkg.in/antage/eventsource.v1 v1.0.0-20150318155416-803f4c5af225
 	gorm.io/driver/postgres v1.1.1
 	gorm.io/driver/sqlite v1.1.4
