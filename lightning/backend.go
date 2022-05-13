@@ -7,6 +7,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lnbits/infinity/events"
 	"github.com/lnbits/relampago"
+	"github.com/lnbits/relampago/cliche"
 	"github.com/lnbits/relampago/eclair"
 	"github.com/lnbits/relampago/lnd"
 	"github.com/lnbits/relampago/sparko"
@@ -25,6 +26,9 @@ type LightningBackendSettings struct {
 
 	EclairHost     string `envconfig:"ECLAIR_HOST"`
 	EclairPassword string `envconfig:"ECLAIR_PASSWORD"`
+
+	ClicheJARPath string `envconfig:"CLICHE_JAR_PATH"`
+	ClicheDataDir string `envconfig:"CLICHE_DATADIR"`
 }
 
 func Connect(backendType string) {
@@ -53,6 +57,11 @@ func Connect(backendType string) {
 			Host:               lbs.SparkoURL,
 			Key:                lbs.SparkoToken,
 			InvoiceLabelPrefix: "lbs",
+		})
+	case "cliche", "cliché":
+		LN, err = cliche.Start(cliche.Params{
+			JARPath: lbs.ClicheJARPath,
+			DataDir: lbs.ClicheDataDir,
 		})
 	case "lnbits":
 	default:
