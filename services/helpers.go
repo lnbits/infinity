@@ -3,7 +3,7 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/utils"
 )
 
 func mapToStruct(given map[string]interface{}, desiredStruct interface{}) {

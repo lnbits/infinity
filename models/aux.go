@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/utils"
 )
 
 type StringList []string

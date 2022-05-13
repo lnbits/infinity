@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/infinity/storage"
 	"gorm.io/gorm"
 )
 

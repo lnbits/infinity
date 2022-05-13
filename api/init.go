@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lnbits/lnbits/events"
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/events"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/storage"
+	"github.com/lnbits/infinity/utils"
 )
 
 var walletStreams = sync.Map{}

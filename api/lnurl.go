@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	lnurl "github.com/fiatjaf/go-lnurl"
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/services"
-	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/services"
+	"github.com/lnbits/infinity/storage"
 	rp "github.com/lnbits/relampago"
 )
 

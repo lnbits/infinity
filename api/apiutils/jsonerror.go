@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/utils"
 )
 
 type JSONError struct {

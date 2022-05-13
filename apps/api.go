@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/storage"
 )
 
 type KeyValue struct {

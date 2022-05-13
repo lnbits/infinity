@@ -11,11 +11,11 @@ import (
 	mux "github.com/gorilla/mux"
 	rp "github.com/lnbits/relampago"
 
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/services"
-	"github.com/lnbits/lnbits/storage"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/services"
+	"github.com/lnbits/infinity/storage"
+	"github.com/lnbits/infinity/utils"
 )
 
 func Wallet(w http.ResponseWriter, r *http.Request) {

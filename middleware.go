@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/storage"
 )
 
 func jsonHeaderMiddleware(next http.Handler) http.Handler {

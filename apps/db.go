@@ -3,9 +3,9 @@ package apps
 import (
 	"fmt"
 
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/storage"
+	"github.com/lnbits/infinity/utils"
 	"github.com/lucsky/cuid"
 	"gorm.io/gorm/clause"
 )

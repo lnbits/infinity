@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/lnbits/lnbits/events"
+	"github.com/lnbits/infinity/events"
 	"github.com/lnbits/relampago"
 	"github.com/lnbits/relampago/eclair"
 	"github.com/lnbits/relampago/lnd"

@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/utils"
 )
 
 func viewSettings(w http.ResponseWriter, r *http.Request) {

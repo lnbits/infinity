@@ -6,7 +6,7 @@ import (
 
 	"github.com/fiatjaf/bip340"
 	nostr "github.com/fiatjaf/go-nostr"
-	"github.com/lnbits/lnbits/events"
+	"github.com/lnbits/infinity/events"
 )
 
 func Start() {

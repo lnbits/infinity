@@ -12,9 +12,9 @@ import (
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
 	"github.com/fiatjaf/lunatico"
-	"github.com/lnbits/lnbits/services"
-	"github.com/lnbits/lnbits/utils"
-	"github.com/lnbits/lnbits/utils/nostr_utils"
+	"github.com/lnbits/infinity/services"
+	"github.com/lnbits/infinity/utils"
+	"github.com/lnbits/infinity/utils/nostr_utils"
 )
 
 //go:embed sandbox.lua

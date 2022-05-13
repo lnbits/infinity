@@ -9,8 +9,8 @@ import (
 
 	"github.com/gregjones/httpcache"
 	"github.com/gregjones/httpcache/diskcache"
-	"github.com/lnbits/lnbits/events"
-	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/infinity/events"
+	"github.com/lnbits/infinity/models"
 	"github.com/rs/zerolog"
 )
 

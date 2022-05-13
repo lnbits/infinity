@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/utils"
 	"gopkg.in/antage/eventsource.v1"
 )
 

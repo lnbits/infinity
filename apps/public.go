@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/lnbits/lnbits/api/apiutils"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/api/apiutils"
+	"github.com/lnbits/infinity/utils"
 	"gopkg.in/antage/eventsource.v1"
 )
 

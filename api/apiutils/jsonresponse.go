@@ -3,7 +3,7 @@ package apiutils
 import (
 	"net/http"
 
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/utils"
 )
 
 func SendJSON(w http.ResponseWriter, value interface{}) error {

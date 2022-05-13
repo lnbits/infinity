@@ -3,8 +3,8 @@ package events
 import (
 	"os"
 
-	"github.com/lnbits/lnbits/models"
-	"github.com/lnbits/lnbits/storage"
+	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/storage"
 	"github.com/lnbits/relampago"
 	"github.com/rs/zerolog"
 )

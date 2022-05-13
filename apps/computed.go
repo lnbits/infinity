@@ -3,7 +3,7 @@ package apps
 import (
 	"fmt"
 
-	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/infinity/models"
 )
 
 func fillComputedValues(item models.AppDataItem) error {

@@ -3,7 +3,7 @@ package storage
 import (
 	"strings"
 
-	"github.com/lnbits/lnbits/models"
+	"github.com/lnbits/infinity/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/aarzilli/golua/lua"
-	"github.com/lnbits/lnbits/utils"
+	"github.com/lnbits/infinity/utils"
 )
 
 var (

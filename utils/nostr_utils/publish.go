@@ -5,7 +5,7 @@ import (
 	"time"
 
 	nostr "github.com/fiatjaf/go-nostr"
-	"github.com/lnbits/lnbits/events"
+	"github.com/lnbits/infinity/events"
 )
 
 type EventRelay struct {
