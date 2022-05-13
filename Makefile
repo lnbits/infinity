@@ -8,4 +8,4 @@ build-dev: $(shell find . -name "*.go")
 	go build -tags=noembed,lua53 -ldflags="'-static' -X main.commit=dev" -o lnbits-dev
 
 client/dist/spa/index.html: $(shell find client/src/ -maxdepth 2 -name "*.js" -or -name "*.vue")
-	cd client && quasar build --debug
+	cd client && ./node_modules/.bin/quasar build --debug

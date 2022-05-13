@@ -42,7 +42,7 @@ Finally, open two terminals. In one, do
 
 ```sh
 cd client
-quasar dev -p 6001
+./node_modules/.bin/quasar dev -p 6001
 ```
 
 on the other, do
