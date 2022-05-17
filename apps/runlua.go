@@ -11,6 +11,7 @@ import (
 
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
+	decodepay "github.com/fiatjaf/ln-decodepay"
 	"github.com/fiatjaf/lunatico"
 	"github.com/lnbits/infinity/services"
 	"github.com/lnbits/infinity/utils"
@@ -90,6 +91,7 @@ return {
 		"feed_parse":              utils.ParseFeed,
 		"html_escape":             html.EscapeString,
 		"html_unescape":           html.UnescapeString,
+		"decode_invoice":          decodepay.Decodepay,
 	}
 
 	if params.InjectedGlobals != nil {
@@ -240,6 +242,7 @@ utils = {
   aes_decrypt = aes_decrypt,
   html_escape = html_escape,
   html_unescape = html_unescape,
+  decode_invoice = decode_invoice,
   snigirev_encrypt = snigirev_encrypt,
   snigirev_decrypt = snigirev_decrypt,
   perform_key_auth_flow = perform_key_auth_flow,

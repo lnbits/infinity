@@ -8,13 +8,13 @@ require (
 	github.com/fiatjaf/bip340 v1.1.1
 	github.com/fiatjaf/go-lnurl v1.7.2
 	github.com/fiatjaf/go-nostr v0.6.3
-	github.com/fiatjaf/ln-decodepay v1.1.0
+	github.com/fiatjaf/lightningd-gjson-rpc v1.5.0 // indirect
+	github.com/fiatjaf/ln-decodepay v1.4.0
 	github.com/fiatjaf/lunatico v1.5.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lnbits/relampago v0.3.1
 	github.com/lucsky/cuid v1.2.1
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
