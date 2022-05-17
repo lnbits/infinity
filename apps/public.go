@@ -57,6 +57,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 
 	// add special params
 	params["_url"] = getOriginalURL(r).String()
+	params["_action"] = action
 
 	returned, err := runlua(RunluaParams{
 		AppURL:          app,
