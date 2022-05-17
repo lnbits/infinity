@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/lnbits/infinity/models"
@@ -11,6 +12,10 @@ import (
 )
 
 func DBGet(wallet, app, model, key string) (map[string]interface{}, error) {
+	if key == "" {
+		return nil, errors.New("key cannot be empty")
+	}
+
 	item := models.AppDataItem{
 		WalletID: wallet,
 		App:      app,
@@ -58,6 +63,10 @@ func DBList(wallet, app, model, startkey, endkey string) ([]models.AppDataItem, 
 }
 
 func DBSet(wallet, app, model, key string, value map[string]interface{}) error {
+	if key == "" {
+		return errors.New("key cannot be empty")
+	}
+
 	item := models.AppDataItem{
 		WalletID: wallet,
 		App:      app,
@@ -100,6 +109,10 @@ func DBAdd(wallet, app, model string, value map[string]interface{}) (string, err
 }
 
 func DBUpdate(wallet, app, model, key string, updates map[string]interface{}) error {
+	if key == "" {
+		return errors.New("key cannot be empty")
+	}
+
 	value, err := DBGet(wallet, app, model, key)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %w", key, err)
@@ -113,6 +126,10 @@ func DBUpdate(wallet, app, model, key string, updates map[string]interface{}) er
 }
 
 func DBDelete(wallet, app, model, key string) error {
+	if key == "" {
+		return errors.New("key cannot be empty")
+	}
+
 	item := models.AppDataItem{
 		WalletID: wallet,
 		App:      app,
