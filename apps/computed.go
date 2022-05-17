@@ -7,7 +7,7 @@ import (
 )
 
 func fillComputedValues(item models.AppDataItem) error {
-	settings, err := GetAppSettings(item.App)
+	settings, err := GetAppSettings(item.App, false)
 	if err != nil {
 		return fmt.Errorf("failed to get app settings for %s: %w", item.App, err)
 	}

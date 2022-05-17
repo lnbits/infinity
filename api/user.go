@@ -92,7 +92,7 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try to fetch settings for this app first
-	if _, err := apps.GetAppSettings(params.URL); err != nil {
+	if _, err := apps.GetAppSettings(params.URL, true); err != nil {
 		apiutils.SendJSONError(w, 470, "failed to run app: %s", err.Error())
 		return
 	}

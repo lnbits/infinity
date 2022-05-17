@@ -20,12 +20,14 @@ func getCachedAppSettings(url string) *Settings {
 	return nil
 }
 
-func GetAppSettings(url string) (*Settings, error) {
+func GetAppSettings(url string, force bool) (*Settings, error) {
 	if settings, ok := settingsCache.Get(url); ok {
-		if settings == nil {
-			return nil, CachedFailure
-		} else {
-			return settings.(*Settings), nil
+		if !force {
+			if settings == nil {
+				return nil, CachedFailure
+			} else {
+				return settings.(*Settings), nil
+			}
 		}
 	}
 

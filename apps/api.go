@@ -18,7 +18,7 @@ type KeyValue struct {
 func Info(w http.ResponseWriter, r *http.Request) {
 	app := appIDToURL(mux.Vars(r)["appid"])
 
-	settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app, false)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return

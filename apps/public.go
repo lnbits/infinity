@@ -37,7 +37,7 @@ func CustomAction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app, false)
 	if err != nil {
 		apiutils.SendJSONError(w, 400, "failed to get app settings: %s", err.Error())
 		return
@@ -158,7 +158,7 @@ func StaticFile(w http.ResponseWriter, r *http.Request) {
 	app := appIDToURL(mux.Vars(r)["appid"])
 	subpath := "/" + strings.Join(strings.Split(r.URL.Path, "/")[4:], "/")
 
-	settings, err := GetAppSettings(app)
+	settings, err := GetAppSettings(app, false)
 	if err != nil {
 		http.Error(w, "failed to get app settings: "+err.Error(), 420)
 		return
