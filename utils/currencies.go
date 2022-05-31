@@ -37,6 +37,7 @@ func GetMsatsPerFiatUnit(currencyCode string) (int64, error) {
 	coinbase := getPrice(ctx, "https://api.coinbase.com/v2/exchange-rates?currency=BTC", "data.rates."+upper)
 	coinmate := getPrice(ctx, "https://coinmate.io/api/ticker?currencyPair=BTC_"+upper, "data.last")
 	kraken := getPrice(ctx, "https://api.kraken.com/0/public/Ticker?pair=XBT"+upper, "result.XXBTZ"+upper+".c.0")
+	exir := getPrice(ctx, "https://api.exir.io/v1/ticker?symbol=btc-"+lower, "last")
 
 	var fiatPerBTC float64
 
@@ -46,6 +47,7 @@ func GetMsatsPerFiatUnit(currencyCode string) (int64, error) {
 	case fiatPerBTC = <-coinbase:
 	case fiatPerBTC = <-coinmate:
 	case fiatPerBTC = <-kraken:
+	case fiatPerBTC = <-exir:
 	case <-time.After(time.Second * 3):
 		return 0, errors.New("couldn't get BTC price for " + currencyCode)
 	}
@@ -154,6 +156,7 @@ var CURRENCIES = []string{
 	"IMP",
 	"INR",
 	"IQD",
+	"IRT",
 	"ISK",
 	"JEP",
 	"JMD",
