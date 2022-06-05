@@ -1,14 +1,14 @@
 import store from './store'
 import {appURLToId} from './helpers'
 
-const request = async (path, opts = {}) => {
+const request = async (path, opts = {}, key = null) => {
   opts.headers = opts.headers || {}
 
   if (path.startsWith('/api/wallet')) {
-    opts.headers['X-API-Key'] = store.state.wallet.adminkey
+    opts.headers['X-API-Key'] = key || store.state.wallet.adminkey
   } else if (path.startsWith('/api/user')) {
-    const key = new URLSearchParams(location.search).get('key')
-    if (key) opts.headers['X-MasterKey'] = key
+    opts.headers['X-MasterKey'] =
+      key || new URLSearchParams(location.search).get('key')
   }
 
   const r = await fetch(path, opts)
@@ -42,7 +42,7 @@ const request = async (path, opts = {}) => {
 
 export const loadSettings = async () => await request('/v/settings')
 
-export const loadUser = async () => await request('/api/user')
+export const loadUser = async key => await request('/api/user', {}, key)
 
 export const createWallet = async name =>
   await request('/api/user/create-wallet', {

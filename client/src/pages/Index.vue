@@ -40,6 +40,38 @@
           </q-card-section>
         </q-card>
 
+        <q-card v-if="storedKeys.length > 0">
+          <q-card-section>
+            <h5 class="q-my-md">Accounts previously used on this browser</h5>
+            <div class="q-pa-md" style="max-width: 350px">
+              <q-list bordered separator>
+                <q-item
+                  v-for="key in storedKeys"
+                  :key="key"
+                  v-ripple
+                  clickable
+                  @click="useKey(key)"
+                >
+                  <q-item-section>
+                    <q-item-label>
+                      <span v-if="walletsForKey[key]">Wallets: </span>
+                      <span
+                        v-for="wname in walletsForKey[key]"
+                        :key="wname"
+                        class="q-mr-xs text-weight-bold"
+                        >"{{ wname }}"
+                      </span>
+                    </q-item-label>
+                    <q-item-label caption>
+                      Master Key: {{ key.slice(0, 7) }}...
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </div>
+          </q-card-section>
+        </q-card>
+
         <q-card>
           <q-card-section>
             <h3 class="q-my-none">{{ $store.state.settings.siteTitle }}</h3>
@@ -231,20 +263,25 @@
 </template>
 
 <script>
+import {LocalStorage} from 'quasar'
 import {notifyError} from '../helpers'
-import {createWallet} from '../api'
+import {createWallet, loadUser} from '../api'
 
 export default {
   name: 'PageIndex',
   data() {
     return {
       lnurlvoucher: new URLSearchParams(location.search).get('lightning'),
-      disclaimerDialog: {
-        show: false,
-        data: {}
-      },
-      walletName: ''
+      walletName: '',
+      storedKeys: LocalStorage.getItem('lnbits.storedkeys') || [],
+      walletsForKey: {}
     }
+  },
+  created() {
+    this.storedKeys.forEach(async key => {
+      const userData = await loadUser(key)
+      this.walletsForKey[key] = userData.wallets.map(w => w.name)
+    })
   },
   methods: {
     async createWallet() {
@@ -253,6 +290,8 @@ export default {
         const query = {...this.$route.query}
         if (userMasterKey) {
           query.key = userMasterKey
+          this.storedKeys.unshift(userMasterKey)
+          LocalStorage.set('lnbits.storedkeys', this.storedKeys)
         }
         this.$store.commit('setWallet', wallet)
         await this.$router.push({path: `/wallet/${wallet.id}`, query})
@@ -261,6 +300,18 @@ export default {
       }
 
       await this.$store.dispatch('fetchUser')
+    },
+    async useKey(key) {
+      const query = {...this.$route.query, key}
+      await this.$router.replace({
+        path: this.$route.path,
+        query
+      })
+      await this.$store.dispatch('fetchUser')
+      this.$router.push({
+        path: `/wallet/${this.$store.state.wallet.id}`,
+        query
+      })
     },
     processing() {
       this.$q.notify({

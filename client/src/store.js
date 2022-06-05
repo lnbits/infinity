@@ -16,7 +16,7 @@ export default createStore({
     }
   },
   getters: {
-    getDebugMessages (state) {
+    getDebugMessages(state) {
       return state.debugMessages
     }
   },
@@ -43,7 +43,10 @@ export default createStore({
     },
     addDebugMessage(state, message) {
       const date = new Date(message.time)
-      state.debugMessages.push({text: message.text, time: date.toLocaleString()})
+      state.debugMessages.push({
+        text: message.text,
+        time: date.toLocaleString()
+      })
     }
   },
   actions: {
@@ -68,7 +71,8 @@ export default createStore({
       document.querySelector('title').innerHTML = settings.siteTitle
     },
     async fetchUser({state, dispatch, commit}) {
-      if (!new URLSearchParams(location.search).get('key')) return
+      const key = new URLSearchParams(location.search).get('key')
+      if (!key) return
 
       let user
       try {
@@ -77,6 +81,11 @@ export default createStore({
         notifyError(err)
       }
       commit('setUser', user)
+
+      let keys = LocalStorage.getItem('lnbits.storedkeys')
+      keys = keys.filter(k => k !== key)
+      keys.unshift(key)
+      LocalStorage.set('lnbits.storedkeys', keys)
 
       if (!state.wallet) {
         commit('setWallet', user.wallets[0])
