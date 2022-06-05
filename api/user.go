@@ -7,9 +7,8 @@ import (
 	"github.com/lnbits/infinity/api/apiutils"
 	"github.com/lnbits/infinity/apps"
 	"github.com/lnbits/infinity/models"
+	"github.com/lnbits/infinity/services"
 	"github.com/lnbits/infinity/storage"
-	"github.com/lnbits/infinity/utils"
-	"github.com/lucsky/cuid"
 )
 
 func User(w http.ResponseWriter, r *http.Request) {
@@ -35,21 +34,6 @@ func User(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
-	var masterKey string
-	user := &models.User{}
-
-	if r.Context().Value("user") != nil {
-		user = r.Context().Value("user").(*models.User)
-	} else {
-		// create user
-		user.ID = cuid.Slug()
-		user.Apps = make(models.StringList, 0)
-		masterKey = utils.RandomHex(32) // will only be returned if we're creating the user
-		user.MasterKey = masterKey
-		storage.DB.Create(user)
-	}
-
-	// create wallet
 	var params struct {
 		Name string `json:"name"`
 	}
@@ -58,22 +42,32 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wallet := models.Wallet{
-		ID:         cuid.Slug(),
-		Name:       params.Name,
-		UserID:     user.ID,
-		InvoiceKey: utils.RandomHex(32),
-		AdminKey:   utils.RandomHex(32),
+	var masterKey string
+	user := &models.User{}
+
+	if r.Context().Value("user") != nil {
+		user = r.Context().Value("user").(*models.User)
+	} else {
+		// create user
+		var err error
+		user, err = services.CreateUser()
+		if err != nil {
+			apiutils.SendJSONError(w, 500, "error saving user: %s", err.Error())
+			return
+		}
+		masterKey = user.MasterKey
 	}
-	result := storage.DB.Create(&wallet)
-	if result.Error != nil {
-		apiutils.SendJSONError(w, 400, "error saving wallet: %s", result.Error.Error())
+
+	// create wallet
+	wallet, err := services.CreateWallet(user.ID, params.Name)
+	if err != nil {
+		apiutils.SendJSONError(w, 500, "error saving wallet: %s", err.Error())
 		return
 	}
 
 	apiutils.SendJSON(w, struct {
-		UserMasterKey string        `json:"userMasterKey"`
-		Wallet        models.Wallet `json:"wallet"`
+		UserMasterKey string         `json:"userMasterKey"`
+		Wallet        *models.Wallet `json:"wallet"`
 	}{
 		masterKey,
 		wallet,

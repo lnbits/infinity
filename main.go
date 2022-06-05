@@ -92,6 +92,8 @@ func main() {
 	go routines()
 
 	// serve http routes
+	//
+	// api
 	router.Path("/v/settings").HandlerFunc(viewSettings)
 	router.Path("/api/user").HandlerFunc(api.User)
 	router.Path("/api/user/create-wallet").HandlerFunc(api.CreateWallet)
@@ -108,7 +110,6 @@ func main() {
 	router.Path("/api/wallet/lnurlscan/{code}").HandlerFunc(api.LnurlScan)
 	router.Path("/api/wallet/sse").HandlerFunc(api.SSE)
 	router.Path("/lnurl/wallet/drain").HandlerFunc(api.DrainFunds)
-
 	// app endpoints
 	router.Path("/api/wallet/app/sse").HandlerFunc(apps.SSE)
 	router.Path("/api/wallet/app/{appid}").HandlerFunc(apps.Info)
@@ -122,6 +123,8 @@ func main() {
 	router.Path("/ext/{wallet}/{appid}/action/{action}").HandlerFunc(apps.CustomAction)
 	router.Path("/ext/{wallet}/{appid}/sse").HandlerFunc(apps.PublicSSE)
 	router.PathPrefix("/ext/{wallet}/{appid}/").HandlerFunc(apps.StaticFile)
+	// instawallet
+	router.Path("/lnurlwallet").HandlerFunc(instawallet)
 
 	// middleware
 	router.Use(handlers.ProxyHeaders)

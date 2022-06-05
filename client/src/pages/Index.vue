@@ -4,17 +4,25 @@
       <div class="col-12 col-md-7 col-lg-6 q-gutter-y-md">
         <q-card>
           <q-card-section>
-            <q-btn
-              v-if="lnurlvoucher"
-              unelevated
-              color="primary"
-              type="a"
-              :href="'/lnurlwallet?=' + lnurlvoucher"
-              @click="processing"
-            >
-              Press to claim bitcoin
-            </q-btn>
-            <q-form class="q-gutter-md" @submit="createWallet">
+            <div v-if="lnurlvoucher" class="q-gutter-md">
+              <h5 class="q-my-md">
+                You have received a voucher containing some satoshis!
+              </h5>
+              <p>
+                You can click the button below to instantly create a wallet on
+                this site and redeem the voucher.
+              </p>
+              <q-btn
+                unelevated
+                color="primary"
+                type="a"
+                :href="'/lnurlwallet?lightning=' + lnurlvoucher"
+                @click="processing"
+              >
+                Claim your satoshis
+              </q-btn>
+            </div>
+            <q-form v-else class="q-gutter-md" @submit="createWallet">
               <q-input
                 v-model="walletName"
                 filled
@@ -213,8 +221,7 @@
                   ></q-img>
                 </a>
               </div>
-              <div class="col q-pl-md">
-              </div>
+              <div class="col q-pl-md"></div>
             </div>
           </div>
         </div>
