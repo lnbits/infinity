@@ -91,6 +91,9 @@ func main() {
 	// start routines
 	go routines()
 
+	// do an initial check for pending invoices and payments
+	go initialPaymentCheck()
+
 	// serve http routes
 	//
 	// api
