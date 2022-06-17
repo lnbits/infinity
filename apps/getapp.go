@@ -14,19 +14,23 @@ var CachedFailure = errors.New("cached-failure")
 var settingsCache = cache2go.New(AppCacheSize, time.Minute*45)
 
 func getCachedAppSettings(url string) *Settings {
-	if settings, ok := settingsCache.Get(url); ok && settings != nil {
-		return settings.(*Settings)
+	if AppCacheSize > 0 {
+		if settings, ok := settingsCache.Get(url); ok && settings != nil {
+			return settings.(*Settings)
+		}
 	}
 	return nil
 }
 
 func GetAppSettings(url string, force bool) (*Settings, error) {
-	if settings, ok := settingsCache.Get(url); ok {
-		if !force {
-			if settings == nil {
-				return nil, CachedFailure
-			} else {
-				return settings.(*Settings), nil
+	if AppCacheSize > 0 {
+		if settings, ok := settingsCache.Get(url); ok {
+			if !force {
+				if settings == nil {
+					return nil, CachedFailure
+				} else {
+					return settings.(*Settings), nil
+				}
 			}
 		}
 	}
@@ -61,21 +65,20 @@ func GetAppSettings(url string, force bool) (*Settings, error) {
 	// transform data
 	settings.normalize()
 
-	if AppCacheSize > 0 {
-		settingsCache.Set(url, &settings)
-	}
-
+	settingsCache.Set(url, &settings)
 	return &settings, nil
 }
 
 var codeCache = cache2go.New(AppCacheSize/3, time.Minute*45)
 
 func getAppCode(url string) (string, error) {
-	if code, ok := codeCache.Get(url); ok {
-		if code == nil {
-			return "", CachedFailure
-		} else {
-			return code.(string), nil
+	if AppCacheSize > 0 {
+		if code, ok := codeCache.Get(url); ok {
+			if code == nil {
+				return "", CachedFailure
+			} else {
+				return code.(string), nil
+			}
 		}
 	}
 
