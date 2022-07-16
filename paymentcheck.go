@@ -20,21 +20,22 @@ func initialPaymentCheck() {
 		return
 	}
 
+	log.Info().Msgf("will check %d payments")
 	for _, payment := range payments {
-		log := log.With().Str("id", payment.CheckingID).Int64("amount", payment.Amount).Logger()
+		log := log.With().Str("id", payment.CheckingID).Logger()
+		log.Info().Int64("amount", payment.Amount).Msg("checking")
 
 		if payment.Amount > 0 {
 			status, err := lightning.LN.GetInvoiceStatus(payment.CheckingID)
 			if err != nil {
 				log.Warn().Err(err).Msg("failed to get invoice status")
-				return
+				continue
 			}
 			if status.Paid {
-				payment.Pending = false
 				log.Info().Msg("invoice paid, updating")
-				result = storage.DB.Save(payment)
+				result = storage.DB.Set("pending", false).Where("checkingID", payment.CheckingID)
 			} else {
-				return
+				continue
 			}
 
 			if result.Error != nil {
@@ -46,18 +47,17 @@ func initialPaymentCheck() {
 			status, err := lightning.LN.GetPaymentStatus(payment.CheckingID)
 			if err != nil {
 				log.Warn().Err(err).Msg("failed to get payment status")
-				return
+				continue
 			}
 			if status.Status == relampago.Complete {
-				payment.Pending = false
 				log.Info().Str("preimage", status.Preimage).Msg("payment complete, updating")
-				result = storage.DB.Save(payment)
+				result = storage.DB.Set("pending", false).Where("checkingID", payment.CheckingID)
 			} else if status.Status == relampago.Failed {
 				log.Info().Msg("payment failed, deleting")
-				result = storage.DB.Delete(payment)
+				result = storage.DB.Delete(&models.Payment{}).Where("checkingID", payment.CheckingID)
 			} else {
 				log.Info().Interface("status", status.Status).Msg("payment not complete or failed")
-				return
+				continue
 			}
 
 			if result.Error != nil {
