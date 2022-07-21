@@ -73,17 +73,15 @@ func main() {
 	}
 
 	// lightning backend
-	go func() {
-		lightning.Connect(s.LightningBackend)
-		if info, err := lightning.LN.GetInfo(); err != nil {
-			log.Fatal().Err(err).Str("lightning", s.LightningBackend).
-				Msg("couldn't start lightning backend.")
-			return
-		} else {
-			log.Info().Int64("msat", info.Balance).Str("kind", lightning.LN.Kind()).
-				Msg("initialized lightning backend")
-		}
-	}()
+	lightning.Connect(s.LightningBackend)
+	if info, err := lightning.LN.GetInfo(); err != nil {
+		log.Fatal().Err(err).Str("lightning", s.LightningBackend).
+			Msg("couldn't start lightning backend.")
+		return
+	} else {
+		log.Info().Int64("msat", info.Balance).Str("kind", lightning.LN.Kind()).
+			Msg("initialized lightning backend")
+	}
 
 	// start nostr
 	nostr_utils.Start()
