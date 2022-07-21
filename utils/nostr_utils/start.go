@@ -3,8 +3,8 @@ package nostr_utils
 import (
 	"crypto/sha256"
 	"fmt"
+	"log"
 
-	"github.com/fiatjaf/bip340"
 	nostr "github.com/fiatjaf/go-nostr"
 	"github.com/lnbits/infinity/events"
 )
@@ -16,8 +16,11 @@ func Start() {
 
 	privateKeyBytes := sha256.Sum256([]byte(Secret + ":nostrkey"))
 	privateKeyHex := fmt.Sprintf("%x", privateKeyBytes[:])
-	privateKeyN, _ := bip340.ParsePrivateKey(privateKeyHex)
-	publicKey := bip340.GetPublicKey(privateKeyN)
+	publicKey, err := nostr.GetPublicKey(privateKeyHex)
+	if err != nil {
+		log.Fatal("failed to get nostr public key from private: ", err)
+		return
+	}
 
 	pool.SecretKey = &privateKeyHex
 

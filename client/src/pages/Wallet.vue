@@ -1065,8 +1065,7 @@ export default {
 
       try {
         await payLnurl({
-          callback: this.parse.lnurlpay.callback,
-          descriptionHash: this.parse.lnurlpay.description_hash,
+          params: this.parse.lnurlpay.params,
           msatoshi: this.parse.data.amount * 1000,
           description: this.parse.lnurlpay.description.slice(0, 120),
           comment: this.parse.data.comment

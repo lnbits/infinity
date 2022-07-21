@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	decodepay "github.com/fiatjaf/ln-decodepay"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/lnbits/infinity/models"
 	"github.com/lnbits/infinity/storage"
 )

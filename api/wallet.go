@@ -206,16 +206,16 @@ func PayLnurl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var params struct {
-		Params  lnurl.LNURLPayParams `json:"params"`
-		Amount  int64                `json:"amount"`
-		Comment string               `json:"comment"`
+		Params   lnurl.LNURLPayParams `json:"params"`
+		Msatoshi int64                `json:"msatoshi"`
+		Comment  string               `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		apiutils.SendJSONError(w, 400, "got invalid JSON: %s", err.Error())
 		return
 	}
 
-	values, err := params.Params.Call(params.Amount, params.Comment, nil)
+	values, err := params.Params.Call(params.Msatoshi, params.Comment, nil)
 	if err != nil {
 		apiutils.SendJSONError(w, 450, "failed to get lnurl invoice: %s", err.Error())
 		return
@@ -296,11 +296,11 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 		Callback string `json:"callback,omitempty"`
 
 		// pay
-		DescriptionHashHex string `json:"description_hash,omitempty"`
-		Description        string `json:"description,omitempty"`
-		Image              string `json:"image,omitempty"`
-		TargetUser         string `json:"targetUser,omitempty"`
-		CommentAllowed     int    `json:"commentAllowed,omitempty"`
+		Params         lnurl.LNURLPayParams `json:"payParams"`
+		Description    string               `json:"description,omitempty"`
+		Image          string               `json:"image,omitempty"`
+		TargetUser     string               `json:"targetUser,omitempty"`
+		CommentAllowed int                  `json:"commentAllowed,omitempty"`
 
 		// withdraw
 		BalanceCheck string `json:"balanceCheck,omitempty"`
@@ -314,11 +314,8 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 	switch params := lnurlParams.(type) {
 	case lnurl.LNURLPayParams:
 		response.Kind = "pay"
+		response.Params = params
 		response.Fixed = params.MinSendable == params.MaxSendable
-
-		h := params.HashMetadata()
-		response.DescriptionHashHex = hex.EncodeToString(h[:])
-
 		response.Description = params.Metadata.Description
 		response.Image = params.Metadata.Image.DataURI
 		response.TargetUser = params.Metadata.LightningAddress
@@ -327,7 +324,6 @@ func LnurlScan(w http.ResponseWriter, r *http.Request) {
 		response.Kind = "withdraw"
 		response.Fixed = params.MinWithdrawable == params.MaxWithdrawable
 		response.BalanceCheck = params.BalanceCheck
-
 		callback := params.CallbackURL
 		qs := callback.Query()
 		qs.Set("k1", params.K1)

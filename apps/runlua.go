@@ -11,7 +11,7 @@ import (
 
 	"github.com/aarzilli/golua/lua"
 	"github.com/fiatjaf/go-lnurl"
-	decodepay "github.com/fiatjaf/ln-decodepay"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/fiatjaf/lunatico"
 	"github.com/lnbits/infinity/services"
 	"github.com/lnbits/infinity/utils"

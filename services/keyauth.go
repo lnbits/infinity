@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
 )
 
 func AuthKey(walletID string, domain string) *btcec.PrivateKey {
@@ -15,7 +15,7 @@ func AuthKey(walletID string, domain string) *btcec.PrivateKey {
 
 	linkingKey := h.Sum(nil)
 
-	priv, _ := btcec.PrivKeyFromBytes(btcec.S256(), linkingKey)
+	priv, _ := btcec.PrivKeyFromBytes(linkingKey)
 
 	return priv
 }
