@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/lnbits/relampago v0.3.3
+	github.com/lnbits/relampago v0.3.4
 	github.com/lucsky/cuid v1.2.1
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/nbd-wtf/ln-decodepay v1.5.1
@@ -61,7 +61,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fergusstrange/embedded-postgres v1.10.0 // indirect
 	github.com/fiatjaf/eclair-go v0.2.3 // indirect
-	github.com/fiatjaf/go-cliche v0.3.0 // indirect
+	github.com/fiatjaf/go-cliche v0.3.1 // indirect
 	github.com/fiatjaf/lightningd-gjson-rpc v1.6.0 // indirect
 	github.com/fiatjaf/ln-decodepay v1.5.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect

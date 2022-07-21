@@ -20,7 +20,7 @@ func initialPaymentCheck() {
 		return
 	}
 
-	log.Info().Msgf("will check %d payments")
+	log.Info().Msgf("will check %d payments", len(payments))
 	for _, payment := range payments {
 		log := log.With().Str("id", payment.CheckingID).Logger()
 		log.Info().Int64("amount", payment.Amount).Msg("checking")
