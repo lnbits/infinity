@@ -33,7 +33,7 @@ func initialPaymentCheck() {
 			}
 			if status.Paid {
 				log.Info().Msg("invoice paid, updating")
-				result = storage.DB.Set("pending", false).Where("checkingID", payment.CheckingID)
+				result = storage.DB.Where("checkingID = ?", payment.CheckingID).Update("pending", false)
 			} else {
 				continue
 			}
@@ -51,10 +51,10 @@ func initialPaymentCheck() {
 			}
 			if status.Status == relampago.Complete {
 				log.Info().Str("preimage", status.Preimage).Msg("payment complete, updating")
-				result = storage.DB.Set("pending", false).Where("checkingID", payment.CheckingID)
+				result = storage.DB.Where("checkingID = ?", payment.CheckingID).Update("pending", false)
 			} else if status.Status == relampago.Failed {
 				log.Info().Msg("payment failed, deleting")
-				result = storage.DB.Delete(&models.Payment{}).Where("checkingID", payment.CheckingID)
+				result = storage.DB.Where("checkingID = ?", payment.CheckingID).Delete(&models.Payment{})
 			} else {
 				log.Info().Interface("status", status.Status).Msg("payment not complete or failed")
 				continue
