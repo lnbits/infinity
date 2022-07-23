@@ -27,8 +27,9 @@ type LightningBackendSettings struct {
 	EclairHost     string `envconfig:"ECLAIR_HOST"`
 	EclairPassword string `envconfig:"ECLAIR_PASSWORD"`
 
-	ClicheJARPath string `envconfig:"CLICHE_JAR_PATH"`
-	ClicheDataDir string `envconfig:"CLICHE_DATADIR"`
+	ClicheJARPath    string `envconfig:"CLICHE_JAR_PATH"`
+	ClicheBinaryPath string `envconfig:"CLICHE_BINARY_PATH"`
+	ClicheDataDir    string `envconfig:"CLICHE_DATADIR"`
 }
 
 func Connect(backendType string) {
@@ -60,8 +61,9 @@ func Connect(backendType string) {
 		})
 	case "cliche", "cliché":
 		LN, err = cliche.Start(cliche.Params{
-			JARPath: lbs.ClicheJARPath,
-			DataDir: lbs.ClicheDataDir,
+			JARPath:    lbs.ClicheJARPath,
+			BinaryPath: lbs.ClicheBinaryPath,
+			DataDir:    lbs.ClicheDataDir,
 		})
 	case "lnbits":
 	default:
